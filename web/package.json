@@ -1,17 +1,27 @@
 {
   "name": "nuxt-app",
   "private": true,
-  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "openapi": "openapi --input ./api/docs/swagger.json --output ./api --client axios",
+    "fetch-docs": "node ./api/docs/fetch.js",
+    "fetch-codegen": "yarn fetch-docs && yarn openapi"
   },
   "devDependencies": {
+    "daisyui": "^4.6.0",
     "nuxt": "^3.9.3",
+    "openapi-typescript-codegen": "^0.27.0",
     "vue": "^3.4.14",
     "vue-router": "^4.2.5"
+  },
+  "dependencies": {
+    "@nuxtjs/tailwindcss": "^6.10.4",
+    "@types/node": "^20.11.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
   }
 }
