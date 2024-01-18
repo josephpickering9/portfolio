@@ -2,5 +2,18 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
-  modules: ['@nuxtjs/tailwindcss'],
+  runtimeConfig: {
+    public: {
+      apiBase: '',
+    }
+  },
+
+  modules: [
+    '@nuxtjs/tailwindcss', 
+    '@pinia/nuxt'
+  ],
+
+  // plugins: [
+  //   '@/plugins/axios-config'
+  // ],
 })

@@ -6,12 +6,23 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { useProjectStore } from '../store/ProjectStore'
 
 export default defineComponent({
   name: 'App',
   data() {
     return {
       search: ''
+    }
+  },
+  methods: {
+    async getProjects() {
+      await useProjectStore().getProjects(this.search)
+    }
+  },
+  watch: {
+    async search() {
+      await this.getProjects()
     }
   }
 })

@@ -20,7 +20,10 @@
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.10.4",
+    "@pinia/nuxt": "^0.5.1",
     "@types/node": "^20.11.5",
+    "axios": "^1.6.5",
+    "pinia": "^2.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   }

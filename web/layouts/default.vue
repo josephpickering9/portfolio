@@ -10,8 +10,8 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import HeaderBar from '~/components/navigation/HeaderBar.vue'
-import FooterBar from '~/components/navigation/FooterBar.vue'
+import HeaderBar from '../components/navigation/HeaderBar.vue'
+import FooterBar from '../components/navigation/FooterBar.vue'
 
 export default defineComponent({
     name: 'DefaultLayout',

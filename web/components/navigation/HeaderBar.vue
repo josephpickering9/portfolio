@@ -2,9 +2,10 @@
     <div class="navbar bg-base-100">
         <div class="flex-1">
             <a class="btn btn-ghost text-xl">Work Experience</a>
+            <a href="#" class="border border-dashed rounded-full h-6 w-6 flex justify-center items-center">+</a>
         </div>
         <div class="flex-none gap-2">
-            <div class="form-control">
+            <div v-if="$route.path !== '/'" class="form-control">
                 <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
             </div>
             <div class="dropdown dropdown-end">
@@ -13,7 +14,7 @@
                         <img alt="Profile" src="~/assets/img/joe.png" />
                     </div>
                 </div>
-                <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                <ul tabindex="0" class="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52 border">
                     <li><a>Profile</a></li>
                     <li><a>Settings</a></li>
                     <li><a>Logout</a></li>
