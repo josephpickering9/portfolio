@@ -2,6 +2,10 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  app: {
+    pageTransition: { name: 'page', mode: 'out-in' }
+  },
+
   runtimeConfig: {
     public: {
       apiBase: '',
@@ -12,8 +16,4 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss', 
     '@pinia/nuxt'
   ],
-
-  // plugins: [
-  //   '@/plugins/axios-config'
-  // ],
 })

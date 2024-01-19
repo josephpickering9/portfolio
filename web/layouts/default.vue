@@ -1,8 +1,10 @@
 <template>
-    <div class="flex flex-col h-screen">
+    <div class="flex flex-col min-h-screen">
         <HeaderBar />
         <main class="container mx-auto flex flex-col flex-grow">
-            <slot />
+            <div class="flex flex-grow justify-center items-center py-4">
+                <slot />
+            </div>
         </main>
         <FooterBar />
     </div>

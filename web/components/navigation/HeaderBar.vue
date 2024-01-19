@@ -1,8 +1,8 @@
 <template>
     <div class="navbar bg-base-100">
         <div class="flex-1">
-            <a class="btn btn-ghost text-xl">Work Experience</a>
-            <a href="#" class="border border-dashed rounded-full h-6 w-6 flex justify-center items-center">+</a>
+            <NuxtLink to="/" class="btn btn-ghost text-xl">Work Experience</NuxtLink>
+            <NuxtLink to="/projects/new" class="border border-dashed rounded-full h-6 w-6 flex justify-center items-center">+</NuxtLink>
         </div>
         <div class="flex-none gap-2">
             <div v-if="$route.path !== '/'" class="form-control">

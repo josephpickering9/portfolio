@@ -12,6 +12,7 @@
     "fetch-codegen": "yarn fetch-docs && yarn openapi"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
     "daisyui": "^4.6.0",
     "nuxt": "^3.9.3",
     "openapi-typescript-codegen": "^0.27.0",
@@ -21,8 +22,12 @@
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.10.4",
     "@pinia/nuxt": "^0.5.1",
+    "@tiptap/pm": "^2.1.16",
+    "@tiptap/starter-kit": "^2.1.16",
+    "@tiptap/vue-3": "^2.1.16",
     "@types/node": "^20.11.5",
     "axios": "^1.6.5",
+    "date-fns": "^3.2.0",
     "pinia": "^2.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"

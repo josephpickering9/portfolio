@@ -1,7 +1,5 @@
 <template>
-    <div class="flex flex-grow justify-center items-center">
-        <input type="text" v-model="search" placeholder="Search" class="input input-bordered w-full max-w-xs" />
-    </div>
+  <input type="text" v-model="search" placeholder="Search" class="input input-bordered w-full max-w-xs" />
 </template>
 
 <script lang="ts">
