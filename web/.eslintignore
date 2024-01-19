@@ -1,0 +1,7 @@
+.github/*
+.husky/*
+.nuxt/*
+.output/*
+dist/*
+node_modules/*
+static/*

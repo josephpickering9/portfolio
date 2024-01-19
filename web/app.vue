@@ -15,7 +15,7 @@ import Notifications from './components/notification/Notifications.vue'
 export default defineComponent({
   name: 'App',
   components: {
-    Notifications
+    Notifications,
   },
 })
 </script>
