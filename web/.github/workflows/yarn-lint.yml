@@ -1,0 +1,18 @@
+name: yarn lint
+on: [push]
+jobs:
+  lint:
+    name: yarn lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '21.6.0'
+
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+
+      - name: Yarn lint
+        run: yarn lint:full
