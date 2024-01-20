@@ -6,9 +6,11 @@ export const extractError = (error: any): string => {
 
     return error.response.data.toString()
   } else if (error.name === 'ApiError') {
-    if (!error.body || typeof error.body !== 'string') return genericMessage
+    if (!error.body || !error.body.errors) return genericMessage
 
-    return error.body.toString()
+    return (Object.values(error.body.errors) as string[][])[0][0] || genericMessage
+  } else if (typeof error === 'string') {
+    return error
   } else {
     return genericMessage
   }

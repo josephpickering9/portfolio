@@ -24,18 +24,18 @@ export class ProjectService {
         });
     }
     /**
-     * @param requestBody
+     * @param formData
      * @returns Project Success
      * @throws ApiError
      */
     public static postProject(
-        requestBody?: Project,
+        formData?: any,
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/project',
-            body: requestBody,
-            mediaType: 'application/json',
+            formData: formData,
+            mediaType: 'multipart/form-data',
         });
     }
     /**

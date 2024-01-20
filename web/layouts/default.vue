@@ -1,8 +1,8 @@
 <template>
   <div class="flex min-h-screen flex-col">
     <HeaderBar />
-    <main class="container mx-auto flex flex-grow flex-col">
-      <div class="flex flex-grow items-center justify-center py-4">
+    <main class="container mx-auto flex flex-grow flex-col overflow-hidden">
+      <div class="relative flex flex-grow py-4">
         <slot />
       </div>
     </main>

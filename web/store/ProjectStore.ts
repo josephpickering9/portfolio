@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import { ProjectService } from '../api/services/ProjectService'
 import { extractError } from '../utils/error-helper'
-import { type Project } from '../api/models/Project'
+import type { Project } from '../api/models/Project'
+import type { CreateProject } from '../api/models/CreateProject'
 
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({
@@ -26,18 +27,18 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectsLoading = false
       }
     },
-    async createProject(project: Project): Promise<Project | undefined> {
+    async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreating) return
 
       let response: Project | undefined
 
       try {
-        this.projectsError = undefined
+        this.projectCreateError = undefined
         this.projectCreating = true
 
         response = await ProjectService.postProject(project)
       } catch (error) {
-        this.projectsError = extractError(error)
+        this.projectCreateError = extractError(error)
       } finally {
         this.projectCreating = false
       }
