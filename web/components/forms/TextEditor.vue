@@ -102,6 +102,13 @@ export default defineComponent({
   components: {
     EditorContent,
   },
+  props: {
+    modelValue: {
+      type: String,
+      required: true,
+    },
+  },
+  emits: ['update:modelValue'],
   data(): Data {
     return {
       editor: null,
@@ -109,13 +116,11 @@ export default defineComponent({
   },
   mounted() {
     // @ts-ignore
-    // this.editor = useEditor({
-    //   content: '',
-    //     extensions: [StarterKit],
-    // })
     this.editor = new Editor({
-      content: '',
       extensions: [StarterKit],
+      onUpdate: ({ editor }) => {
+        this.$emit('update:modelValue', editor.getHTML())
+      },
     })
   },
   beforeUnmount() {

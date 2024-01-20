@@ -4,7 +4,7 @@ import { NotificationType } from '../types/NotificationType'
 
 export const useNotificationStore = defineStore('notificationStore', {
   state: () => ({
-    notifications: [{ message: ' wefwef', seconds: 5, type: NotificationType.SUCCESS }] as Notification[],
+    notifications: [] as Notification[],
   }),
   actions: {
     addNotification(notification: Notification) {
