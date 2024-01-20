@@ -6,9 +6,15 @@ export const extractError = (error: any): string => {
 
     return error.response.data.toString()
   } else if (error.name === 'ApiError') {
-    if (!error.body || !error.body.errors) return genericMessage
+    if (!error.body) return genericMessage
 
-    return (Object.values(error.body.errors) as string[][])[0][0] || genericMessage
+    if (error.body.errors) {
+      return (Object.values(error.body.errors) as string[][])[0][0] || genericMessage
+    } else if (error.body.status === 404) {
+      return 'Record could not be found'
+    } else {
+      return error.body.message || genericMessage
+    }
   } else if (typeof error === 'string') {
     return error
   } else {

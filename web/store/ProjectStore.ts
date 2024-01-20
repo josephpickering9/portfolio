@@ -9,11 +9,14 @@ export const useProjectStore = defineStore('projectStore', {
     projects: [] as Project[],
     projectsLoading: false,
     projectsError: undefined as string | undefined,
+    project: undefined as Project | undefined,
+    projectLoading: false,
+    projectError: undefined as string | undefined,
     projectCreating: false,
     projectCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getProjects(search: string) {
+    async getProjects(search: string): Promise<void> {
       if (!search || this.projectsLoading) return
 
       try {
@@ -27,6 +30,20 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectsLoading = false
       }
     },
+    async getProject(id: number): Promise<void> {
+      if (!id || this.projectLoading) return
+
+      try {
+        this.projectError = undefined
+        this.projectLoading = true
+
+        this.project = await ProjectService.getProjectId(id)
+      } catch (error) {
+        this.projectError = extractError(error)
+      } finally {
+        this.projectLoading = false
+      }
+    },
     async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreating) return
 
@@ -37,6 +54,24 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectCreating = true
 
         response = await ProjectService.postProject(project)
+      } catch (error) {
+        this.projectCreateError = extractError(error)
+      } finally {
+        this.projectCreating = false
+      }
+
+      return response
+    },
+    async updateProject(id: number, project: CreateProject): Promise<Project | undefined> {
+      if (!project || this.projectCreating) return
+
+      let response: Project | undefined
+
+      try {
+        this.projectCreateError = undefined
+        this.projectCreating = true
+
+        response = await ProjectService.putProject(id, project)
       } catch (error) {
         this.projectCreateError = extractError(error)
       } finally {

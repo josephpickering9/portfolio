@@ -3,14 +3,14 @@
 /* tslint:disable */
 /* eslint-disable */
 export type CreateProject = {
-    title?: string | null;
-    shortDescription?: string | null;
-    description?: string | null;
-    company?: string | null;
-    year?: number;
-    website?: string | null;
+    title: string;
+    shortDescription: string;
+    description: string;
+    company: string;
+    year: number;
+    website?: string;
     image?: Blob | null;
     backgroundImage?: Blob | null;
-    tags?: Array<string> | null;
+    tags: Array<string>;
 };
 

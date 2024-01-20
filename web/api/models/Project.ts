@@ -4,15 +4,15 @@
 /* eslint-disable */
 import type { Tag } from './Tag';
 export type Project = {
-    id?: number;
-    title?: string | null;
-    shortDescription?: string | null;
-    description?: string | null;
-    company?: string | null;
+    id: number;
+    title: string;
+    shortDescription: string;
+    description: string;
+    company: string;
     image?: string | null;
     backgroundImage?: string | null;
-    year?: number;
+    year: number;
     website?: string | null;
-    tags?: Array<Tag> | null;
+    tags: Array<Tag>;
 };
 

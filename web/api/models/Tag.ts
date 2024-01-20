@@ -4,10 +4,10 @@
 /* eslint-disable */
 import type { Project } from './Project';
 export type Tag = {
-    id?: number;
-    title?: string | null;
-    type?: string | null;
-    colour?: string | null;
-    projects?: Array<Project> | null;
+    id: number;
+    title: string;
+    type: string;
+    colour: string;
+    projects: Array<Project>;
 };
 

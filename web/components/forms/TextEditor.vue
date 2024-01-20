@@ -128,6 +128,7 @@ export default defineComponent({
   mounted() {
     // @ts-ignore
     this.editor = new Editor({
+      content: this.modelValue,
       extensions: [StarterKit],
       onUpdate: ({ editor }) => {
         this.$emit('update:modelValue', editor.getHTML())
@@ -139,6 +140,13 @@ export default defineComponent({
       this.editor.destroy()
       this.editor = null
     }
+  },
+  watch: {
+    modelValue(value) {
+      if (this.editor) {
+        this.editor.commands.setContent(value)
+      }
+    },
   },
 })
 </script>

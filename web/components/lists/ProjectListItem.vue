@@ -1,3 +1,4 @@
+import type { getImageUrl } from '~/utils/image-helper'; import type { getImageUrl } from '~/utils/image-helper';
 <template>
   <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card w-full max-w-3xl bg-base-100 shadow-xl">
     <div class="card-body">
@@ -19,7 +20,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type { Project } from '../../api/models/Project'
-import { useRuntimeConfig } from '#imports'
+import { getImageUrl } from '../../utils/image-helper'
 
 export default defineComponent({
   name: 'ProjectListItem',
@@ -33,7 +34,7 @@ export default defineComponent({
     image(): string {
       if (!this.project?.image) return undefined
 
-      return `${useRuntimeConfig().public.apiBase}/media/uploads/${this.project.image}`
+      return getImageUrl(this.project.image)
     },
   },
 })

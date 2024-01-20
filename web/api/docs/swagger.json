@@ -196,26 +196,37 @@
         ],
         "requestBody": {
           "content": {
-            "application/json": {
+            "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Project"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/Project"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/Project"
+                "properties": {
+                  "createProject": {
+                    "$ref": "#/components/schemas/CreateProject"
+                  }
+                }
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
           }
         }
       }
@@ -224,31 +235,38 @@
   "components": {
     "schemas": {
       "CreateProject": {
+        "required": [
+          "company",
+          "description",
+          "shortDescription",
+          "tags",
+          "title",
+          "year"
+        ],
         "type": "object",
         "properties": {
           "title": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "shortDescription": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "company": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "year": {
             "type": "integer",
             "format": "int32"
           },
           "website": {
-            "type": "string",
-            "nullable": true
+            "type": "string"
           },
           "image": {
             "type": "string",
@@ -264,13 +282,21 @@
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "Project": {
+        "required": [
+          "company",
+          "description",
+          "id",
+          "shortDescription",
+          "tags",
+          "title",
+          "year"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -278,20 +304,20 @@
             "format": "int32"
           },
           "title": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "shortDescription": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "company": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "image": {
             "type": "string",
@@ -313,13 +339,19 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Tag"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false
       },
       "Tag": {
+        "required": [
+          "colour",
+          "id",
+          "projects",
+          "title",
+          "type"
+        ],
         "type": "object",
         "properties": {
           "id": {
@@ -327,23 +359,22 @@
             "format": "int32"
           },
           "title": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "type": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "colour": {
-            "type": "string",
-            "nullable": true
+            "minLength": 1,
+            "type": "string"
           },
           "projects": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Project"
-            },
-            "nullable": true
+            }
           }
         },
         "additionalProperties": false

@@ -72,22 +72,22 @@ export class ProjectService {
     }
     /**
      * @param id
-     * @param requestBody
-     * @returns any Success
+     * @param formData
+     * @returns Project Success
      * @throws ApiError
      */
     public static putProject(
         id: number,
-        requestBody?: Project,
-    ): CancelablePromise<any> {
+        formData?: any,
+    ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'PUT',
             url: '/project/{id}',
             path: {
                 'id': id,
             },
-            body: requestBody,
-            mediaType: 'application/json',
+            formData: formData,
+            mediaType: 'multipart/form-data',
         });
     }
 }
