@@ -1,10 +1,13 @@
 <template>
-  <label class="form-control w-full">
-    <div v-if="label" class="label">
+  <label v-if="label" class="form-control w-full">
+    <div class="label">
       <span class="label-text">{{ label }}</span>
     </div>
     <slot />
   </label>
+  <div v-else class="w-full">
+    <slot />
+  </div>
 </template>
 
 <script lang="ts">

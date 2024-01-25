@@ -16,8 +16,8 @@ export const useProjectStore = defineStore('projectStore', {
     projectCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getProjects(search: string): Promise<void> {
-      if (!search || this.projectsLoading) return
+    async getProjects(search?: string): Promise<void> {
+      if (this.projectsLoading) return
 
       try {
         this.projectsError = undefined
@@ -79,6 +79,20 @@ export const useProjectStore = defineStore('projectStore', {
       }
 
       return response
+    },
+    async deleteProject(id: number): Promise<void> {
+      if (!id || this.projectCreating) return
+
+      try {
+        this.projectCreateError = undefined
+        this.projectCreating = true
+
+        await ProjectService.deleteProjectId(id)
+      } catch (error) {
+        this.projectCreateError = extractError(error)
+      } finally {
+        this.projectCreating = false
+      }
     },
   },
 })

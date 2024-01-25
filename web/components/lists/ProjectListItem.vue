@@ -1,17 +1,15 @@
-import type { getImageUrl } from '~/utils/image-helper'; import type { getImageUrl } from '~/utils/image-helper';
 <template>
-  <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card w-full max-w-3xl bg-base-100 shadow-xl">
-    <div class="card-body">
-      <div class="flex items-center gap-4">
-        <img v-if="image" :src="image" class="h-6 w-6 rounded-full" />
+  <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card card-bordered w-full bg-base-100 shadow-xl">
+    <figure><img :src="backgroundImage" :alt="`${project.title} Background Image`" class="min-h-[230px]" /></figure>
+    <div class="card-body px-6 pb-4 pt-6">
+      <div class="flex items-center gap-2">
+        <img v-if="project.image" :src="image" class="h-6 w-6" />
         <h2 class="card-title">{{ project.title }}</h2>
-        <small>{{ project.year }}</small>
       </div>
-      <p>{{ project.shortDescription }}</p>
+      <p class="pb-2 text-sm italic">{{ project.shortDescription }}</p>
       <div class="card-actions justify-end">
-        <div v-for="(tag, index) in project.tags" :key="index" class="badge badge-secondary">
-          {{ tag.title }}
-        </div>
+        <Tag v-for="(tag, index) in project.tags.slice(0, 2)" :key="index" :tag="tag" />
+        <small v-if="project.tags.length > 2">+{{ project.tags.length - 2 }}</small>
       </div>
     </div>
   </NuxtLink>
@@ -21,9 +19,13 @@ import type { getImageUrl } from '~/utils/image-helper'; import type { getImageU
 import { defineComponent, type PropType } from 'vue'
 import type { Project } from '../../api/models/Project'
 import { getImageUrl } from '../../utils/image-helper'
+import Tag from '../tags/Tag.vue'
 
 export default defineComponent({
   name: 'ProjectListItem',
+  components: {
+    Tag,
+  },
   props: {
     project: {
       type: Object as PropType<Project>,
@@ -32,9 +34,14 @@ export default defineComponent({
   },
   computed: {
     image(): string {
-      if (!this.project?.image) return undefined
+      if (!this.project?.image) return 'https://via.placeholder.com/320x200'
 
       return getImageUrl(this.project.image)
+    },
+    backgroundImage(): string {
+      if (!this.project?.backgroundImage) return 'https://via.placeholder.com/320x200'
+
+      return getImageUrl(this.project.backgroundImage)
     },
   },
 })

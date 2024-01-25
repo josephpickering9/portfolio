@@ -1,9 +1,11 @@
 <template>
   <div class="flex min-h-screen flex-col">
     <HeaderBar />
-    <main class="container mx-auto flex flex-grow flex-col overflow-hidden">
-      <div class="relative flex flex-grow py-4">
-        <slot />
+    <main class="flex flex-grow overflow-hidden overflow-y-auto">
+      <div class="container mx-auto flex flex-grow flex-col">
+        <div class="relative flex w-full flex-grow py-4">
+          <slot />
+        </div>
       </div>
     </main>
     <FooterBar />
