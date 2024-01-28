@@ -1,23 +1,22 @@
 {
-  "name": "nuxt-app",
+  "name": "work-experience",
   "private": true,
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "start": "nuxt start",
     "postinstall": "nuxt prepare",
     "openapi": "openapi --input ./api/docs/swagger.json --output ./api --client axios",
     "fetch-docs": "node ./api/docs/fetch.js",
-    "fetch-codegen": "yarn fetch-docs && yarn openapi"
+    "fetch-codegen": "yarn fetch-docs && yarn openapi",
+    "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
+    "lint:full": "eslint --ext .js,.vue,.ts --ignore-path .gitignore .",
+    "lint:commit": "eslint"
   },
-  "devDependencies": {
-    "@tailwindcss/typography": "^0.5.10",
-    "daisyui": "^4.6.0",
-    "nuxt": "^3.9.3",
-    "openapi-typescript-codegen": "^0.27.0",
-    "vue": "^3.4.14",
-    "vue-router": "^4.2.5"
+  "lint-staged": {
+    "*.{js,vue,ts}": "yarn lint:commit"
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.10.4",
@@ -28,8 +27,33 @@
     "@types/node": "^20.11.5",
     "axios": "^1.6.5",
     "date-fns": "^3.2.0",
+    "lodash": "^4.17.21",
     "pinia": "^2.1.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vue3-colorpicker": "^2.2.3"
+  },
+  "devDependencies": {
+    "@nuxtjs/eslint-config-typescript": "^12.1.0",
+    "@nuxtjs/eslint-module": "^4.1.0",
+    "@tailwindcss/typography": "^0.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0",
+    "daisyui": "^4.6.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-nuxt": "^4.0.0",
+    "eslint-plugin-prettier": "^5.1.3",
+    "eslint-plugin-unused-imports": "^3.0.0",
+    "eslint-plugin-vue": "^9.20.1",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "nuxt": "^3.9.3",
+    "nuxt-icon": "^0.6.8",
+    "openapi-typescript-codegen": "^0.27.0",
+    "prettier": "^3.2.4",
+    "prettier-plugin-tailwindcss": "^0.5.11",
+    "vue": "^3.4.14",
+    "vue-router": "^4.2.5"
   }
 }
