@@ -28,7 +28,13 @@
           </div>
         </div>
         <div class="flex items-center gap-6">
-          <IconLink v-if="project.website" :to="project.website" label="Website" icon="material-symbols:globe" />
+          <IconLink
+            v-if="project.website"
+            :to="project.website"
+            label="Website"
+            icon="material-symbols:globe"
+            icon-size="1.5em"
+          />
           <!-- <IconLink v-if="project.repository" :to="project.repository" label="GitHub" icon="mdi:github" /> -->
           <CompanyItem v-if="company" :company="company" :show-link="true" />
         </div>

@@ -3,7 +3,7 @@
     <img :src="imageUrl" class="m-0 h-6 w-6 rounded-full" />
     <span v-if="!showLink" class="m-0 text-lg font-semibold">{{ company.name }}</span>
     <div v-else class="flex items-center gap-1">
-      <a :href="company.website ?? '#'" target="_blank" rel="noreferrer" class="m-0 text-lg font-semibold">
+      <a :href="company.website ?? '#'" target="_blank" rel="noreferrer" class="m-0">
         {{ company.name }}
       </a>
       <Icon name="mdi:launch" />
