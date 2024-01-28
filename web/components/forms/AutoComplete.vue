@@ -1,7 +1,7 @@
 <template>
   <FormElementContainer :label="label">
     <div class="relative">
-      <div v-if="!value" class="flex items-center">
+      <div v-if="!value || !showSelected" class="flex items-center">
         <input
           ref="input"
           v-model="search"
@@ -22,7 +22,7 @@
       <div v-else class="flex items-center">
         <div class="input input-bordered flex w-full items-center pr-8">
           <slot name="selectedItem">
-            <span class="truncate">{{ value }}</span>
+            <span v-if="value" class="truncate">{{ value.title }}</span>
           </slot>
         </div>
         <button type="button" tabindex="-1" class="absolute right-4 text-xs" @mousedown.stop.prevent="clear">X</button>
@@ -111,6 +111,10 @@ export default defineComponent({
     disabled: {
       type: Boolean,
       default: false,
+    },
+    showSelected: {
+      type: Boolean,
+      default: true,
     },
   },
   emits: ['update:modelValue', 'search', 'select', 'focus', 'blur', 'keyup.enter'],

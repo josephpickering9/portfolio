@@ -12,7 +12,8 @@
         <li><NuxtLink to="/companies">Companies</NuxtLink></li>
         <li><NuxtLink to="/tags">Tags</NuxtLink></li>
       </ul>
-      <div v-if="$route.path !== '/'" class="form-control">
+      <div v-if="false" class="form-control">
+        <!-- TODO: Hook this up -->
         <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
       </div>
       <div class="dropdown dropdown-end">

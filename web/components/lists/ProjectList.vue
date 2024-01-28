@@ -16,18 +16,19 @@
       <Skeleton :type="loadingTypeCard" />
       <Skeleton :type="loadingTypeCard" />
     </div>
-    <div v-else-if="projects.length === 0" class="flex flex-col justify-start space-y-4">
+    <div v-else-if="filteredProjects.length === 0" class="flex flex-col justify-start space-y-4">
       <h2>No projects found</h2>
       <div class="text-lg">Try searching for something else</div>
     </div>
     <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      <ProjectListItem v-for="project in projects" :key="project.id" :project="project" />
+      <ProjectListItem v-for="project in filteredProjects" :key="project.id" :project="project" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import { isEmpty } from 'lodash'
 import Skeleton from '../loading/Skeleton.vue'
 import { useProjectStore } from '../../store/ProjectStore'
 import type { Project } from '../../api/models/Project'
@@ -63,6 +64,10 @@ export default defineComponent({
       type: String,
       default: 'max-w-5xl',
     },
+    tags: {
+      type: Array as () => string[],
+      default: () => [],
+    },
   },
   data(): Data {
     return {
@@ -78,6 +83,35 @@ export default defineComponent({
     },
     loading(): boolean {
       return useProjectStore().projectsLoading || this.initialLoad
+    },
+    filteredProjects(): Project[] {
+      let projects: Project[] = [...this.projects]
+
+      if (!isEmpty(this.search)) {
+        projects = projects.filter((project) => {
+          if (!this.search) return true
+
+          return (
+            project.title.toLowerCase().includes(this.search.toLowerCase()) ||
+            project.shortDescription.toLowerCase().includes(this.search.toLowerCase()) ||
+            project.description.toLowerCase().includes(this.search.toLowerCase())
+          )
+        })
+      }
+
+      if (this.tagType) {
+        projects = projects.filter((project) => {
+          return project.tags.some((tag) => tag.type === this.tagType)
+        })
+      }
+
+      if (this.tags.length > 0) {
+        projects = projects.filter((project) => {
+          return project.tags.some((tag) => this.tags.includes(tag.title))
+        })
+      }
+
+      return projects
     },
     wrapperClass(): object {
       return {

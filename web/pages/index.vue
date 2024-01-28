@@ -1,16 +1,16 @@
 <template>
   <div :class="{ 'search-active': isSearchActive }" class="search-box-container">
-    <TextInput
-      v-model="search"
+    <TagAutoComplete
+      v-model="tags"
       type="text"
       class="search-input"
       placeholder="Search"
+      :show-empty-message="false"
       @focus="handleFocus"
       @blur="handleBlur"
-      @keyup.enter="getProjects"
     />
-    <div v-if="isSearchActive && !isEmpty(search)" class="search-results">
-      <ProjectList />
+    <div v-if="isSearchActive" class="search-results">
+      <ProjectList :tags="tags" />
     </div>
   </div>
 </template>
@@ -20,23 +20,25 @@ import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash'
 import { useProjectStore } from '../store/ProjectStore'
 import ProjectList from '../components/lists/ProjectList.vue'
-import TextInput from '../components/forms/TextInput.vue'
+import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
 
 interface Data {
   isSearchActive: boolean
   search: string
+  tags: string[]
 }
 
 export default defineComponent({
   name: 'Index',
   components: {
     ProjectList,
-    TextInput,
+    TagAutoComplete,
   },
   data(): Data {
     return {
       isSearchActive: false,
       search: '',
+      tags: [],
     }
   },
   methods: {
@@ -48,7 +50,7 @@ export default defineComponent({
       this.isSearchActive = true
     },
     handleBlur() {
-      if (isEmpty(this.search)) {
+      if (isEmpty(this.search) && isEmpty(this.tags)) {
         this.isSearchActive = false
       }
     },
@@ -67,7 +69,7 @@ export default defineComponent({
 }
 
 .search-box-container .search-input {
-  @apply w-full max-w-xs transform;
+  @apply z-50 w-full max-w-xs transform;
   transition: all 0.3s ease;
 }
 
@@ -76,6 +78,6 @@ export default defineComponent({
 }
 
 .search-results {
-  @apply flex w-full justify-center;
+  @apply z-0 flex w-full justify-center;
 }
 </style>
