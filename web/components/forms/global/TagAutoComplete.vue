@@ -56,6 +56,7 @@ export default defineComponent({
         .map((tag) => {
           return {
             title: tag.title,
+            value: tag.id,
           }
         })
     },
@@ -77,8 +78,8 @@ export default defineComponent({
     if (this.tags.length === 0) await useTagStore().getTags()
   },
   methods: {
-    selectTag(tag: string) {
-      this.value.push(tag)
+    selectTag(tag: SearchItem) {
+      this.value.push(tag.title)
       this.$emit('update:modelValue', this.value)
     },
     removeTag(tag: TagModel) {

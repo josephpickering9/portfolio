@@ -25,7 +25,7 @@
             <span class="truncate">{{ value }}</span>
           </slot>
         </div>
-        <button type="button" tabindex="0" class="absolute right-4 text-sm" @click.stop.prevent="clear">X</button>
+        <button type="button" tabindex="-1" class="absolute right-4 text-xs" @mousedown.stop.prevent="clear">X</button>
       </div>
       <div
         v-show="showOptions && searchResults.length"
@@ -39,12 +39,12 @@
             v-for="(item, index) in searchResults"
             :key="index"
             ref="item"
-            class="m-0 min-h-9 cursor-pointer select-none p-4 hover:bg-gray-700"
+            class="m-0 cursor-pointer select-none p-4 hover:bg-gray-700"
             :class="{ 'bg-gray-700': highlighted === index }"
             role="option"
             :aria-selected="highlighted === index"
             tabindex="0"
-            @mousedown.stop.prevent="handleSelect(item.title)"
+            @mousedown.stop.prevent="handleSelect(item)"
             @mouseenter="setHighlighted(index)"
             @focus="setHighlighted(index)"
           >
@@ -67,7 +67,7 @@ import type { SearchItem } from '../../types/SearchItem'
 import FormElementContainer from './FormElementContainer.vue'
 
 interface Data {
-  value: string
+  value?: SearchItem
   search: string
   showOptions: boolean
   inputPosition: { top: number; height: number }
@@ -85,8 +85,8 @@ export default defineComponent({
       default: null,
     },
     modelValue: {
-      type: String,
-      default: null,
+      type: Object as PropType<SearchItem>,
+      default: undefined,
     },
     data: {
       type: Array as PropType<SearchItem[]>,
@@ -156,14 +156,14 @@ export default defineComponent({
   },
   methods: {
     handleInput() {
-      this.$emit('search', this.value)
+      this.$emit('search', this.search)
       this.showOptions = true
       this.checkScrollPosition()
     },
-    handleSelect(title: string) {
-      this.$emit('select', title)
-      this.$emit('update:modelValue', title)
-      this.value = title
+    handleSelect(item: SearchItem) {
+      this.$emit('select', item)
+      this.$emit('update:modelValue', item)
+      this.value = item
       this.showOptions = false
       this.search = ''
     },
@@ -181,8 +181,8 @@ export default defineComponent({
     },
     onEnter() {
       if (this.highlighted !== -1) {
-        this.handleSelect(this.searchResults[this.highlighted].title)
-      } else {
+        this.handleSelect(this.searchResults[this.highlighted])
+      } else if (this.value) {
         this.handleSelect(this.value)
       }
     },
@@ -268,7 +268,9 @@ export default defineComponent({
       })
     },
     clear() {
-      this.value = ''
+      this.value = undefined
+      this.$emit('select', undefined)
+      this.$emit('update:modelValue', undefined)
     },
     close() {
       this.showOptions = false
@@ -276,9 +278,13 @@ export default defineComponent({
   },
   watch: {
     modelValue() {
+      if (this.value?.value === this.modelValue?.value) return
+
       this.value = this.modelValue
     },
     value() {
+      if (this.value?.value === this.modelValue?.value) return
+
       this.$emit('update:modelValue', this.value)
     },
     searchResults() {

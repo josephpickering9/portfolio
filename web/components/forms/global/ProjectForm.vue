@@ -8,7 +8,7 @@
     <TextInput v-model="shortDescription" label="Short Description" :disabled="loading" />
     <TextEditor v-model="description" label="Description" :disabled="loading" />
     <div class="flex flex-col gap-4 md:flex-row">
-      <TextInput v-model="company" label="Company" class="w-full md:w-1/2" :disabled="loading" />
+      <CompanyAutoComplete v-model="companyId" label="Company" class="w-full md:w-1/2" :disabled="loading" />
       <TextInput v-model="website" label="Website" class="w-full md:w-1/2" :disabled="loading" />
     </div>
     <div class="flex flex-col gap-4 md:flex-row">
@@ -56,12 +56,13 @@ import { getImageUrl } from '../../../utils/image-helper'
 import FormButton from '../FormButton.vue'
 import YearSelectList from './YearSelectList.vue'
 import TagAutoComplete from './TagAutoComplete.vue'
+import CompanyAutoComplete from './CompanyAutoComplete.vue'
 
 interface Data {
   title: string
   shortDescription: string
   description: string
-  company: string
+  companyId?: number
   image: FileList | null
   backgroundImage: FileList | null
   imageUrl?: string
@@ -79,6 +80,7 @@ export default defineComponent({
     YearSelectList,
     FileInput,
     TagAutoComplete,
+    CompanyAutoComplete,
     FormButton,
   },
   props: {
@@ -92,7 +94,7 @@ export default defineComponent({
       title: '',
       shortDescription: '',
       description: '',
-      company: '',
+      companyId: undefined,
       image: null,
       backgroundImage: null,
       imageUrl: undefined,
@@ -123,7 +125,7 @@ export default defineComponent({
         title: this.title,
         shortDescription: this.shortDescription,
         description: this.description,
-        company: this.company,
+        companyId: this.companyId,
         image: this.image ? (this.image.item(0) as Blob) : undefined,
         backgroundImage: this.backgroundImage ? (this.backgroundImage.item(0) as Blob) : undefined,
         year: this.year,
@@ -140,7 +142,7 @@ export default defineComponent({
         this.title = this.project.title
         this.shortDescription = this.project.shortDescription
         this.description = this.project.description
-        this.company = this.project.company
+        this.companyId = this.project.companyId
         this.year = this.project.year
         this.website = this.project.website ?? ''
         this.tags = this.project.tags.map((tag) => tag.title) ?? []

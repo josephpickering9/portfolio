@@ -4,7 +4,7 @@
       <IconListItem :icon="item.title" />
     </template>
     <template #selectedItem>
-      <IconListItem :icon="value" />
+      <IconListItem v-if="value" :icon="value.title" />
     </template>
   </AutoComplete>
 </template>
@@ -17,7 +17,7 @@ import AutoComplete from '../AutoComplete.vue'
 import IconListItem from '../../lists/IconListItem.vue'
 
 interface Data {
-  value: string
+  value?: SearchItem
 }
 
 export default defineComponent({
@@ -36,7 +36,7 @@ export default defineComponent({
   emits: ['update:modelValue'],
   data(): Data {
     return {
-      value: '',
+      value: undefined,
     }
   },
   computed: {
@@ -44,6 +44,7 @@ export default defineComponent({
       return ListIcon.map((icon) => {
         return {
           title: icon,
+          value: icon,
         }
       })
     },
@@ -55,7 +56,7 @@ export default defineComponent({
   },
   watch: {
     modelValue() {
-      this.value = this.modelValue
+      this.value = { title: this.modelValue, value: this.modelValue }
     },
     value() {
       this.$emit('update:modelValue', this.value)

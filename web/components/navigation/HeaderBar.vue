@@ -9,6 +9,7 @@
     <div class="flex-none gap-2">
       <ul class="menu menu-horizontal px-1">
         <li><NuxtLink to="/projects">Projects</NuxtLink></li>
+        <li><NuxtLink to="/companies">Companies</NuxtLink></li>
         <li><NuxtLink to="/tags">Tags</NuxtLink></li>
       </ul>
       <div v-if="$route.path !== '/'" class="form-control">

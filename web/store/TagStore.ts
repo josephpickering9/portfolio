@@ -16,7 +16,7 @@ export const useTagStore = defineStore('tagStore', {
     tagCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getTags(search?: string = null): Promise<void> {
+    async getTags(search?: string = undefined): Promise<void> {
       if (this.tagsLoading) return
 
       try {

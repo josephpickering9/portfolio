@@ -2,13 +2,15 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { Company } from './Company';
 import type { Tag } from './Tag';
 export type Project = {
     id: number;
     title: string;
     shortDescription: string;
     description: string;
-    company: string;
+    companyId?: number | null;
+    company?: Company;
     image?: string | null;
     backgroundImage?: string | null;
     year: number;

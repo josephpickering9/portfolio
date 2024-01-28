@@ -30,7 +30,7 @@
         <div class="flex items-center gap-6">
           <IconLink v-if="project.website" :to="project.website" label="Website" icon="material-symbols:globe" />
           <!-- <IconLink v-if="project.repository" :to="project.repository" label="GitHub" icon="mdi:github" /> -->
-          <IconLink v-if="project.company" to="#" :label="project.company" icon="material-symbols:business-center" />
+          <CompanyItem v-if="company" :company="company" :show-link="true" />
         </div>
       </div>
 
@@ -49,17 +49,20 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import type { Project, Tag as TagModel } from '../../../api'
+import type { Company, Project, Tag as TagModel } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
 import Skeleton from '../../../components/loading/Skeleton.vue'
 import Tag from '../../../components/tags/Tag.vue'
 import IconLink from '../../../components/navigation/IconLink.vue'
 import MockupBrowser from '../../../components/mockup/MockupBrowser.vue'
+import MockupPhone from '../../../components/mockup/MockupPhone.vue'
+import CompanyItem from '../../../components/forms/global/CompanyItem.vue'
+import { useCompanyStore } from '../../../store/CompanyStore'
 
 export default defineComponent({
   // eslint-disable-next-line vue/match-component-file-name
   name: 'Project',
-  components: { Skeleton, Tag, IconLink, MockupBrowser },
+  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem },
   computed: {
     id(): number {
       return Number(this.$route.params.id)
@@ -72,6 +75,11 @@ export default defineComponent({
     },
     error(): string | undefined {
       return useProjectStore().projectError
+    },
+    company(): Company | undefined {
+      if (!this.project?.companyId) return undefined
+
+      return useCompanyStore().companies.find((company) => company.id === this.project?.companyId)
     },
     groupedTags(): Record<string, TagModel[]> {
       if (!this.project) return {}
@@ -95,6 +103,10 @@ export default defineComponent({
     },
   },
   async mounted() {
+    if (!this.id) return
+
+    if (useCompanyStore().companies.length === 0) await useCompanyStore().getCompanies()
+
     await useProjectStore().getProject(this.id)
   },
 })

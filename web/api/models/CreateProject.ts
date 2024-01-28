@@ -6,9 +6,9 @@ export type CreateProject = {
     title: string;
     shortDescription: string;
     description: string;
-    company: string;
+    companyId?: number | null;
     year: number;
-    website?: string;
+    website?: string | null;
     image?: Blob | null;
     backgroundImage?: Blob | null;
     tags: Array<string>;
