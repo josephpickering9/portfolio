@@ -50,8 +50,8 @@ export default defineComponent({
     },
   },
   methods: {
-    selectIcon(title: string): void {
-      this.$emit('update:modelValue', title)
+    selectIcon(item?: SearchItem): void {
+      this.$emit('update:modelValue', item?.title)
     },
   },
   watch: {
@@ -59,7 +59,7 @@ export default defineComponent({
       this.value = { title: this.modelValue, value: this.modelValue }
     },
     value() {
-      this.$emit('update:modelValue', this.value)
+      this.$emit('update:modelValue', this.value?.title)
     },
   },
 })
