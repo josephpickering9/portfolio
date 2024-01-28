@@ -1,6 +1,6 @@
 <template>
   <div class="flex items-center gap-x-2">
-    <Icon v-if="icon" :name="icon" />
+    <Icon v-if="icon" :name="icon" :size="iconSize" />
     <a :href="to" :target="target" :rel="target === '_blank' ? 'noreferrer' : ''">
       {{ label }}
     </a>
@@ -26,6 +26,10 @@ export default defineComponent({
     icon: {
       type: String,
       default: null,
+    },
+    iconSize: {
+      type: String,
+      default: '1em',
     },
     target: {
       type: String,

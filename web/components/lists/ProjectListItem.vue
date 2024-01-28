@@ -1,6 +1,8 @@
 <template>
   <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card card-bordered w-full bg-base-100 shadow-xl">
-    <figure><img :src="backgroundImage" :alt="`${project.title} Background Image`" class="min-h-[230px]" /></figure>
+    <figure>
+      <img :src="backgroundImage" :alt="`${project.title} Background Image`" class="h-[230px] w-full object-cover" />
+    </figure>
     <div class="card-body px-6 pb-4 pt-6">
       <div class="flex items-center gap-2">
         <img v-if="project.image" :src="image" class="h-6 w-6" />
