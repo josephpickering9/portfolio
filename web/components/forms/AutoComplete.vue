@@ -116,6 +116,10 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    openOnFocus: {
+      type: Boolean,
+      default: true,
+    },
   },
   emits: ['update:modelValue', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
   data(): Data {
@@ -172,7 +176,7 @@ export default defineComponent({
       this.search = ''
     },
     focus() {
-      if (this.searchResults.length) {
+      if (this.openOnFocus && this.searchResults.length) {
         this.showOptions = true
         this.checkScrollPosition()
       }

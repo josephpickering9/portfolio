@@ -4,6 +4,7 @@
       :data="tagItems"
       :label="label"
       :show-selected="false"
+      :open-on-focus="openOnFocus"
       placeholder="Search"
       @select="selectTag"
       @blur="$emit('blur')"
@@ -48,6 +49,10 @@ export default defineComponent({
       default: () => [],
     },
     showEmptyMessage: {
+      type: Boolean,
+      default: true,
+    },
+    openOnFocus: {
       type: Boolean,
       default: true,
     },

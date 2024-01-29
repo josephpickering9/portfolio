@@ -1,5 +1,10 @@
 <template>
-  <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card card-bordered w-full bg-base-100 shadow-xl">
+  <NuxtLink
+    v-if="project"
+    :to="`/projects/${project.id}`"
+    class="card card-bordered w-full bg-base-100 shadow-xl"
+    @mousedown.stop.prevent="(event) => event.preventDefault()"
+  >
     <figure>
       <img :src="backgroundImage" :alt="`${project.title} Background Image`" class="h-[230px] w-full object-cover" />
     </figure>

@@ -6,6 +6,7 @@
       class="search-input"
       placeholder="Search"
       :show-empty-message="false"
+      :open-on-focus="false"
       @focus="handleFocus"
       @blur="handleBlur"
     />
