@@ -2,7 +2,7 @@ name: Build & Deploy
 
 on:
   push:
-    branches: [main]
+    branches: [develop]
 
 jobs:
   delete-previous-artifacts:
@@ -143,7 +143,7 @@ jobs:
             printf "%s" "$NUXT_ENV" > "${RELEASE_PATH}/.env"
             cd $RELEASE_PATH
             yarn install
-            npx nuxi generate
+            yarn build
             ln -s -n -f $RELEASE_PATH $ACTIVE_RELEASE_PATH
             pm2 startOrReload ecosystem.config.js
 

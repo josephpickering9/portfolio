@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import Skeleton from '../loading/Skeleton.vue'
 import { useTagStore } from '../../store/TagStore'
 import type { Tag } from '../../api/models/Tag'

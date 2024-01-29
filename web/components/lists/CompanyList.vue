@@ -24,7 +24,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import Skeleton from '../loading/Skeleton.vue'
 import { useCompanyStore } from '../../store/CompanyStore'
 import type { Company } from '../../api/models/Company'

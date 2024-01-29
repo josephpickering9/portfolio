@@ -62,7 +62,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
-import { debounce, type DebouncedFunc, isEmpty } from 'lodash'
+import { debounce, type DebouncedFunc, isEmpty } from 'lodash-es'
 import type { SearchItem } from '../../types/SearchItem'
 import FormElementContainer from './FormElementContainer.vue'
 

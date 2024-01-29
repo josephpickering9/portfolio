@@ -22,11 +22,11 @@
             <img alt="Profile" src="~/assets/img/joe.png" />
           </div>
         </div>
-        <ul tabindex="0" class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box border bg-base-100 p-2 shadow">
+        <!-- <ul tabindex="0" class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box border bg-base-100 p-2 shadow">
           <li><a>Profile</a></li>
           <li><a>Settings</a></li>
           <li><a>Logout</a></li>
-        </ul>
+        </ul> -->
       </div>
     </div>
   </div>

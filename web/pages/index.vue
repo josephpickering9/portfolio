@@ -18,7 +18,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import { useProjectStore } from '../store/ProjectStore'
 import ProjectList from '../components/lists/ProjectList.vue'
 import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
