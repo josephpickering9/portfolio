@@ -142,8 +142,10 @@ jobs:
           script: |
             printf "%s" "$NUXT_ENV" > "${RELEASE_PATH}/.env"
             cd $RELEASE_PATH
+            source .env
             yarn install
             yarn build
+            source .env
             ln -s -n -f $RELEASE_PATH $ACTIVE_RELEASE_PATH
             pm2 stop ecosystem.config.js
             pm2 delete ecosystem.config.js
