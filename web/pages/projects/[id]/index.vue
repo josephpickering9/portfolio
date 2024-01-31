@@ -73,7 +73,11 @@ import { defineNuxtComponent } from '#app'
 export default defineNuxtComponent({
   name: 'Project',
   components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem },
-  setup() {
+  async setup() {
+    const projectId = Number(useRoute().params.id)
+    const initialProject = useProjectStore().project
+    if (!initialProject || initialProject?.id !== projectId) await useProjectStore().getProject(projectId)
+
     const project = useProjectStore().project
     if (!project) return
 
@@ -82,12 +86,6 @@ export default defineNuxtComponent({
       description: project.shortDescription,
       image: project.backgroundImage ? getImageUrl(project.backgroundImage) : undefined,
     })
-  },
-  fetchKey: () => `project-${useRoute().params.id}`,
-  async asyncData() {
-    return {
-      data: await useProjectStore().getProject(Number(useRoute().params.id)),
-    }
   },
   computed: {
     id(): number {
@@ -135,28 +133,9 @@ export default defineNuxtComponent({
     if (!this.id) return
     if (!this.companies?.length) await useCompanyStore().getCompanies()
     if (this.project?.id !== this.id) await useProjectStore().getProject(this.id)
-
-    if (this.project) {
-      useMeta().updateMeta({
-        title: this.project.title,
-        description: this.project.shortDescription,
-        image: this.project.backgroundImage ? getImageUrl(this.project.backgroundImage) : undefined,
-      })
-    }
   },
   beforeUnmount() {
     useProjectStore().project = undefined
-  },
-  watch: {
-    project() {
-      if (!this.project) return
-
-      useMeta().updateMeta({
-        title: this.project.title,
-        description: this.project.shortDescription,
-        image: this.project.backgroundImage ? getImageUrl(this.project.backgroundImage) : undefined,
-      })
-    },
   },
 })
 </script>
