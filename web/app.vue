@@ -11,11 +11,17 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Notifications from './components/notification/Notifications.vue'
+import { useHead } from '#imports'
 
 export default defineComponent({
   name: 'App',
   components: {
     Notifications,
+  },
+  setup() {
+    useHead({
+      title: 'Joseph Pickering',
+    })
   },
 })
 </script>

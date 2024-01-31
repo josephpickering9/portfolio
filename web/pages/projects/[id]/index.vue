@@ -1,60 +1,62 @@
 <template>
-  <Skeleton v-if="loading" />
-  <div v-else-if="project" class="flex flex-grow flex-col gap-2">
-    <div
-      v-if="project.backgroundImage"
-      class="header-container"
-      :style="`background-image: url('${getImageUrl(project.backgroundImage ?? '')}')`"
-    ></div>
-    <div v-else class="h-72"></div>
+  <div class="flex flex-grow">
+    <Skeleton v-if="loading" />
+    <div v-else-if="project" class="flex flex-grow flex-col gap-2">
+      <div
+        v-if="project.backgroundImage"
+        class="header-container"
+        :style="`background-image: url('${getImageUrl(project.backgroundImage ?? '')}')`"
+      ></div>
+      <div v-else class="h-72"></div>
 
-    <div class="prose z-10 -mt-28 flex max-w-full items-center justify-between gap-4 px-8">
-      <div class="flex items-center gap-4">
-        <img v-if="project.image" :src="getImageUrl(project.image)" class="h-10 w-10 rounded-full" />
-        <h1 class="title">{{ project.title }}</h1>
-        <small class="text-white">{{ project.year }}</small>
+      <div class="prose z-10 -mt-28 flex max-w-full items-center justify-between gap-4 px-8">
+        <div class="flex items-center gap-4">
+          <img v-if="project.image" :src="getImageUrl(project.image)" class="h-10 w-10 rounded-full" />
+          <h1 class="title">{{ project.title }}</h1>
+          <small class="text-white">{{ project.year }}</small>
+        </div>
+        <NuxtLink :to="`/projects/${$route.params.id}/update`" class="text-xs">Edit</NuxtLink>
       </div>
-      <NuxtLink :to="`/projects/${$route.params.id}/update`" class="text-xs">Edit</NuxtLink>
-    </div>
 
-    <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 px-8">
-      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div v-if="Object.keys(groupedTags).length > 0" class="flex flex-wrap items-center gap-4">
-          <div v-for="(typeTags, type) in groupedTags" :key="type">
-            <small class="m-0 italic">{{ type }}</small>
-            <div class="flex flex-wrap gap-2">
-              <Tag v-for="(tag, index) in typeTags" :key="index" :tag="tag" />
+      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 px-8">
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div v-if="Object.keys(groupedTags).length > 0" class="flex flex-wrap items-center gap-4">
+            <div v-for="(typeTags, type) in groupedTags" :key="type">
+              <small class="m-0 italic">{{ type }}</small>
+              <div class="flex flex-wrap gap-2">
+                <Tag v-for="(tag, index) in typeTags" :key="index" :tag="tag" />
+              </div>
             </div>
           </div>
+          <div class="flex items-center gap-6">
+            <IconLink
+              v-if="project.website"
+              :to="project.website"
+              label="Website"
+              icon="material-symbols:globe"
+              icon-size="1.5em"
+            />
+            <!-- <IconLink v-if="project.repository" :to="project.repository" label="GitHub" icon="mdi:github" /> -->
+            <CompanyItem v-if="company" :company="company" :show-link="true" />
+          </div>
         </div>
-        <div class="flex items-center gap-6">
-          <IconLink
-            v-if="project.website"
-            :to="project.website"
-            label="Website"
-            icon="material-symbols:globe"
-            icon-size="1.5em"
-          />
-          <!-- <IconLink v-if="project.repository" :to="project.repository" label="GitHub" icon="mdi:github" /> -->
-          <CompanyItem v-if="company" :company="company" :show-link="true" />
+
+        <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
+
+        <h3 class="m-0">Overview</h3>
+        <div class="project-description" v-html="project.description" />
+
+        <div v-if="project.website" class="flex flex-col items-center gap-4 md:flex-row">
+          <MockupBrowser :url="project.website" />
+          <MockupPhone :url="project.website" />
         </div>
-      </div>
-
-      <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
-
-      <h3 class="m-0">Overview</h3>
-      <div class="project-description" v-html="project.description" />
-
-      <div v-if="project.website" class="flex flex-col items-center gap-4 md:flex-row">
-        <MockupBrowser :url="project.website" />
-        <MockupPhone :url="project.website" />
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { useRoute } from 'vue-router'
 import type { Company, Project, Tag as TagModel } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
 import Skeleton from '../../../components/loading/Skeleton.vue'
@@ -64,14 +66,32 @@ import MockupBrowser from '../../../components/mockup/MockupBrowser.vue'
 import MockupPhone from '../../../components/mockup/MockupPhone.vue'
 import CompanyItem from '../../../components/forms/global/CompanyItem.vue'
 import { useCompanyStore } from '../../../store/CompanyStore'
+import useMeta from '../../../composables/useMeta'
+import { getImageUrl } from '../../../utils/image-helper'
+import { defineNuxtComponent } from '#app'
 
-export default defineComponent({
-  // eslint-disable-next-line vue/match-component-file-name
+export default defineNuxtComponent({
   name: 'Project',
   components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem },
+  setup() {
+    const project = useProjectStore().project
+    if (!project) return
+
+    useMeta().updateMeta({
+      title: project.title,
+      description: project.shortDescription,
+      image: project.backgroundImage ? getImageUrl(project.backgroundImage) : undefined,
+    })
+  },
+  fetchKey: () => `project-${useRoute().params.id}`,
+  async asyncData() {
+    return {
+      data: await useProjectStore().getProject(Number(useRoute().params.id)),
+    }
+  },
   computed: {
     id(): number {
-      return Number(this.$route.params.id)
+      return Number(useRoute().params.id)
     },
     project(): Project | undefined {
       return useProjectStore().project
@@ -82,10 +102,13 @@ export default defineComponent({
     error(): string | undefined {
       return useProjectStore().projectError
     },
+    companies(): Company[] {
+      return useCompanyStore().companies
+    },
     company(): Company | undefined {
       if (!this.project?.companyId) return undefined
 
-      return useCompanyStore().companies.find((company) => company.id === this.project?.companyId)
+      return this.companies.find((company) => company.id === this.project?.companyId)
     },
     groupedTags(): Record<string, TagModel[]> {
       if (!this.project) return {}
@@ -110,10 +133,30 @@ export default defineComponent({
   },
   async mounted() {
     if (!this.id) return
+    if (!this.companies?.length) await useCompanyStore().getCompanies()
+    if (this.project?.id !== this.id) await useProjectStore().getProject(this.id)
 
-    if (useCompanyStore().companies.length === 0) await useCompanyStore().getCompanies()
+    if (this.project) {
+      useMeta().updateMeta({
+        title: this.project.title,
+        description: this.project.shortDescription,
+        image: this.project.backgroundImage ? getImageUrl(this.project.backgroundImage) : undefined,
+      })
+    }
+  },
+  beforeUnmount() {
+    useProjectStore().project = undefined
+  },
+  watch: {
+    project() {
+      if (!this.project) return
 
-    await useProjectStore().getProject(this.id)
+      useMeta().updateMeta({
+        title: this.project.title,
+        description: this.project.shortDescription,
+        image: this.project.backgroundImage ? getImageUrl(this.project.backgroundImage) : undefined,
+      })
+    },
   },
 })
 </script>

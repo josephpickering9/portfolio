@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import useMeta from '../../../composables/useMeta'
 import ProjectForm from '../../../components/forms/global/ProjectForm.vue'
 
 export default defineComponent({
@@ -13,6 +14,11 @@ export default defineComponent({
   name: 'UpdateProject',
   components: {
     ProjectForm,
+  },
+  setup() {
+    const { updateMeta } = useMeta()
+
+    updateMeta({ title: 'Update Project', description: 'Update an existing project' })
   },
 })
 </script>

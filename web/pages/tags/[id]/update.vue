@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import useMeta from '../../../composables/useMeta'
 import TagForm from '../../../components/forms/global/TagForm.vue'
 
 export default defineComponent({
@@ -13,6 +14,11 @@ export default defineComponent({
   name: 'UpdateTag',
   components: {
     TagForm,
+  },
+  setup() {
+    const { updateMeta } = useMeta()
+
+    updateMeta({ title: 'Update Tag', description: 'Update an existing tag' })
   },
 })
 </script>

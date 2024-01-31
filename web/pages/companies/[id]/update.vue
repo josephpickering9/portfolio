@@ -6,6 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import useMeta from '../../../composables/useMeta'
 import CompanyForm from '../../../components/forms/global/CompanyForm.vue'
 
 export default defineComponent({
@@ -13,6 +14,11 @@ export default defineComponent({
   name: 'UpdateCompany',
   components: {
     CompanyForm,
+  },
+  setup() {
+    const { updateMeta } = useMeta()
+
+    updateMeta({ title: 'Update Company', description: 'Update an existing company' })
   },
 })
 </script>

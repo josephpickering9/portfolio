@@ -22,6 +22,7 @@ import { isEmpty } from 'lodash-es'
 import { useProjectStore } from '../store/ProjectStore'
 import ProjectList from '../components/lists/ProjectList.vue'
 import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
+import useMeta from '../composables/useMeta'
 
 interface Data {
   isSearchActive: boolean
@@ -34,6 +35,11 @@ export default defineComponent({
   components: {
     ProjectList,
     TagAutoComplete,
+  },
+  setup() {
+    const { updateMeta } = useMeta()
+
+    updateMeta({ title: 'Home', description: "Work experience portfolio for my life's work" })
   },
   data(): Data {
     return {
