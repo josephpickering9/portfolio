@@ -4,7 +4,16 @@
       <h1 class="m-0">Companies</h1>
       <div class="flex flex-col items-center gap-4 md:flex-row">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
-        <FormButton label="Add Company" type="primary" size="sm" href="/companies/new" :disabled="loading" />
+        <ClientOnly>
+          <FormButton
+            v-if="isAuthenticated"
+            label="Add Company"
+            type="primary"
+            size="sm"
+            href="/companies/new"
+            :disabled="loading"
+          />
+        </ClientOnly>
       </div>
     </div>
     <div v-if="loading" class="flex flex-col items-center space-y-4">
@@ -30,6 +39,7 @@ import { useCompanyStore } from '../../store/CompanyStore'
 import type { Company } from '../../api/models/Company'
 import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
+import useAuth from '../../composables/useAuth'
 import CompanyListItem from './CompanyListItem.vue'
 
 interface Data {
@@ -44,6 +54,13 @@ export default defineComponent({
     CompanyListItem,
     TextInput,
     FormButton,
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   data(): Data {
     return {

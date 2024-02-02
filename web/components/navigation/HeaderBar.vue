@@ -2,9 +2,15 @@
   <div class="navbar bg-base-100">
     <div class="flex-1">
       <NuxtLink to="/" class="btn btn-ghost text-xl">Work Experience</NuxtLink>
-      <NuxtLink to="/projects/new" class="flex h-6 w-6 items-center justify-center rounded-full border border-dashed">
-        +
-      </NuxtLink>
+      <ClientOnly>
+        <NuxtLink
+          v-if="isAuthenticated"
+          to="/projects/new"
+          class="flex h-6 w-6 items-center justify-center rounded-full border border-dashed"
+        >
+          +
+        </NuxtLink>
+      </ClientOnly>
     </div>
     <div class="flex-none gap-2">
       <ul class="menu menu-horizontal px-1">
@@ -22,11 +28,15 @@
             <img alt="Profile" src="~/assets/img/joe.png" />
           </div>
         </div>
-        <!-- <ul tabindex="0" class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box border bg-base-100 p-2 shadow">
-          <li><a>Profile</a></li>
-          <li><a>Settings</a></li>
-          <li><a>Logout</a></li>
-        </ul> -->
+        <ClientOnly>
+          <ul
+            tabindex="0"
+            class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box border border-gray-600 bg-base-100 p-2 shadow"
+          >
+            <li v-if="!isAuthenticated"><button type="button" @click="login">Login</button></li>
+            <li v-if="isAuthenticated"><button type="button" @click="logout">Logout</button></li>
+          </ul>
+        </ClientOnly>
       </div>
     </div>
   </div>
@@ -34,8 +44,26 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
+import useAuth from '../../composables/useAuth'
 
 export default defineComponent({
   name: 'HeaderBar',
+  setup() {
+    const { isAuthenticated, login, logout } = useAuth()
+
+    return {
+      isAuthenticated,
+      login,
+      logout,
+    }
+  },
+  methods: {
+    // login() {
+    //   this.$auth0?.loginWithRedirect()
+    // },
+    // logout() {
+    //   this.$auth0?.logout({ logoutParams: { returnTo: window.location.origin } })
+    // },
+  },
 })
 </script>

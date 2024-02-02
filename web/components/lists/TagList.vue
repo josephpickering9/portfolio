@@ -5,7 +5,9 @@
       <div class="flex flex-col items-center gap-4 md:flex-row">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
         <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" :disabled="loading" />
-        <FormButton label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
+        <ClientOnly>
+          <FormButton v-if="isAuthenticated" label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
+        </ClientOnly>
       </div>
     </div>
     <div v-if="loading" class="flex flex-col items-center space-y-4">
@@ -38,6 +40,7 @@ import type { TagType } from '../../api/models/TagType'
 import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
 import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
+import useAuth from '../../composables/useAuth'
 import TagListItem from './TagListItem.vue'
 
 interface Data {
@@ -54,6 +57,13 @@ export default defineComponent({
     TextInput,
     FormButton,
     TagTypeSelectList,
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   data(): Data {
     return {

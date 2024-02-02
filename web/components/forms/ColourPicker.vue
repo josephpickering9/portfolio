@@ -13,8 +13,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
-import { ColorPicker } from 'vue3-colorpicker'
+import { defineComponent, defineAsyncComponent } from 'vue'
 import 'vue3-colorpicker/style.css'
 import FormElementContainer from './FormElementContainer.vue'
 
@@ -24,7 +23,12 @@ interface Data {
 
 export default defineComponent({
   name: 'ColourPicker',
-  components: { FormElementContainer, ColorPicker },
+  components: {
+    FormElementContainer,
+    ColorPicker: defineAsyncComponent(() => {
+      return process.client ? import('vue3-colorpicker').then((m) => m.ColorPicker) : new Promise(() => {})
+    }),
+  },
   props: {
     label: {
       type: String,
@@ -32,18 +36,18 @@ export default defineComponent({
     },
     modelValue: {
       type: String,
-      default: null,
+      default: '',
     },
   },
   emits: ['update:modelValue'],
   data(): Data {
     return {
-      value: '',
+      value: this.modelValue ?? '',
     }
   },
   watch: {
     modelValue() {
-      this.value = this.modelValue
+      this.value = this.modelValue ?? ''
     },
     value() {
       this.$emit('update:modelValue', this.value)
@@ -54,6 +58,6 @@ export default defineComponent({
 
 <style>
 .vc-colorpicker {
-  @apply w-72 overflow-hidden rounded-md border border-gray-700 !bg-base-100;
+  @apply w-72 overflow-hidden rounded-md border border-gray-600 !bg-base-100;
 }
 </style>

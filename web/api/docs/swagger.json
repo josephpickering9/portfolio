@@ -60,7 +60,11 @@
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCompany"
+                "properties": {
+                  "createCompany": {
+                    "$ref": "#/components/schemas/CreateCompany"
+                  }
+                }
               }
             }
           }
@@ -89,7 +93,7 @@
         }
       }
     },
-    "/company/id": {
+    "/company/{id}": {
       "get": {
         "tags": [
           "Company"
@@ -97,14 +101,67 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
-            "style": "form",
+            "in": "path",
+            "required": true,
+            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Company"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "createCompany": {
+                    "$ref": "#/components/schemas/CreateCompany"
+                  }
+                }
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Success",
@@ -135,29 +192,6 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/company/{id}": {
-      "put": {
-        "tags": [
-          "Company"
-        ],
-        "parameters": [
-          {
-            "name": "id",
             "in": "path",
             "required": true,
             "style": "simple",
@@ -167,35 +201,9 @@
             }
           }
         ],
-        "requestBody": {
-          "content": {
-            "multipart/form-data": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateCompany"
-              }
-            }
-          }
-        },
         "responses": {
           "200": {
-            "description": "Success",
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "$ref": "#/components/schemas/Company"
-                }
-              },
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Company"
-                }
-              },
-              "text/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Company"
-                }
-              }
-            }
+            "description": "Success"
           }
         }
       }
@@ -311,7 +319,7 @@
         }
       }
     },
-    "/project/id": {
+    "/project/{id}": {
       "get": {
         "tags": [
           "Project"
@@ -319,8 +327,9 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
-            "style": "form",
+            "in": "path",
+            "required": true,
+            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -350,29 +359,6 @@
           }
         }
       },
-      "delete": {
-        "tags": [
-          "Project"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/project/{id}": {
       "put": {
         "tags": [
           "Project"
@@ -422,6 +408,28 @@
                 }
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Project"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
@@ -520,7 +528,7 @@
         }
       }
     },
-    "/tag/id": {
+    "/tag/{id}": {
       "get": {
         "tags": [
           "Tag"
@@ -528,8 +536,9 @@
         "parameters": [
           {
             "name": "id",
-            "in": "query",
-            "style": "form",
+            "in": "path",
+            "required": true,
+            "style": "simple",
             "schema": {
               "type": "integer",
               "format": "int32"
@@ -559,29 +568,6 @@
           }
         }
       },
-      "delete": {
-        "tags": [
-          "Tag"
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "query",
-            "style": "form",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        }
-      }
-    },
-    "/tag/{id}": {
       "put": {
         "tags": [
           "Tag"
@@ -637,6 +623,28 @@
                 }
               }
             }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Tag"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
           }
         }
       }
@@ -843,7 +851,6 @@
       "Tag": {
         "required": [
           "id",
-          "projects",
           "title",
           "type"
         ],
@@ -867,12 +874,6 @@
           "customColour": {
             "type": "string",
             "nullable": true
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Project"
-            }
           }
         },
         "additionalProperties": false

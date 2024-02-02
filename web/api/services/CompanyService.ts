@@ -3,7 +3,6 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { Company } from '../models/Company';
-import type { CreateCompany } from '../models/CreateCompany';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -30,7 +29,7 @@ export class CompanyService {
      * @throws ApiError
      */
     public static postCompany(
-        formData?: CreateCompany,
+        formData?: any,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
             method: 'POST',
@@ -44,29 +43,13 @@ export class CompanyService {
      * @returns Company Success
      * @throws ApiError
      */
-    public static getCompanyId(
-        id?: number,
+    public static getCompany1(
+        id: number,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/company/id',
-            query: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @param id
-     * @returns any Success
-     * @throws ApiError
-     */
-    public static deleteCompanyId(
-        id?: number,
-    ): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/company/id',
-            query: {
+            url: '/company/{id}',
+            path: {
                 'id': id,
             },
         });
@@ -79,7 +62,7 @@ export class CompanyService {
      */
     public static putCompany(
         id: number,
-        formData?: CreateCompany,
+        formData?: any,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
             method: 'PUT',
@@ -89,6 +72,22 @@ export class CompanyService {
             },
             formData: formData,
             mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * @param id
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static deleteCompany(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/company/{id}',
+            path: {
+                'id': id,
+            },
         });
     }
 }

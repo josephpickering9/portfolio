@@ -5,7 +5,16 @@
       <div class="flex flex-col items-center gap-4 md:flex-row">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
         <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" :disabled="loading" />
-        <FormButton label="Add Project" type="primary" size="sm" href="/projects/new" :disabled="loading" />
+        <ClientOnly>
+          <FormButton
+            v-if="isAuthenticated"
+            label="Add Project"
+            type="primary"
+            size="sm"
+            href="/projects/new"
+            :disabled="loading"
+          />
+        </ClientOnly>
       </div>
     </div>
     <div v-if="loading" class="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -37,6 +46,7 @@ import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
 import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
 import { LoadingType } from '../../types/LoadingType'
+import useAuth from '../../composables/useAuth'
 import ProjectListItem from './ProjectListItem.vue'
 
 interface Data {
@@ -68,6 +78,17 @@ export default defineComponent({
       type: Array as () => string[],
       default: () => [],
     },
+    modelSearch: {
+      type: String,
+      default: undefined,
+    },
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   data(): Data {
     return {
@@ -95,6 +116,18 @@ export default defineComponent({
             project.title.toLowerCase().includes(this.search.toLowerCase()) ||
             project.shortDescription.toLowerCase().includes(this.search.toLowerCase()) ||
             project.description.toLowerCase().includes(this.search.toLowerCase())
+          )
+        })
+      }
+
+      if (!isEmpty(this.modelSearch) && (this.modelSearch?.length ?? 0) > 3) {
+        projects = projects.filter((project) => {
+          if (!this.modelSearch) return true
+
+          return (
+            project.title.toLowerCase().includes(this.modelSearch.toLowerCase()) ||
+            project.shortDescription.toLowerCase().includes(this.modelSearch.toLowerCase()) ||
+            project.description.toLowerCase().includes(this.modelSearch.toLowerCase())
           )
         })
       }

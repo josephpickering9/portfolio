@@ -88,6 +88,10 @@ export default defineComponent({
       type: Object as PropType<SearchItem>,
       default: undefined,
     },
+    modelSearch: {
+      type: String,
+      default: '',
+    },
     data: {
       type: Array as PropType<SearchItem[]>,
       default: () => [],
@@ -121,7 +125,7 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ['update:modelValue', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
+  emits: ['update:modelValue', 'update:modelSearch', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
   data(): Data {
     return {
       value: this.modelValue,
@@ -294,6 +298,12 @@ export default defineComponent({
       if (this.value?.value === this.modelValue?.value) return
 
       this.$emit('update:modelValue', this.value)
+    },
+    modelSearch() {
+      this.search = this.modelSearch
+    },
+    search() {
+      this.$emit('update:modelSearch', this.search)
     },
     searchResults() {
       this.highlighted = -1

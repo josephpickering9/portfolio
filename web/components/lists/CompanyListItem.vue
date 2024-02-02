@@ -10,7 +10,13 @@
       </div>
       <p class="pb-2 text-sm italic">{{ company.description }}</p>
     </div>
-    <FormButton size="xs" label="Edit" icon="material-symbols:edit" :href="`/companies/${company.id}/update`" />
+    <FormButton
+      v-if="isAuthenticated"
+      size="xs"
+      label="Edit"
+      icon="material-symbols:edit"
+      :href="`/companies/${company.id}/update`"
+    />
   </div>
 </template>
 
@@ -19,6 +25,7 @@ import { defineComponent, type PropType } from 'vue'
 import type { Company as CompanyModel } from '../../api/models/Company'
 import { getImageUrl } from '../../utils/image-helper'
 import FormButton from '../forms/FormButton.vue'
+import useAuth from '../../composables/useAuth'
 import { Icon } from '#components'
 
 export default defineComponent({
@@ -29,6 +36,13 @@ export default defineComponent({
       type: Object as PropType<CompanyModel>,
       required: true,
     },
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   computed: {
     logo(): string {

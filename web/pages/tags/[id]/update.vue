@@ -19,6 +19,9 @@ export default defineComponent({
     const { updateMeta } = useMeta()
 
     updateMeta({ title: 'Update Tag', description: 'Update an existing tag' })
+
+    // eslint-disable-next-line no-undef
+    definePageMeta({ middleware: 'auth' })
   },
 })
 </script>

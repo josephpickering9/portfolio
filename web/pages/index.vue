@@ -2,6 +2,7 @@
   <div :class="{ 'search-active': isSearchActive }" class="search-box-container">
     <TagAutoComplete
       v-model="tags"
+      v-model:model-search="search"
       type="text"
       class="search-input"
       placeholder="Search"
@@ -11,7 +12,7 @@
       @blur="handleBlur"
     />
     <div v-if="isSearchActive" class="search-results">
-      <ProjectList :tags="tags" />
+      <ProjectList :model-search="search" :tags="tags" />
     </div>
   </div>
 </template>
@@ -51,7 +52,7 @@ export default defineComponent({
   methods: {
     isEmpty,
     async getProjects() {
-      await useProjectStore().getProjects(this.search)
+      await useProjectStore().getProjects()
     },
     handleFocus() {
       this.isSearchActive = true

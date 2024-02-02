@@ -19,6 +19,7 @@
     "*.{js,vue,ts}": "yarn lint:commit"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.3.3",
     "@nuxtjs/tailwindcss": "^6.10.4",
     "@pinia/nuxt": "^0.5.1",
     "@tiptap/pm": "^2.1.16",

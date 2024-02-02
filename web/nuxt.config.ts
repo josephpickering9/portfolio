@@ -1,6 +1,7 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devtools: { enabled: true },
+
+  ssr: true,
 
   app: {
     head: {
@@ -14,8 +15,14 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
       base: process.env.NUXT_PUBLIC_BASE ?? '',
+      auth0Domain: process.env.NUXT_PUBLIC_AUTH0_DOMAIN ?? '',
+      auth0ClientId: process.env.NUXT_AUTH0_CLIENT_ID,
     },
   },
 
   modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'nuxt-icon'],
+
+  alias: {
+    cookie: 'cookie',
+  },
 })

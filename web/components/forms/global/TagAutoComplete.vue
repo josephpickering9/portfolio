@@ -1,6 +1,7 @@
 <template>
   <div class="flex flex-col gap-2">
     <AutoComplete
+      v-model:model-search="search"
       :data="tagItems"
       :label="label"
       :show-selected="false"
@@ -34,6 +35,7 @@ import Tag from '../../tags/Tag.vue'
 
 interface Data {
   value: string[]
+  search?: string
 }
 
 export default defineComponent({
@@ -48,6 +50,10 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    modelSearch: {
+      type: String,
+      default: '',
+    },
     showEmptyMessage: {
       type: Boolean,
       default: true,
@@ -57,10 +63,11 @@ export default defineComponent({
       default: true,
     },
   },
-  emits: ['update:modelValue', 'focus', 'blur'],
+  emits: ['update:modelValue', 'update:modelSearch', 'focus', 'blur'],
   data(): Data {
     return {
       value: [],
+      search: undefined,
     }
   },
   computed: {
@@ -118,6 +125,12 @@ export default defineComponent({
     },
     value() {
       this.$emit('update:modelValue', this.value)
+    },
+    modelSearch() {
+      this.search = this.modelSearch
+    },
+    search() {
+      this.$emit('update:modelSearch', this.search)
     },
   },
 })
