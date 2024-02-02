@@ -16,7 +16,7 @@ export const useCompanyStore = defineStore('companyStore', {
     companyCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getCompanies(search?: string = undefined): Promise<void> {
+    async getCompanies(search?: string): Promise<void> {
       if (this.companiesLoading) return
 
       try {
@@ -37,7 +37,7 @@ export const useCompanyStore = defineStore('companyStore', {
         this.companyError = undefined
         this.companyLoading = true
 
-        this.company = await CompanyService.getCompanyId(id)
+        this.company = await CompanyService.getCompany1(id)
       } catch (error) {
         this.companyError = extractError(error)
       } finally {
@@ -87,7 +87,7 @@ export const useCompanyStore = defineStore('companyStore', {
         this.companyCreateError = undefined
         this.companyCreating = true
 
-        await CompanyService.deleteCompanyId(id)
+        await CompanyService.deleteCompany(id)
       } catch (error) {
         this.companyCreateError = extractError(error)
       } finally {

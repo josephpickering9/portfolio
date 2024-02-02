@@ -37,7 +37,7 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectError = undefined
         this.projectLoading = true
 
-        this.project = await ProjectService.getProjectId(id)
+        this.project = await ProjectService.getProject1(id)
       } catch (error) {
         this.projectError = extractError(error)
       } finally {
@@ -87,7 +87,7 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectCreateError = undefined
         this.projectCreating = true
 
-        await ProjectService.deleteProjectId(id)
+        await ProjectService.de(id)
       } catch (error) {
         this.projectCreateError = extractError(error)
       } finally {
