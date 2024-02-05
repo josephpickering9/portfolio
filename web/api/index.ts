@@ -18,4 +18,5 @@ export { TagType } from './models/TagType';
 export { CompanyService } from './services/CompanyService';
 export { MediaService } from './services/MediaService';
 export { ProjectService } from './services/ProjectService';
+export { SlugService } from './services/SlugService';
 export { TagService } from './services/TagService';

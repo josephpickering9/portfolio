@@ -44,6 +44,20 @@ export const useTagStore = defineStore('tagStore', {
         this.tagLoading = false
       }
     },
+    async getTagBySlug(slug: string): Promise<void> {
+      if (!slug || this.tagLoading) return
+
+      try {
+        this.tagError = undefined
+        this.tagLoading = true
+
+        this.tag = await TagService.getTagSlug(slug)
+      } catch (error) {
+        this.tagError = extractError(error)
+      } finally {
+        this.tagLoading = false
+      }
+    },
     async createTag(tag: CreateTag): Promise<Tag | undefined> {
       if (!tag || this.tagCreating) return
 

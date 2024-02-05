@@ -6,7 +6,7 @@ export default defineSitemapEventHandler(async (e) => {
     const projects = await ProjectService.getProject()
 
     return projects.map((p) => ({
-      loc: `/projects/${p.id}`,
+      loc: `/projects/${p.slug}`,
     }))
   } catch (e) {
     // eslint-disable-next-line no-console

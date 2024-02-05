@@ -49,6 +49,20 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectLoading = false
       }
     },
+    async getProjectBySlug(slug: string): Promise<void> {
+      if (!slug || this.projectLoading) return
+
+      try {
+        this.projectError = undefined
+        this.projectLoading = true
+
+        this.project = await ProjectService.getProjectSlug(slug)
+      } catch (error) {
+        this.projectError = extractError(error)
+      } finally {
+        this.projectLoading = false
+      }
+    },
     async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreating) return
 

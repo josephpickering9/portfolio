@@ -90,4 +90,20 @@ export class CompanyService {
             },
         });
     }
+    /**
+     * @param slug
+     * @returns Company Success
+     * @throws ApiError
+     */
+    public static getCompanySlug(
+        slug: string,
+    ): CancelablePromise<Company> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/company/slug/{slug}',
+            path: {
+                'slug': slug,
+            },
+        });
+    }
 }

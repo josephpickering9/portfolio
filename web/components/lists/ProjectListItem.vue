@@ -1,7 +1,7 @@
 <template>
   <NuxtLink
     v-if="project"
-    :to="`/projects/${project.id}`"
+    :to="`/projects/${project.slug}`"
     class="card card-bordered w-full bg-base-100 shadow-xl"
     @mousedown.stop.prevent="(event) => event.preventDefault()"
   >

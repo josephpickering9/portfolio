@@ -15,6 +15,7 @@ export type Project = {
     backgroundImage?: string | null;
     year: number;
     website?: string | null;
+    slug: string;
     tags: Array<Tag>;
 };
 

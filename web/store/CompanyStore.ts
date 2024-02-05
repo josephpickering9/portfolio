@@ -44,6 +44,20 @@ export const useCompanyStore = defineStore('companyStore', {
         this.companyLoading = false
       }
     },
+    async getCompanyBySlug(slug: string): Promise<void> {
+      if (!slug || this.companyLoading) return
+
+      try {
+        this.companyError = undefined
+        this.companyLoading = true
+
+        this.company = await CompanyService.getCompanySlug(slug)
+      } catch (error) {
+        this.companyError = extractError(error)
+      } finally {
+        this.companyLoading = false
+      }
+    },
     async createCompany(company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreating) return
 

@@ -9,5 +9,6 @@ export type Tag = {
     type: TagType;
     icon?: string | null;
     customColour?: string | null;
+    slug: string;
 };
 

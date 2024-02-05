@@ -90,4 +90,20 @@ export class ProjectService {
             },
         });
     }
+    /**
+     * @param slug
+     * @returns Project Success
+     * @throws ApiError
+     */
+    public static getProjectSlug(
+        slug: string,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/project/slug/{slug}',
+            path: {
+                'slug': slug,
+            },
+        });
+    }
 }

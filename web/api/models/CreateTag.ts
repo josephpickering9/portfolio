@@ -6,7 +6,7 @@ import type { TagType } from './TagType';
 export type CreateTag = {
     title: string;
     type: TagType;
-    icon?: string;
+    icon?: string | null;
     customColour?: string | null;
 };
 

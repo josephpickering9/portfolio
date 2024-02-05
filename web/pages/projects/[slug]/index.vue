@@ -102,8 +102,8 @@ export default defineNuxtComponent({
     }
   },
   computed: {
-    id(): number {
-      return Number(useRoute().params.id)
+    slug(): string {
+      return useRoute().params.slug as string
     },
     project(): Project | undefined {
       return useProjectStore().project
@@ -159,8 +159,8 @@ export default defineNuxtComponent({
     },
   },
   async mounted() {
-    if (!this.id) return
-    if (this.project?.id !== this.id) await useProjectStore().getProject(this.id)
+    if (!this.slug) return
+    if (this.project?.slug !== this.slug) await useProjectStore().getProjectBySlug(this.slug)
   },
   beforeUnmount() {
     useProjectStore().project = undefined

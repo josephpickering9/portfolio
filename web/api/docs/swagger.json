@@ -208,6 +208,46 @@
         }
       }
     },
+    "/company/slug/{slug}": {
+      "get": {
+        "tags": [
+          "Company"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/media/uploads/{fileName}": {
       "get": {
         "tags": [
@@ -434,6 +474,58 @@
         }
       }
     },
+    "/project/slug/{slug}": {
+      "get": {
+        "tags": [
+          "Project"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/slug": {
+      "post": {
+        "tags": [
+          "Slug"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/tag": {
       "get": {
         "tags": [
@@ -648,6 +740,46 @@
           }
         }
       }
+    },
+    "/tag/slug/{slug}": {
+      "get": {
+        "tags": [
+          "Tag"
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "style": "simple",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -656,7 +788,8 @@
         "required": [
           "description",
           "id",
-          "name"
+          "name",
+          "slug"
         ],
         "type": "object",
         "properties": {
@@ -679,6 +812,10 @@
           "logo": {
             "type": "string",
             "nullable": true
+          },
+          "slug": {
+            "minLength": 1,
+            "type": "string"
           }
         },
         "additionalProperties": false
@@ -779,7 +916,8 @@
             "$ref": "#/components/schemas/TagType"
           },
           "icon": {
-            "type": "string"
+            "type": "string",
+            "nullable": true
           },
           "customColour": {
             "type": "string",
@@ -793,6 +931,7 @@
           "description",
           "id",
           "shortDescription",
+          "slug",
           "tags",
           "title",
           "year"
@@ -839,6 +978,10 @@
             "type": "string",
             "nullable": true
           },
+          "slug": {
+            "minLength": 1,
+            "type": "string"
+          },
           "tags": {
             "type": "array",
             "items": {
@@ -851,6 +994,7 @@
       "Tag": {
         "required": [
           "id",
+          "slug",
           "title",
           "type"
         ],
@@ -874,6 +1018,10 @@
           "customColour": {
             "type": "string",
             "nullable": true
+          },
+          "slug": {
+            "minLength": 1,
+            "type": "string"
           }
         },
         "additionalProperties": false

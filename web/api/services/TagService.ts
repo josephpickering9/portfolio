@@ -91,4 +91,20 @@ export class TagService {
             },
         });
     }
+    /**
+     * @param slug
+     * @returns Tag Success
+     * @throws ApiError
+     */
+    public static getTagSlug(
+        slug: string,
+    ): CancelablePromise<Tag> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/tag/slug/{slug}',
+            path: {
+                'slug': slug,
+            },
+        });
+    }
 }
