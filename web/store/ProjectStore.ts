@@ -16,19 +16,24 @@ export const useProjectStore = defineStore('projectStore', {
     projectCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getProjects(search?: string): Promise<void> {
-      if (this.projectsLoading) return
+    async getProjects(search?: string): Promise<Project[]> {
+      if (this.projectsLoading) return []
+
+      let response: Project[] = []
 
       try {
         this.projectsError = undefined
         this.projectsLoading = true
 
-        this.projects = await ProjectService.getProject(search)
+        response = await ProjectService.getProject(search)
+        this.projects = response
       } catch (error) {
         this.projectsError = extractError(error)
       } finally {
         this.projectsLoading = false
       }
+
+      return response
     },
     async getProject(id: number): Promise<void> {
       if (!id || this.projectLoading) return

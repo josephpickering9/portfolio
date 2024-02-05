@@ -40,7 +40,7 @@ export default defineComponent({
   setup() {
     const { updateMeta } = useMeta()
 
-    updateMeta({ title: 'Home', description: "Work experience portfolio for my life's work" })
+    updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
   },
   data(): Data {
     return {

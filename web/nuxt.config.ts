@@ -20,9 +20,14 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'nuxt-icon', '@pinia-plugin-persistedstate/nuxt'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'nuxt-icon', '@pinia-plugin-persistedstate/nuxt', 'nuxt-simple-sitemap'],
 
   alias: {
     cookie: 'cookie',
+  },
+
+  sitemap: {
+    sources: ['/api/sitemap'],
+    exclude: ['/auth/*', '*/new'],
   },
 })
