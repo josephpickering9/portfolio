@@ -28,13 +28,19 @@ export default defineNuxtPlugin((nuxtApp) => {
         })
       } else {
         try {
-          const { getAccessTokenSilently, isAuthenticated } = useAuth0()
+          const { getAccessTokenSilently } = useAuth0()
 
           const token = await getAccessTokenSilently()
           if (token) OpenAPI.TOKEN = token
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log('token error', e)
+
+          auth0.loginWithRedirect({
+            appState: {
+              target: useRoute().path,
+            },
+          })
         }
       }
     }

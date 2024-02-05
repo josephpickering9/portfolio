@@ -2,7 +2,7 @@
   <div class="tags prose w-full max-w-5xl">
     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
       <h1 class="m-0">Tags</h1>
-      <div class="flex flex-col items-center gap-4 md:flex-row">
+      <div class="flex items-center gap-4">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
         <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" :disabled="loading" />
         <ClientOnly>

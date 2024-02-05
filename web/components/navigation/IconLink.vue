@@ -1,9 +1,12 @@
 <template>
-  <div class="flex items-center gap-x-2">
-    <Icon v-if="icon" :name="icon" :size="iconSize" />
-    <a :href="to" :target="target" :rel="target === '_blank' ? 'noreferrer' : ''">
-      {{ label }}
-    </a>
+  <div class="flex items-center gap-x-1">
+    <div class="flex items-center gap-x-2">
+      <Icon v-if="icon" :name="icon" :size="iconSize" />
+      <a :href="to" :target="target" :rel="target === '_blank' ? 'noreferrer' : ''">
+        {{ label }}
+      </a>
+    </div>
+    <Icon name="mdi:launch" />
   </div>
 </template>
 

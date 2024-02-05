@@ -1,5 +1,5 @@
 <template>
-  <div class="flex w-full flex-col items-center">
+  <div class="flex w-full flex-col items-center px-4">
     <ProjectList :show-header="true" />
   </div>
 </template>

@@ -1,28 +1,33 @@
 <template>
-  <div class="flex flex-grow">
+  <div class="flex flex-grow overflow-hidden">
     <Skeleton v-if="loading" />
-    <div v-else-if="project" class="flex flex-grow flex-col gap-2">
-      <div
-        v-if="project.backgroundImage"
-        class="header-container"
-        :style="`background-image: url('${getImageUrl(project.backgroundImage ?? '')}')`"
-      ></div>
-      <div v-else class="h-72"></div>
-
-      <div class="prose z-10 -mt-28 flex max-w-full items-center justify-between gap-4 px-8">
-        <div class="flex items-center gap-4">
-          <img v-if="project.image" :src="getImageUrl(project.image)" class="h-10 w-10 rounded-full" />
-          <h1 class="title">{{ project.title }}</h1>
-          <small class="text-white">{{ project.year }}</small>
+    <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
+      <div class="header-container" :style="headerStyle">
+        <div class="prose z-10 flex w-full max-w-full items-center justify-between gap-4 overflow-hidden px-8">
+          <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center">
+            <div class="flex items-center justify-start space-x-2 md:hidden">
+              <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 h-10 w-10 rounded-full" />
+              <small class="text-white">{{ project.year }}</small>
+            </div>
+            <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 hidden h-10 w-10 rounded-full md:flex" />
+            <h1 class="title">{{ project.title }}</h1>
+            <small class="hidden text-white md:flex">{{ project.year }}</small>
+          </div>
+          <ClientOnly>
+            <NuxtLink
+              v-if="isAuthenticated"
+              :to="`/projects/${$route.params.id}/update`"
+              class="absolute right-8 top-6 text-xs md:relative md:right-auto md:top-auto"
+            >
+              Edit
+            </NuxtLink>
+          </ClientOnly>
         </div>
-        <ClientOnly>
-          <NuxtLink v-if="isAuthenticated" :to="`/projects/${$route.params.id}/update`" class="text-xs">Edit</NuxtLink>
-        </ClientOnly>
       </div>
 
-      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 px-8">
+      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 overflow-hidden px-8 md:mt-0">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div v-if="Object.keys(groupedTags).length > 0" class="flex flex-wrap items-center gap-4">
+          <div v-if="Object.keys(groupedTags).length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1">
             <div v-for="(typeTags, type) in groupedTags" :key="type">
               <small class="m-0 italic">{{ type }}</small>
               <div class="flex flex-wrap gap-2">
@@ -44,12 +49,10 @@
         </div>
 
         <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
-
-        <h3 class="m-0">Overview</h3>
         <div class="project-description" v-html="project.description" />
 
         <div v-if="project.website" class="flex flex-col items-center gap-4 md:flex-row">
-          <MockupBrowser :url="project.website" />
+          <MockupBrowser class="hidden md:block" :url="project.website" />
           <MockupPhone :url="project.website" />
         </div>
       </div>
@@ -137,10 +140,16 @@ export default defineNuxtComponent({
 
       return sortedGroupedTags
     },
+    headerStyle(): object {
+      if (!this.project?.backgroundImage) return {}
+
+      return {
+        backgroundImage: `url(${getImageUrl(this.project.backgroundImage)})`,
+      }
+    },
   },
   async mounted() {
     if (!this.id) return
-    if (!this.companies?.length) await useCompanyStore().getCompanies()
     if (this.project?.id !== this.id) await useProjectStore().getProject(this.id)
   },
   beforeUnmount() {
@@ -151,7 +160,7 @@ export default defineNuxtComponent({
 
 <style scoped>
 .header-container {
-  @apply relative h-72 bg-cover bg-center;
+  @apply relative flex h-72 flex-col justify-end bg-cover bg-center py-8;
 }
 
 .header-container::after {

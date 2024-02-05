@@ -2,7 +2,7 @@
   <div class="companies prose w-full max-w-5xl space-y-8">
     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
       <h1 class="m-0">Companies</h1>
-      <div class="flex flex-col items-center gap-4 md:flex-row">
+      <div class="flex items-center gap-4">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
         <ClientOnly>
           <FormButton

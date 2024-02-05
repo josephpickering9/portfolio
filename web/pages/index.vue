@@ -68,7 +68,7 @@ export default defineComponent({
 
 <style scoped>
 .search-box-container {
-  @apply flex flex-grow transform flex-col items-center justify-center space-y-6;
+  @apply flex flex-grow transform flex-col items-center justify-center space-y-6 px-4 py-1;
   transition: all 0.3s ease;
 }
 

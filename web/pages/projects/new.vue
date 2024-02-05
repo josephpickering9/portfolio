@@ -1,5 +1,5 @@
 <template>
-  <div class="flex w-full flex-col items-center space-y-4">
+  <div class="flex w-full flex-col items-center space-y-4 px-4">
     <ProjectForm />
   </div>
 </template>
