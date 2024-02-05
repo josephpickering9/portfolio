@@ -5,7 +5,7 @@
       <Icon name="mdi:chevron-down" />
     </div>
     <div
-      class="dropdown-content top-px z-50 mt-16 h-[28.6rem] max-h-[calc(100vh-10rem)] w-56 overflow-y-auto rounded-box border border-white/5 text-base-content shadow-2xl outline outline-1 outline-black/5"
+      class="dropdown-content top-0 z-50 mt-16 h-[28.6rem] max-h-[calc(100vh-10rem)] w-56 overflow-y-auto rounded-box border border-white/5 bg-base-200 text-base-content shadow-2xl outline outline-1 outline-black/5"
     >
       <div class="grid grid-cols-1 gap-3 p-3">
         <button
