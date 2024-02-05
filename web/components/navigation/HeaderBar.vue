@@ -22,6 +22,7 @@
         <!-- TODO: Hook this up -->
         <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
       </div>
+      <ThemeController />
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="avatar btn btn-circle btn-ghost">
           <div class="w-10 rounded-full">
@@ -53,16 +54,15 @@
           <li><NuxtLink to="/companies" @click="toggleMobileMenu">Companies</NuxtLink></li>
           <li><NuxtLink to="/tags" @click="toggleMobileMenu">Tags</NuxtLink></li>
           <li class="w-full"><div class="divider" /></li>
+          <li><ThemeController /></li>
           <ClientOnly>
             <li v-if="!isAuthenticated"><button type="button" @click="login">Login</button></li>
             <li v-else><button type="button" @click="logout">Logout</button></li>
           </ClientOnly>
         </ul>
         <div class="mt-auto flex flex-col gap-4">
-          <div class="avatar btn btn-circle btn-ghost">
-            <div class="w-32 rounded-full">
-              <img alt="Profile" src="~/assets/img/joe.png" />
-            </div>
+          <div class="w-20 overflow-hidden rounded-full">
+            <img alt="Profile" src="~/assets/img/joe.png" />
           </div>
         </div>
       </div>
@@ -73,6 +73,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import useAuth from '../../composables/useAuth'
+import ThemeController from '../theme/ThemeController.vue'
 import { Icon } from '#components'
 
 interface Data {
@@ -81,7 +82,7 @@ interface Data {
 
 export default defineComponent({
   name: 'HeaderBar',
-  components: { Icon },
+  components: { Icon, ThemeController },
   setup() {
     const { isAuthenticated, login, logout } = useAuth()
 

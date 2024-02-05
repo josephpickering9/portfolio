@@ -1,7 +1,7 @@
 <template>
   <footer class="footer footer-center bg-base-300 p-4 text-base-content">
     <aside>
-      <p>Copyright &copy; 2024 - All right reserved by Joseph Pickering</p>
+      <p>Work Experience by Joseph Pickering</p>
     </aside>
   </footer>
 </template>

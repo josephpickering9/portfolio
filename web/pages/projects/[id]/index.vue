@@ -2,7 +2,8 @@
   <div class="flex flex-grow overflow-hidden">
     <Skeleton v-if="loading" />
     <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
-      <div class="header-container" :style="headerStyle">
+      <!-- TODO: dark/light gradient -->
+      <div class="header-container header-container-dark" :style="headerStyle">
         <div class="prose z-10 flex w-full max-w-full items-center justify-between gap-4 overflow-hidden px-8">
           <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center">
             <div class="flex items-center justify-start space-x-2 md:hidden">
@@ -10,7 +11,7 @@
               <small class="text-white">{{ project.year }}</small>
             </div>
             <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 hidden h-10 w-10 rounded-full md:flex" />
-            <h1 class="title">{{ project.title }}</h1>
+            <h1 ref="title" class="title">{{ project.title }}</h1>
             <small class="hidden text-white md:flex">{{ project.year }}</small>
           </div>
           <ClientOnly>
@@ -74,6 +75,7 @@ import { useCompanyStore } from '../../../store/CompanyStore'
 import useMeta from '../../../composables/useMeta'
 import { getImageUrl } from '../../../utils/image-helper'
 import useAuth from '../../../composables/useAuth'
+import { getShadeFromOklsh } from '../../../utils/colour-helper'
 import { defineNuxtComponent } from '#app'
 
 export default defineNuxtComponent({
@@ -140,6 +142,14 @@ export default defineNuxtComponent({
 
       return sortedGroupedTags
     },
+    headerClass(): object {
+      if (!process.client) return {}
+
+      const oklsh = getComputedStyle(document.getElementsByClassName('title')[0]).getPropertyValue('--tw-prose-headings')
+      return {
+        [`header-container-${getShadeFromOklsh(oklsh)}`]: true,
+      }
+    },
     headerStyle(): object {
       if (!this.project?.backgroundImage) return {}
 
@@ -165,7 +175,15 @@ export default defineNuxtComponent({
 
 .header-container::after {
   content: '';
-  @apply absolute left-0 top-0 block h-full w-full bg-gradient-to-b from-transparent to-black;
+  @apply absolute left-0 top-0 block h-full w-full bg-gradient-to-b from-transparent;
+}
+
+.header-container-light::after {
+  @apply to-gray-400;
+}
+
+.header-container-dark::after {
+  @apply to-black;
 }
 
 .title {

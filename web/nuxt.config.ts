@@ -20,7 +20,7 @@ export default defineNuxtConfig({
     },
   },
 
-  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'nuxt-icon'],
+  modules: ['@nuxtjs/tailwindcss', '@pinia/nuxt', 'nuxt-icon', '@pinia-plugin-persistedstate/nuxt'],
 
   alias: {
     cookie: 'cookie',
