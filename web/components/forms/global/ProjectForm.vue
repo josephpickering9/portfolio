@@ -166,7 +166,7 @@ export default defineComponent({
       }
 
       if (!this.error && response) {
-        this.$router.push(`/projects/${response.id}`)
+        this.$router.push(`/projects/${response.slug}`)
         useNotificationStore().displaySuccessNotification(`Project ${this.isUpdate ? 'updated' : 'created'} successfully`)
       } else {
         useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
