@@ -86,12 +86,14 @@ export default defineComponent({
     },
   },
   async mounted() {
-    const route = this.$route
-    this.search = route.query.search?.toString() || this.search
-
+    this.setValues()
     await useCompanyStore().getCompanies()
   },
   methods: {
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+    },
     updateQueryParams() {
       this.$router.push({
         path: this.$route.path,
@@ -104,6 +106,9 @@ export default defineComponent({
   watch: {
     companies() {
       this.initialLoad = false
+    },
+    $route() {
+      this.setValues()
     },
     search() {
       this.updateQueryParams()

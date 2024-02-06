@@ -169,14 +169,16 @@ export default defineComponent({
     },
   },
   async mounted() {
-    const route = this.$route
-    this.search = route.query.search?.toString() || this.search
-    this.companyId = route.query.company ? parseInt(route.query.company.toString()) : undefined
-    this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
-
+    this.setValues()
     await useProjectStore().getProjects()
   },
   methods: {
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+      this.companyId = route.query.company ? parseInt(route.query.company.toString()) : undefined
+      this.tagType = route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined
+    },
     updateQueryParams() {
       this.$router.push({
         path: this.$route.path,
@@ -191,6 +193,9 @@ export default defineComponent({
   watch: {
     projects() {
       this.initialLoad = false
+    },
+    $route() {
+      this.setValues()
     },
     search() {
       this.updateQueryParams()

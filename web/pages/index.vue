@@ -56,12 +56,7 @@ export default defineComponent({
     },
   },
   mounted() {
-    const route = this.$route
-    this.search = route.query.search?.toString() || this.search
-    const tags = route.query.tags ? route.query.tags : []
-    this.tags = Array.isArray(tags) ? tags.map((tag) => tag?.toString()).filter(notEmpty) : [tags]
-
-    if (!isEmpty(this.search) || this.tags.length) this.isSearchActive = true
+    this.setValues()
   },
   methods: {
     isEmpty,
@@ -76,6 +71,14 @@ export default defineComponent({
         this.isSearchActive = false
       }
     },
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+      const tags = route.query.tags ? route.query.tags : []
+      this.tags = Array.isArray(tags) ? tags.map((tag) => tag?.toString()).filter(notEmpty) : [tags]
+
+      this.isSearchActive = !isEmpty(this.search) || this.tags.length > 0
+    },
     updateQueryParams() {
       this.$router.push({
         path: this.$route.path,
@@ -87,6 +90,9 @@ export default defineComponent({
     },
   },
   watch: {
+    $route() {
+      this.setValues()
+    },
     search() {
       this.updateQueryParams()
     },

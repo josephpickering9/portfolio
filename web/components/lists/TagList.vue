@@ -108,13 +108,15 @@ export default defineComponent({
     },
   },
   async mounted() {
-    const route = this.$route
-    this.search = route.query.search?.toString() || this.search
-    this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
-
+    this.setValues()
     await useTagStore().getTags()
   },
   methods: {
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+      this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
+    },
     updateQueryParams() {
       this.$router.push({
         path: this.$route.path,
@@ -128,6 +130,9 @@ export default defineComponent({
   watch: {
     tags() {
       this.initialLoad = false
+    },
+    $route() {
+      this.setValues()
     },
     search() {
       this.updateQueryParams()
