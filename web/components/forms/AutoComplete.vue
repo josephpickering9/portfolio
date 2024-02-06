@@ -10,6 +10,7 @@
           :required="required"
           :disabled="disabled"
           class="input input-bordered w-full pr-8"
+          :class="inputClass"
           @input="handleInputDebounce"
           @focus="focus"
           @blur="blur"
@@ -20,7 +21,7 @@
         />
       </div>
       <div v-else class="flex items-center">
-        <div class="input input-bordered flex w-full items-center pr-8">
+        <div class="input input-bordered flex w-full items-center pr-8" :class="inputClass">
           <slot name="selectedItem">
             <span v-if="value" class="truncate">{{ value.title }}</span>
           </slot>
@@ -32,7 +33,7 @@
         ref="results"
         tabindex="0"
         :class="resultsClass"
-        class="input input-bordered absolute z-50 my-2 h-auto max-h-52 w-full overflow-hidden overflow-y-auto rounded-md p-0 shadow"
+        class="input input-bordered absolute z-50 my-2 h-auto max-h-60 w-full min-w-72 overflow-hidden overflow-y-auto rounded-md p-0 shadow"
       >
         <ul class="m-0 w-full list-none bg-base-100 p-0">
           <li
@@ -124,6 +125,10 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    size: {
+      type: String,
+      default: 'md',
+    },
   },
   emits: ['update:modelValue', 'update:modelSearch', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
   data(): Data {
@@ -156,6 +161,14 @@ export default defineComponent({
       return {
         'bottom-full': this.showResultsAbove,
         'top-full': !this.showResultsAbove,
+      }
+    },
+    inputClass(): object {
+      return {
+        'input-xs': this.size === 'xs',
+        'input-sm': this.size === 'sm',
+        'input-md': this.size === 'md',
+        'input-lg': this.size === 'lg',
       }
     },
   },

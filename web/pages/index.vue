@@ -5,7 +5,7 @@
       v-model:model-search="search"
       type="text"
       class="search-input"
-      placeholder="Search"
+      :placeholder="placeholder"
       :show-empty-message="false"
       :open-on-focus="false"
       @focus="handleFocus"
@@ -24,6 +24,7 @@ import { useProjectStore } from '../store/ProjectStore'
 import ProjectList from '../components/lists/ProjectList.vue'
 import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
 import useMeta from '../composables/useMeta'
+import { notEmpty } from '../utils/array-helper'
 
 interface Data {
   isSearchActive: boolean
@@ -49,6 +50,19 @@ export default defineComponent({
       tags: [],
     }
   },
+  computed: {
+    placeholder(): string {
+      return this.isSearchActive ? 'Search by tag or keyword' : 'Search'
+    },
+  },
+  mounted() {
+    const route = this.$route
+    this.search = route.query.search?.toString() || this.search
+    const tags = route.query.tags ? route.query.tags : []
+    this.tags = Array.isArray(tags) ? tags.map((tag) => tag?.toString()).filter(notEmpty) : [tags]
+
+    if (!isEmpty(this.search) || this.tags.length) this.isSearchActive = true
+  },
   methods: {
     isEmpty,
     async getProjects() {
@@ -61,6 +75,23 @@ export default defineComponent({
       if (isEmpty(this.search) && isEmpty(this.tags)) {
         this.isSearchActive = false
       }
+    },
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+          tags: this.tags ? this.tags : undefined,
+        },
+      })
+    },
+  },
+  watch: {
+    search() {
+      this.updateQueryParams()
+    },
+    tags() {
+      this.updateQueryParams()
     },
   },
 })

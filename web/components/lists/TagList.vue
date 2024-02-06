@@ -4,7 +4,7 @@
       <h1 class="m-0">Tags</h1>
       <div class="flex items-center gap-4">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
-        <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" :disabled="loading" />
+        <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" placeholder="Type" :disabled="loading" />
         <ClientOnly>
           <FormButton v-if="isAuthenticated" label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
         </ClientOnly>
@@ -36,11 +36,12 @@ import { isEmpty } from 'lodash-es'
 import Skeleton from '../loading/Skeleton.vue'
 import { useTagStore } from '../../store/TagStore'
 import type { Tag } from '../../api/models/Tag'
-import type { TagType } from '../../api/models/TagType'
+import { TagType } from '../../api/models/TagType'
 import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
 import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
 import useAuth from '../../composables/useAuth'
+import { getEnumValue } from '../../utils/enum-helper'
 import TagListItem from './TagListItem.vue'
 
 interface Data {
@@ -107,11 +108,32 @@ export default defineComponent({
     },
   },
   async mounted() {
+    const route = this.$route
+    this.search = route.query.search?.toString() || this.search
+    this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
+
     await useTagStore().getTags()
+  },
+  methods: {
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+          type: this.tagType ? this.tagType : undefined,
+        },
+      })
+    },
   },
   watch: {
     tags() {
       this.initialLoad = false
+    },
+    search() {
+      this.updateQueryParams()
+    },
+    tagType() {
+      this.updateQueryParams()
     },
   },
 })

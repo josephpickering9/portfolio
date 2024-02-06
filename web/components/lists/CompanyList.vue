@@ -86,11 +86,27 @@ export default defineComponent({
     },
   },
   async mounted() {
+    const route = this.$route
+    this.search = route.query.search?.toString() || this.search
+
     await useCompanyStore().getCompanies()
+  },
+  methods: {
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+        },
+      })
+    },
   },
   watch: {
     companies() {
       this.initialLoad = false
+    },
+    search() {
+      this.updateQueryParams()
     },
   },
 })

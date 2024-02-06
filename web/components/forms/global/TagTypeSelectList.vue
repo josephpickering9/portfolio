@@ -1,5 +1,13 @@
 <template>
-  <SelectList v-model="value" :label="label" :options="tagTypes" :disabled="disabled" :size="size" />
+  <SelectList
+    v-model="value"
+    :label="label"
+    :options="tagTypes"
+    :disabled="disabled"
+    :size="size"
+    :placeholder="placeholder"
+    :clearable="clearable"
+  />
 </template>
 
 <script lang="ts">
@@ -27,6 +35,10 @@ export default defineComponent({
       type: String as PropType<TagType>,
       default: null,
     },
+    placeholder: {
+      type: String,
+      default: null,
+    },
     disabled: {
       type: Boolean,
       default: false,
@@ -34,6 +46,10 @@ export default defineComponent({
     size: {
       type: String,
       default: null,
+    },
+    clearable: {
+      type: Boolean,
+      default: true,
     },
   },
   emits: ['update:modelValue'],

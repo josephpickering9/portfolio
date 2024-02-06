@@ -10,6 +10,15 @@ export const enumToSelectListItem = (obj: any, titleCase: boolean = true): Array
   })
 }
 
+export const getEnumValue = <E extends { [key: string]: string }>(enumObj: E, value: string): E[keyof E] | undefined => {
+  const entries = Object.entries(enumObj)
+  for (const [key, enumValue] of entries) {
+    if (enumValue === value) return enumObj[key as keyof typeof enumObj]
+  }
+  return undefined
+}
+
 export default {
   enumToSelectListItem,
+  getEnumValue,
 }

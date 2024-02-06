@@ -1,11 +1,20 @@
 <template>
   <FormElementContainer :label="label">
-    <select v-model="value" class="select select-bordered w-full" :class="selectClass">
-      <option v-if="placeholder" value="" disabled selected>{{ placeholder }}</option>
+    <select v-model="value" class="select select-bordered w-full" :class="selectClass" :disabled="disabled">
+      <option v-if="placeholder" :value="null" disabled selected>{{ placeholder }}</option>
       <option v-for="(option, index) in options" :key="index" :value="option.value">
         {{ option.text }}
       </option>
     </select>
+    <button
+      v-if="value && clearable"
+      type="button"
+      tabindex="-1"
+      class="absolute right-4 top-2 text-xs"
+      @click="value = null"
+    >
+      X
+    </button>
   </FormElementContainer>
 </template>
 
@@ -50,6 +59,10 @@ export default defineComponent({
       type: String,
       default: null,
     },
+    clearable: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ['update:modelValue'],
   data(): Data {
@@ -61,7 +74,9 @@ export default defineComponent({
     selectClass(): object {
       return {
         'select-sm': this.size === 'sm',
+        'select-md': this.size === 'md',
         'select-lg': this.size === 'lg',
+        'bg-none': this.value && this.clearable,
       }
     },
   },

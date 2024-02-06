@@ -6,7 +6,7 @@
       :label="label"
       :show-selected="false"
       :open-on-focus="openOnFocus"
-      placeholder="Search"
+      :placeholder="placeholder"
       @select="selectTag"
       @blur="$emit('blur')"
       @focus="$emit('focus')"
@@ -53,6 +53,10 @@ export default defineComponent({
     modelSearch: {
       type: String,
       default: '',
+    },
+    placeholder: {
+      type: String,
+      default: null,
     },
     showEmptyMessage: {
       type: Boolean,
