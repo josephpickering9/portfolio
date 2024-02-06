@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full flex-col items-center px-4">
-    <ProjectForm :id="Number($route.params.id)" />
+    <ProjectForm :slug="$route.params.slug" />
   </div>
 </template>
 

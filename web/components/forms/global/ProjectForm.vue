@@ -84,8 +84,8 @@ export default defineComponent({
     FormButton,
   },
   props: {
-    id: {
-      type: Number,
+    slug: {
+      type: String,
       default: null,
     },
   },
@@ -106,7 +106,7 @@ export default defineComponent({
   },
   computed: {
     isUpdate(): boolean {
-      return this.id !== null
+      return this.slug !== null
     },
     project(): Project | undefined {
       return useProjectStore().project
@@ -136,13 +136,13 @@ export default defineComponent({
   },
   async mounted() {
     if (this.isUpdate) {
-      await useProjectStore().getProject(this.id)
+      await useProjectStore().getProjectBySlug(this.slug)
 
       if (!this.projectError && this.project) {
         this.title = this.project.title
         this.shortDescription = this.project.shortDescription
         this.description = this.project.description
-        this.companyId = this.project.companyId
+        this.companyId = this.project.companyId ?? undefined
         this.year = this.project.year
         this.website = this.project.website ?? ''
         this.tags = this.project.tags.map((tag) => tag.title) ?? []
@@ -158,7 +158,9 @@ export default defineComponent({
       let response: Project | undefined
 
       if (this.isUpdate) {
-        response = await useProjectStore().updateProject(this.id, this.createProjectValue)
+        if (!this.project) return useNotificationStore().displayErrorNotification('Project not found')
+
+        response = await useProjectStore().updateProject(this.project.id, this.createProjectValue)
       } else {
         response = await useProjectStore().createProject(this.createProjectValue)
       }
@@ -171,7 +173,9 @@ export default defineComponent({
       }
     },
     async remove() {
-      await useProjectStore().deleteProject(this.id)
+      if (!this.project) return useNotificationStore().displayErrorNotification('Project not found')
+
+      await useProjectStore().deleteProject(this.project.id)
 
       if (!this.error) {
         this.$router.push(`/projects`)
