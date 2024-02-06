@@ -17,7 +17,7 @@
           <ClientOnly>
             <NuxtLink
               v-if="isAuthenticated"
-              :to="`/projects/${$route.params.id}/update`"
+              :to="`/projects/${$route.params.slug}/update`"
               class="absolute right-8 top-6 text-xs md:relative md:right-auto md:top-auto"
             >
               Edit
