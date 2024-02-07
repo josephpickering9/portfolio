@@ -11,7 +11,7 @@
               <small class="text-white">{{ project.year }}</small>
             </div>
             <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 hidden h-10 w-10 rounded-full md:flex" />
-            <h1 ref="title" class="title">{{ project.title }}</h1>
+            <h1 ref="title" class="title text-gray-400">{{ project.title }}</h1>
             <small class="hidden text-white md:flex">{{ project.year }}</small>
           </div>
           <ClientOnly>
@@ -84,9 +84,9 @@ export default defineNuxtComponent({
   async setup() {
     const { isAuthenticated } = useAuth()
 
-    const projectId = Number(useRoute().params.id)
+    const projectSlug = useRoute().params.slug
     const initialProject = useProjectStore().project
-    if (!initialProject || initialProject?.id !== projectId) await useProjectStore().getProject(projectId)
+    if (!initialProject || initialProject?.slug !== projectSlug) await useProjectStore().getProjectBySlug(projectSlug)
 
     const project = useProjectStore().project
     if (!project) return { isAuthenticated }
