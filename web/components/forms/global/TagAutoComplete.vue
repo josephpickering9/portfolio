@@ -16,7 +16,7 @@
       </template>
     </AutoComplete>
     <div class="flex min-h-8 items-center px-4">
-      <div v-if="convertedTags && convertedTags.length" class="flex items-center gap-2">
+      <div v-if="convertedTags && convertedTags.length" class="flex flex-wrap items-center gap-2">
         <Tag v-for="(tag, index) in convertedTags" :key="index" :tag="tag" clearable @remove="removeTag" />
       </div>
       <div v-else-if="showEmptyMessage" class="flex items-center text-sm italic text-gray-500">No tags added</div>

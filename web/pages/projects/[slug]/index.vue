@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-grow overflow-hidden">
+  <div class="flex flex-grow justify-center overflow-hidden">
     <Skeleton v-if="loading" />
     <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
       <!-- TODO: dark/light gradient -->
@@ -194,5 +194,9 @@ export default defineNuxtComponent({
 <style>
 .project-description p {
   @apply mt-0;
+}
+
+.project-description li p {
+  @apply m-0;
 }
 </style>
