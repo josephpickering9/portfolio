@@ -196,7 +196,13 @@ export default defineNuxtComponent({
   @apply mt-0;
 }
 
-.project-description li p {
+.project-description li p,
+.project-description ul ul,
+.project-description ol ol {
   @apply m-0;
+}
+
+.project-description ul ul li {
+  @apply mt-1;
 }
 </style>
