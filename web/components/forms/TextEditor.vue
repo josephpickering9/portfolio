@@ -1,5 +1,6 @@
 <template>
-  <FormElementContainer :label="label">
+  <div>
+    <FormElementContainer :label="label" />
     <div class="textarea textarea-bordered w-full">
       <div v-if="editor" class="editor-buttons">
         <button
@@ -90,7 +91,7 @@
       </div>
       <EditorContent :editor="editor" />
     </div>
-  </FormElementContainer>
+  </div>
 </template>
 
 <script lang="ts">
@@ -101,6 +102,7 @@ import FormElementContainer from './FormElementContainer.vue'
 
 interface Data {
   editor: Editor | null
+  initialLoad: boolean
 }
 
 export default defineComponent({
@@ -118,11 +120,16 @@ export default defineComponent({
       type: String,
       required: true,
     },
+    placeholder: {
+      type: String,
+      default: null,
+    },
   },
   emits: ['update:modelValue'],
   data(): Data {
     return {
       editor: null,
+      initialLoad: true,
     }
   },
   mounted() {
@@ -139,12 +146,16 @@ export default defineComponent({
     if (this.editor) {
       this.editor.destroy()
       this.editor = null
+      this.initialLoad = true
     }
   },
   watch: {
     modelValue(value) {
-      if (this.editor) {
+      if (!this.initialLoad) return
+
+      if (this.editor && !this.editor.isFocused) {
         this.editor.commands.setContent(value)
+        this.initialLoad = false
       }
     },
   },
