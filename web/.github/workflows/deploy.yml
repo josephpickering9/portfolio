@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Cache Yarn dependencies
-        uses: actions/cache@4
+        uses: actions/cache@v4
         with:
           path: .yarn
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
