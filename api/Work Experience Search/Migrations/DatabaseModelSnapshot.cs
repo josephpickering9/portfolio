@@ -76,17 +76,11 @@ namespace Work_Experience_Search.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BackgroundImage")
-                        .HasColumnType("text");
-
                     b.Property<int?>("CompanyId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Image")
                         .HasColumnType("text");
 
                     b.Property<string>("ShortDescription")
@@ -112,6 +106,32 @@ namespace Work_Experience_Search.Migrations
                     b.HasIndex("CompanyId");
 
                     b.ToTable("Project");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectImage");
                 });
 
             modelBuilder.Entity("Work_Experience_Search.Models.Tag", b =>
@@ -167,6 +187,22 @@ namespace Work_Experience_Search.Migrations
                         .HasForeignKey("CompanyId");
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectImage", b =>
+                {
+                    b.HasOne("Work_Experience_Search.Models.Project", "Project")
+                        .WithMany("Images")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.Project", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }
