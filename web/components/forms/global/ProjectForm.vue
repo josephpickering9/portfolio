@@ -11,20 +11,25 @@
       <CompanyAutoComplete v-model="companyId" label="Company" class="w-full md:w-1/2" :disabled="loading" />
       <TextInput v-model="website" label="Website" class="w-full md:w-1/2" :disabled="loading" />
     </div>
-    <div class="flex flex-col gap-4 md:flex-row">
-      <FileInput
-        label="Image"
-        class="w-full md:w-1/2"
-        :image-url="imageUrl"
+    <div class="grid gap-4 md:grid-cols-2">
+      <FileInput v-model:image-url="logoUrl" label="Logo" :disabled="loading" @update:file="logo = $event" />
+      <FileInput v-model:image-url="bannerUrl" label="Banner" :disabled="loading" @update:file="banner = $event" />
+      <FileInput v-model:image-url="cardUrl" label="Card" :disabled="loading" @update:file="card = $event" />
+    </div>
+    <div class="grid gap-4 md:grid-cols-2">
+      <FileInputList
+        v-model:image-urls="desktopUrls"
+        label="Desktop"
         :disabled="loading"
-        @update:file="image = $event"
+        :multiple="true"
+        @update:file="desktop = $event"
       />
-      <FileInput
-        label="Background Image"
-        class="w-full md:w-1/2"
-        :image-url="backgroundImageUrl"
+      <FileInputList
+        v-model:image-urls="mobileUrls"
+        label="Mobile"
         :disabled="loading"
-        @update:file="backgroundImage = $event"
+        :multiple="true"
+        @update:file="mobile = $event"
       />
     </div>
     <TagAutoComplete v-model="tags" label="Tags" />
@@ -52,8 +57,10 @@ import type { Project } from '../../../api/models/Project'
 import TextInput from '../TextInput.vue'
 import TextEditor from '../TextEditor.vue'
 import FileInput from '../FileInput.vue'
-import { getImageUrl } from '../../../utils/image-helper'
+import FileInputList from '../FileInputList.vue'
 import FormButton from '../FormButton.vue'
+import { getImageUrl } from '../../../utils/image-helper'
+import { ImageType, type CreateProjectImage } from '../../../api'
 import YearSelectList from './YearSelectList.vue'
 import TagAutoComplete from './TagAutoComplete.vue'
 import CompanyAutoComplete from './CompanyAutoComplete.vue'
@@ -63,10 +70,16 @@ interface Data {
   shortDescription: string
   description: string
   companyId?: number
-  image: FileList | null
-  backgroundImage: FileList | null
-  imageUrl?: string
-  backgroundImageUrl?: string
+  logo: FileList | null
+  banner: FileList | null
+  card: FileList | null
+  desktop: FileList | null
+  mobile: FileList | null
+  logoUrl?: string
+  bannerUrl?: string
+  cardUrl?: string
+  desktopUrls: string[]
+  mobileUrls: string[]
   year: number
   website: string
   tags: string[]
@@ -79,6 +92,7 @@ export default defineComponent({
     TextInput,
     YearSelectList,
     FileInput,
+    FileInputList,
     TagAutoComplete,
     CompanyAutoComplete,
     FormButton,
@@ -95,10 +109,16 @@ export default defineComponent({
       shortDescription: '',
       description: '',
       companyId: undefined,
-      image: null,
-      backgroundImage: null,
-      imageUrl: undefined,
-      backgroundImageUrl: undefined,
+      logo: null,
+      banner: null,
+      card: null,
+      desktop: null,
+      mobile: null,
+      logoUrl: undefined,
+      bannerUrl: undefined,
+      cardUrl: undefined,
+      desktopUrls: [],
+      mobileUrls: [],
       year: new Date().getFullYear(),
       website: '',
       tags: [],
@@ -126,12 +146,60 @@ export default defineComponent({
         shortDescription: this.shortDescription,
         description: this.description,
         companyId: this.companyId,
-        image: this.image ? (this.image.item(0) as Blob) : undefined,
-        backgroundImage: this.backgroundImage ? (this.backgroundImage.item(0) as Blob) : undefined,
         year: this.year,
         website: this.website,
+        images: this.createProjectImageValue,
         tags: this.tags,
       }
+    },
+    createProjectImageValue(): CreateProjectImage[] {
+      const images: CreateProjectImage[] = []
+
+      if (this.logo) {
+        images.push({ type: ImageType.LOGO, image: this.logo.item(0) as Blob })
+      } else if (this.logoUrl && this.project?.logo) {
+        images.push({ id: this.project.logo.id, type: ImageType.LOGO })
+      }
+
+      if (this.banner) {
+        images.push({ type: ImageType.BANNER, image: this.banner.item(0) as Blob })
+      } else if (this.bannerUrl && this.project?.banner) {
+        images.push({ id: this.project.banner.id, type: ImageType.BANNER })
+      }
+
+      if (this.card) {
+        images.push({ type: ImageType.CARD, image: this.card.item(0) as Blob })
+      } else if (this.cardUrl && this.project?.card) {
+        images.push({ id: this.project.card.id, type: ImageType.CARD })
+      }
+
+      if (this.desktop?.length) {
+        for (let i = 0; i < this.desktop.length; i++) {
+          images.push({ type: ImageType.DESKTOP, image: this.desktop.item(i) as Blob })
+        }
+      } else {
+        const desktops = this.project?.images.filter(
+          (image) => image.type === ImageType.DESKTOP && this.desktopUrls.includes(getImageUrl(image.image)),
+        )
+        if (desktops) {
+          desktops.forEach((image) => images.push({ id: image.id, type: ImageType.DESKTOP }))
+        }
+      }
+
+      if (this.mobile?.length) {
+        for (let i = 0; i < this.mobile.length; i++) {
+          images.push({ type: ImageType.MOBILE, image: this.mobile.item(i) as Blob })
+        }
+      } else {
+        const mobiles = this.project?.images.filter(
+          (image) => image.type === ImageType.MOBILE && this.mobileUrls.includes(getImageUrl(image.image)),
+        )
+        if (mobiles) {
+          mobiles.forEach((image) => images.push({ id: image.id, type: ImageType.MOBILE }))
+        }
+      }
+
+      return images
     },
   },
   async mounted() {
@@ -146,8 +214,15 @@ export default defineComponent({
         this.year = this.project.year
         this.website = this.project.website ?? ''
         this.tags = this.project.tags.map((tag) => tag.title) ?? []
-        this.imageUrl = this.project.image ? getImageUrl(this.project.image) : undefined
-        this.backgroundImageUrl = this.project.backgroundImage ? getImageUrl(this.project.backgroundImage) : undefined
+        this.logoUrl = this.project.logoUrl ? getImageUrl(this.project.logoUrl) : undefined
+        this.bannerUrl = this.project.bannerUrl ? getImageUrl(this.project.bannerUrl) : undefined
+        this.cardUrl = this.project.cardUrl ? getImageUrl(this.project.cardUrl) : undefined
+        this.desktopUrls = this.project.images
+          .filter((image) => image.type === ImageType.DESKTOP)
+          .map((image) => getImageUrl(image.image))
+        this.mobileUrls = this.project.images
+          .filter((image) => image.type === ImageType.MOBILE)
+          .map((image) => getImageUrl(image.image))
       } else {
         useNotificationStore().displayErrorNotification(this.projectError || 'An error occurred')
       }

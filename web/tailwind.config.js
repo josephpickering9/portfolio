@@ -15,6 +15,11 @@ export default {
     extend: {},
   },
   plugins: [typography, daisyui],
+  variants: {
+    extend: {
+      display: ['group-hover'],
+    },
+  },
   daisyui: {
     themes: [
       'light',

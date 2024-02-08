@@ -7,10 +7,14 @@
         <div class="prose z-10 flex w-full max-w-full items-center justify-between gap-4 overflow-hidden px-8">
           <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center">
             <div class="flex items-center justify-start space-x-2 md:hidden">
-              <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 h-10 w-10 rounded-full" />
+              <img v-if="project.logoUrl" :src="getImageUrl(project.logoUrl)" class="m-0 h-10 w-10 rounded-full" />
               <small class="text-white">{{ project.year }}</small>
             </div>
-            <img v-if="project.image" :src="getImageUrl(project.image)" class="m-0 hidden h-10 w-10 rounded-full md:flex" />
+            <img
+              v-if="project.logoUrl"
+              :src="getImageUrl(project.logoUrl)"
+              class="m-0 hidden h-10 w-10 rounded-full md:flex"
+            />
             <h1 ref="title" class="title text-gray-400">{{ project.title }}</h1>
             <small class="hidden text-white md:flex">{{ project.year }}</small>
           </div>
@@ -52,6 +56,9 @@
         <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
         <div class="project-description" v-html="project.description" />
 
+        <Carousel v-if="desktopImages.length" title="Desktop" :images="desktopImages" width="1007" height="508" />
+        <Carousel v-if="mobileImages.length" title="Mobile" :images="mobileImages" width="335" height="673" />
+
         <div v-if="project.website" class="flex flex-col items-center gap-4 md:flex-row">
           <MockupBrowser class="hidden md:block" :url="project.website" />
           <MockupPhone :url="project.website" />
@@ -63,7 +70,7 @@
 
 <script lang="ts">
 import { useRoute } from 'vue-router'
-import type { Company, Project, Tag as TagModel } from '../../../api'
+import { ImageType, type Company, type Project, type Tag as TagModel } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
 import Skeleton from '../../../components/loading/Skeleton.vue'
 import Tag from '../../../components/tags/Tag.vue'
@@ -76,15 +83,16 @@ import useMeta from '../../../composables/useMeta'
 import { getImageUrl } from '../../../utils/image-helper'
 import useAuth from '../../../composables/useAuth'
 import { getShadeFromOklsh } from '../../../utils/colour-helper'
+import Carousel from '../../../components/lists/Carousel.vue'
 import { defineNuxtComponent } from '#app'
 
 export default defineNuxtComponent({
   name: 'Project',
-  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem },
+  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem, Carousel },
   async setup() {
     const { isAuthenticated } = useAuth()
 
-    const projectSlug = useRoute().params.slug
+    const projectSlug = useRoute().params.slug as string
     const initialProject = useProjectStore().project
     if (!initialProject || initialProject?.slug !== projectSlug) await useProjectStore().getProjectBySlug(projectSlug)
 
@@ -94,7 +102,7 @@ export default defineNuxtComponent({
     useMeta().updateMeta({
       title: project.title,
       description: project.shortDescription,
-      image: project.backgroundImage ? getImageUrl(project.backgroundImage) : undefined,
+      image: project.bannerUrl ? getImageUrl(project.bannerUrl) : undefined,
     })
 
     return {
@@ -121,6 +129,16 @@ export default defineNuxtComponent({
       if (!this.project?.companyId) return undefined
 
       return this.companies.find((company) => company.id === this.project?.companyId)
+    },
+    desktopImages(): string[] {
+      if (!this.project) return []
+
+      return this.project.images.filter((image) => image.type === ImageType.DESKTOP).map((image) => image.image)
+    },
+    mobileImages(): string[] {
+      if (!this.project) return []
+
+      return this.project.images.filter((image) => image.type === ImageType.MOBILE).map((image) => image.image)
     },
     groupedTags(): Record<string, TagModel[]> {
       if (!this.project) return {}
@@ -151,10 +169,10 @@ export default defineNuxtComponent({
       }
     },
     headerStyle(): object {
-      if (!this.project?.backgroundImage) return {}
+      if (!this.project?.bannerUrl) return {}
 
       return {
-        backgroundImage: `url(${getImageUrl(this.project.backgroundImage)})`,
+        backgroundImage: `url(${getImageUrl(this.project.bannerUrl)})`,
       }
     },
   },

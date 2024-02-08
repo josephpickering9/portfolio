@@ -882,21 +882,39 @@
             "type": "string",
             "nullable": true
           },
-          "image": {
-            "type": "string",
-            "format": "binary",
-            "nullable": true
-          },
-          "backgroundImage": {
-            "type": "string",
-            "format": "binary",
-            "nullable": true
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateProjectImage"
+            }
           },
           "tags": {
             "type": "array",
             "items": {
               "type": "string"
             }
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateProjectImage": {
+        "required": [
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "image": {
+            "type": "string",
+            "format": "binary",
+            "nullable": true
+          },
+          "type": {
+            "$ref": "#/components/schemas/ImageType"
           }
         },
         "additionalProperties": false
@@ -926,10 +944,21 @@
         },
         "additionalProperties": false
       },
+      "ImageType": {
+        "enum": [
+          "Logo",
+          "Banner",
+          "Card",
+          "Desktop",
+          "Mobile"
+        ],
+        "type": "string"
+      },
       "Project": {
         "required": [
           "description",
           "id",
+          "images",
           "shortDescription",
           "slug",
           "tags",
@@ -962,14 +991,6 @@
           "company": {
             "$ref": "#/components/schemas/Company"
           },
-          "image": {
-            "type": "string",
-            "nullable": true
-          },
-          "backgroundImage": {
-            "type": "string",
-            "nullable": true
-          },
           "year": {
             "type": "integer",
             "format": "int32"
@@ -982,11 +1003,63 @@
             "minLength": 1,
             "type": "string"
           },
+          "images": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectImage"
+            }
+          },
           "tags": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/Tag"
             }
+          },
+          "logo": {
+            "$ref": "#/components/schemas/ProjectImage"
+          },
+          "logoUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "card": {
+            "$ref": "#/components/schemas/ProjectImage"
+          },
+          "cardUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "banner": {
+            "$ref": "#/components/schemas/ProjectImage"
+          },
+          "bannerUrl": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProjectImage": {
+        "required": [
+          "id",
+          "image",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "image": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/ImageType"
           }
         },
         "additionalProperties": false

@@ -110,30 +110,44 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
 
 export const getFormData = (options: ApiRequestOptions): FormData | undefined => {
     if (options.formData) {
-        const formData = new FormData();
-
-        const process = (key: string, value: any) => {
-            if (isString(value) || isBlob(value)) {
-                formData.append(key, value);
+      const formData = new FormData()
+  
+      const process = (key: string, value: any, parentKey?: string) => {
+        const fullKey = parentKey ? `${parentKey}[${key}]` : key
+  
+        if (isBlob(value)) {
+          const fullKeyBlob = parentKey ? `${parentKey}.${key}` : key
+          formData.append(fullKeyBlob, value)
+        } else if (isString(value)) {
+          formData.append(fullKey, value)
+        } else if (Array.isArray(value)) {
+          value.forEach((item, index) => {
+            if (isString(item) || isBlob(item)) {
+              formData.append(`${fullKey}[${index}]`, item)
             } else {
-                formData.append(key, JSON.stringify(value));
+              process(index.toString(), item, fullKey)
             }
-        };
-
-        Object.entries(options.formData)
-            .filter(([_, value]) => isDefined(value))
-            .forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach(v => process(key, v));
-                } else {
-                    process(key, value);
-                }
-            });
-
-        return formData;
+          })
+        } else if (typeof value === 'object' && value !== null) {
+          Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+            process(nestedKey, nestedValue, fullKey)
+          })
+        } else {
+          formData.append(fullKey, JSON.stringify(value))
+        }
+      }
+  
+      Object.entries(options.formData)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .forEach(([key, value]) => {
+          process(key, value)
+        })
+  
+      return formData
     }
-    return undefined;
-};
+
+    return undefined
+}
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 
