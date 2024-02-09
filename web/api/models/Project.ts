@@ -14,6 +14,7 @@ export type Project = {
     company?: Company;
     year: number;
     website?: string | null;
+    showMockup: boolean;
     slug: string;
     images: Array<ProjectImage>;
     tags: Array<Tag>;

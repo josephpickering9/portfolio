@@ -901,6 +901,7 @@
         "required": [
           "description",
           "shortDescription",
+          "showMockup",
           "tags",
           "title",
           "year"
@@ -931,6 +932,9 @@
           "website": {
             "type": "string",
             "nullable": true
+          },
+          "showMockup": {
+            "type": "boolean"
           },
           "images": {
             "type": "array",
@@ -1010,6 +1014,7 @@
           "id",
           "images",
           "shortDescription",
+          "showMockup",
           "slug",
           "tags",
           "title",
@@ -1048,6 +1053,9 @@
           "website": {
             "type": "string",
             "nullable": true
+          },
+          "showMockup": {
+            "type": "boolean"
           },
           "slug": {
             "minLength": 1,

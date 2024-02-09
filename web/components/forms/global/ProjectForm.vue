@@ -11,6 +11,9 @@
       <CompanyAutoComplete v-model="companyId" label="Company" class="w-full md:w-1/2" :disabled="loading" />
       <TextInput v-model="website" label="Website" class="w-full md:w-1/2" :disabled="loading" />
     </div>
+    <div class="flex">
+      <Toggle v-model="showMockup" label="Show Mockup" :disabled="loading" />
+    </div>
     <div class="grid gap-4 md:grid-cols-2">
       <FileInput v-model:image-url="logoUrl" label="Logo" :disabled="loading" @update:file="logo = $event" />
       <FileInput v-model:image-url="bannerUrl" label="Banner" :disabled="loading" @update:file="banner = $event" />
@@ -61,6 +64,7 @@ import FileInputList from '../FileInputList.vue'
 import FormButton from '../FormButton.vue'
 import { getImageUrl } from '../../../utils/image-helper'
 import { ImageType, type CreateProjectImage } from '../../../api'
+import Toggle from '../Toggle.vue'
 import YearSelectList from './YearSelectList.vue'
 import TagAutoComplete from './TagAutoComplete.vue'
 import CompanyAutoComplete from './CompanyAutoComplete.vue'
@@ -75,6 +79,7 @@ interface Data {
   card: FileList | null
   desktop: FileList | null
   mobile: FileList | null
+  showMockup: boolean
   logoUrl?: string
   bannerUrl?: string
   cardUrl?: string
@@ -96,6 +101,7 @@ export default defineComponent({
     TagAutoComplete,
     CompanyAutoComplete,
     FormButton,
+    Toggle,
   },
   props: {
     slug: {
@@ -121,6 +127,7 @@ export default defineComponent({
       mobileUrls: [],
       year: new Date().getFullYear(),
       website: '',
+      showMockup: false,
       tags: [],
     }
   },
@@ -148,6 +155,7 @@ export default defineComponent({
         companyId: this.companyId,
         year: this.year,
         website: this.website,
+        showMockup: this.showMockup,
         images: this.createProjectImageValue,
         tags: this.tags,
       }
@@ -211,6 +219,7 @@ export default defineComponent({
         this.companyId = this.project.companyId ?? undefined
         this.year = this.project.year
         this.website = this.project.website ?? ''
+        this.showMockup = this.project.showMockup
         this.tags = this.project.tags.map((tag) => tag.title) ?? []
         this.logoUrl = this.project.logoUrl ? getImageUrl(this.project.logoUrl) : undefined
         this.bannerUrl = this.project.bannerUrl ? getImageUrl(this.project.bannerUrl) : undefined

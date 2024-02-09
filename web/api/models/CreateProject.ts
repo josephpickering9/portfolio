@@ -10,6 +10,7 @@ export type CreateProject = {
     companyId?: number | null;
     year: number;
     website?: string | null;
+    showMockup: boolean;
     images?: Array<CreateProjectImage>;
     tags: Array<string>;
 };

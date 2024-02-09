@@ -59,7 +59,10 @@
         <Carousel v-if="desktopImages.length" title="Desktop" :images="desktopImages" width="1007" height="508" />
         <Carousel v-if="mobileImages.length" title="Mobile" :images="mobileImages" width="335" height="673" />
 
-        <div v-if="project.website" class="-mx-4 flex flex-col gap-4 rounded-box bg-neutral p-4 md:mx-0">
+        <div
+          v-if="project.website && project.showMockup"
+          class="-mx-4 flex flex-col gap-4 rounded-box bg-neutral p-4 md:mx-0"
+        >
           <h3 class="m-0">Mockup</h3>
           <div class="flex flex-col items-center gap-4 md:flex-row">
             <MockupBrowser class="hidden md:block" :url="project.website" />
