@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "openapi": "openapi --input ./api/docs/swagger.json --output ./api --client axios",
     "fetch-docs": "node ./api/docs/fetch.js",
-    "fetch-codegen": "yarn fetch-docs && yarn openapi",
+    "openapi-request": "node ./api/docs/openapi-request.js",
+    "fetch-codegen": "yarn fetch-docs && yarn openapi && yarn openapi-request",
     "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
     "lint:full": "eslint --ext .js,.vue,.ts --ignore-path .gitignore .",
     "lint:commit": "eslint"

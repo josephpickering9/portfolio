@@ -108,46 +108,50 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
     return url;
 };
 
+
+
 export const getFormData = (options: ApiRequestOptions): FormData | undefined => {
-    if (options.formData) {
-      const formData = new FormData()
-  
-      const process = (key: string, value: any, parentKey?: string) => {
-        const fullKey = parentKey ? `${parentKey}[${key}]` : key
-  
-        if (isBlob(value)) {
-          const fullKeyBlob = parentKey ? `${parentKey}.${key}` : key
-          formData.append(fullKeyBlob, value)
-        } else if (isString(value)) {
-          formData.append(fullKey, value)
-        } else if (Array.isArray(value)) {
-          value.forEach((item, index) => {
-            if (isString(item) || isBlob(item)) {
-              formData.append(`${fullKey}[${index}]`, item)
-            } else {
-              process(index.toString(), item, fullKey)
-            }
-          })
-        } else if (typeof value === 'object' && value !== null) {
-          Object.entries(value).forEach(([nestedKey, nestedValue]) => {
-            process(nestedKey, nestedValue, fullKey)
-          })
-        } else {
-          formData.append(fullKey, JSON.stringify(value))
-        }
-      }
-  
-      Object.entries(options.formData)
-        .filter(([_, value]) => value !== undefined && value !== null)
-        .forEach(([key, value]) => {
-          process(key, value)
+  if (options.formData) {
+    const formData = new FormData()
+
+    const process = (key: string, value: any, parentKey?: string) => {
+      const fullKey = parentKey ? `${parentKey}[${key}]` : key
+
+      if (isBlob(value)) {
+        const fullKeyBlob = parentKey ? `${parentKey}.${key}` : key
+        formData.append(fullKeyBlob, value)
+      } else if (isString(value)) {
+        formData.append(fullKey, value)
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          if (isString(item) || isBlob(item)) {
+            formData.append(`${fullKey}[${index}]`, item)
+          } else {
+            process(index.toString(), item, fullKey)
+          }
         })
-  
-      return formData
+      } else if (typeof value === 'object' && value !== null) {
+        Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+          process(nestedKey, nestedValue, fullKey)
+        })
+      } else {
+        formData.append(fullKey, JSON.stringify(value))
+      }
     }
 
-    return undefined
+    Object.entries(options.formData)
+      .filter(([_, value]) => value !== undefined && value !== null)
+      .forEach(([key, value]) => {
+        process(key, value)
+      })
+
+    return formData
+  }
+
+  return undefined
 }
+
+;
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 

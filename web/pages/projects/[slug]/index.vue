@@ -70,6 +70,7 @@
 
 <script lang="ts">
 import { useRoute } from 'vue-router'
+import { sortBy } from 'lodash'
 import { ImageType, type Company, type Project, type Tag as TagModel } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
 import Skeleton from '../../../components/loading/Skeleton.vue'
@@ -133,12 +134,18 @@ export default defineNuxtComponent({
     desktopImages(): string[] {
       if (!this.project) return []
 
-      return this.project.images.filter((image) => image.type === ImageType.DESKTOP).map((image) => image.image)
+      return sortBy(
+        this.project.images.filter((image) => image.type === ImageType.DESKTOP),
+        'order',
+      ).map((image) => image.image)
     },
     mobileImages(): string[] {
       if (!this.project) return []
 
-      return this.project.images.filter((image) => image.type === ImageType.MOBILE).map((image) => image.image)
+      return sortBy(
+        this.project.images.filter((image) => image.type === ImageType.MOBILE),
+        'order',
+      ).map((image) => image.image)
     },
     groupedTags(): Record<string, TagModel[]> {
       if (!this.project) return {}

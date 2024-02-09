@@ -7,5 +7,6 @@ export type ProjectImage = {
     id: number;
     image: string;
     type: ImageType;
+    order?: number | null;
 };
 
