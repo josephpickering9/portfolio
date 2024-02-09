@@ -67,6 +67,14 @@
           </div>
         </div>
       </div>
+      <div class="mx-auto mt-2 flex w-full max-w-7xl flex-col justify-center gap-4 overflow-hidden px-8">
+        <div v-if="relatedProjects.length" class="-mx-4 flex flex-col gap-4 rounded-box bg-neutral p-4 md:mx-0">
+          <div class="prose"><h3 class="m-0">Related Projects</h3></div>
+          <div class="mx-auto flex items-center justify-center">
+            <ProjectList :set-projects="relatedProjects" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -88,11 +96,12 @@ import { getImageUrl } from '../../../utils/image-helper'
 import useAuth from '../../../composables/useAuth'
 import { getShadeFromOklsh } from '../../../utils/colour-helper'
 import Carousel from '../../../components/lists/Carousel.vue'
+import ProjectList from '../../../components/lists/ProjectList.vue'
 import { defineNuxtComponent } from '#app'
 
 export default defineNuxtComponent({
   name: 'Project',
-  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem, Carousel },
+  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem, Carousel, ProjectList },
   async setup() {
     const { isAuthenticated } = useAuth()
 
@@ -102,6 +111,11 @@ export default defineNuxtComponent({
 
     const project = useProjectStore().project
     if (!project) return { isAuthenticated }
+
+    await useProjectStore().getRelatedProjects(project.id)
+
+    const companies = useCompanyStore().companies
+    if (!companies.length) await useCompanyStore().getCompanies()
 
     useMeta().updateMeta({
       title: project.title,
@@ -125,6 +139,12 @@ export default defineNuxtComponent({
     },
     error(): string | undefined {
       return useProjectStore().projectError
+    },
+    relatedProjects(): Project[] {
+      return useProjectStore().relatedProjects
+    },
+    relatedProjectsLoading(): boolean {
+      return useProjectStore().relatedProjectsLoading
     },
     companies(): Company[] {
       return useCompanyStore().companies

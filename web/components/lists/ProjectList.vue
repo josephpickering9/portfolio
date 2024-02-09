@@ -45,6 +45,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash-es'
+import type { PropType } from 'vue'
 import Skeleton from '../loading/Skeleton.vue'
 import { useProjectStore } from '../../store/ProjectStore'
 import type { Project } from '../../api/models/Project'
@@ -93,6 +94,10 @@ export default defineComponent({
       type: String,
       default: undefined,
     },
+    setProjects: {
+      type: Array as PropType<Project[]>,
+      default: () => [],
+    },
   },
   setup() {
     const { isAuthenticated } = useAuth()
@@ -103,7 +108,7 @@ export default defineComponent({
   },
   data(): Data {
     return {
-      initialLoad: true,
+      initialLoad: this.setProjects.length === 0,
       search: undefined,
       companyId: undefined,
       tagType: undefined,
@@ -118,7 +123,7 @@ export default defineComponent({
       return useProjectStore().projectsLoading || this.initialLoad
     },
     filteredProjects(): Project[] {
-      let projects: Project[] = [...this.projects]
+      let projects: Project[] = this.setProjects.length ? [...this.setProjects] : [...this.projects]
 
       if (!isEmpty(this.search)) {
         projects = projects.filter((project) => {
@@ -170,7 +175,8 @@ export default defineComponent({
   },
   async mounted() {
     this.setValues()
-    await useProjectStore().getProjects()
+
+    if (this.setProjects.length === 0) await useProjectStore().getProjects()
   },
   methods: {
     setValues() {
@@ -192,6 +198,9 @@ export default defineComponent({
   },
   watch: {
     projects() {
+      this.initialLoad = false
+    },
+    setProjects() {
       this.initialLoad = false
     },
     $route() {

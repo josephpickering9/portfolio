@@ -106,4 +106,20 @@ export class ProjectService {
             },
         });
     }
+    /**
+     * @param id
+     * @returns Project Success
+     * @throws ApiError
+     */
+    public static getProjectRelated(
+        id: number,
+    ): CancelablePromise<Array<Project>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/project/{id}/related',
+            path: {
+                'id': id,
+            },
+        });
+    }
 }

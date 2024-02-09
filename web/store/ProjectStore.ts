@@ -14,6 +14,8 @@ export const useProjectStore = defineStore('projectStore', {
     projectError: undefined as string | undefined,
     projectCreating: false,
     projectCreateError: undefined as string | undefined,
+    relatedProjects: [] as Project[],
+    relatedProjectsLoading: false,
   }),
   actions: {
     async getProjects(search?: string): Promise<Project[]> {
@@ -62,6 +64,23 @@ export const useProjectStore = defineStore('projectStore', {
       } finally {
         this.projectLoading = false
       }
+    },
+    async getRelatedProjects(id: number): Promise<Project[]> {
+      if (!id || this.relatedProjectsLoading) return []
+
+      let response: Project[] = []
+
+      try {
+        this.relatedProjectsLoading = true
+
+        response = await ProjectService.getProjectRelated(id)
+        this.relatedProjects = response
+      } catch {
+      } finally {
+        this.relatedProjectsLoading = false
+      }
+
+      return response
     },
     async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreating) return

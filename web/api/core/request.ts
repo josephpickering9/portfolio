@@ -109,7 +109,6 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
 };
 
 
-
 export const getFormData = (options: ApiRequestOptions): FormData | undefined => {
   if (options.formData) {
     const formData = new FormData()
@@ -150,7 +149,6 @@ export const getFormData = (options: ApiRequestOptions): FormData | undefined =>
 
   return undefined
 }
-
 ;
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
