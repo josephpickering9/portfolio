@@ -177,26 +177,24 @@ export default defineComponent({
         for (let i = 0; i < this.desktop.length; i++) {
           images.push({ type: ImageType.DESKTOP, image: this.desktop.item(i) as Blob })
         }
-      } else {
-        const desktops = this.project?.images.filter(
-          (image) => image.type === ImageType.DESKTOP && this.desktopUrls.includes(getImageUrl(image.image)),
-        )
-        if (desktops) {
-          desktops.forEach((image) => images.push({ id: image.id, type: ImageType.DESKTOP }))
-        }
+      }
+      const desktops = this.project?.images.filter(
+        (image) => image.type === ImageType.DESKTOP && this.desktopUrls.includes(getImageUrl(image.image)),
+      )
+      if (desktops) {
+        desktops.forEach((image) => images.push({ id: image.id, type: ImageType.DESKTOP }))
       }
 
       if (this.mobile?.length) {
         for (let i = 0; i < this.mobile.length; i++) {
           images.push({ type: ImageType.MOBILE, image: this.mobile.item(i) as Blob })
         }
-      } else {
-        const mobiles = this.project?.images.filter(
-          (image) => image.type === ImageType.MOBILE && this.mobileUrls.includes(getImageUrl(image.image)),
-        )
-        if (mobiles) {
-          mobiles.forEach((image) => images.push({ id: image.id, type: ImageType.MOBILE }))
-        }
+      }
+      const mobiles = this.project?.images.filter(
+        (image) => image.type === ImageType.MOBILE && this.mobileUrls.includes(getImageUrl(image.image)),
+      )
+      if (mobiles) {
+        mobiles.forEach((image) => images.push({ id: image.id, type: ImageType.MOBILE }))
       }
 
       return images
