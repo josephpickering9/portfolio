@@ -87,6 +87,9 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<bool>("ShowMockup")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text");
