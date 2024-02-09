@@ -70,7 +70,7 @@
 
 <script lang="ts">
 import { useRoute } from 'vue-router'
-import { sortBy } from 'lodash'
+import { sortBy } from 'lodash-es'
 import { ImageType, type Company, type Project, type Tag as TagModel } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
 import Skeleton from '../../../components/loading/Skeleton.vue'
