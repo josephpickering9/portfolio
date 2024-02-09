@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col gap-4 rounded-box bg-neutral p-4">
+  <div class="-mx-4 flex flex-col gap-4 rounded-box bg-neutral p-4 md:mx-0">
     <h3 v-if="title" class="m-0">{{ title }}</h3>
     <div class="carousel carousel-center w-full space-x-4">
-      <div v-for="(image, index) in images" :key="index" class="carousel-item">
+      <div v-for="(image, index) in images" :key="index" class="carousel-item w-4/5 sm:w-auto">
         <img :src="getImageUrl(image)" :width="width" :height="height" class="m-0 rounded-box" />
       </div>
     </div>
