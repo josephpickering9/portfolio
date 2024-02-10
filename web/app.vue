@@ -1,5 +1,6 @@
 <template>
   <div id="app" :data-theme="theme">
+    <NuxtPwaManifest />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
