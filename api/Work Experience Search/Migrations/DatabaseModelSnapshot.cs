@@ -56,6 +56,10 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Website")
                         .HasColumnType("text");
 
@@ -72,9 +76,6 @@ namespace Work_Experience_Search.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("BackgroundImage")
-                        .HasColumnType("text");
-
                     b.Property<int?>("CompanyId")
                         .HasColumnType("integer");
 
@@ -82,10 +83,14 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Image")
+                    b.Property<string>("ShortDescription")
+                        .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("ShortDescription")
+                    b.Property<bool>("ShowMockup")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -106,6 +111,35 @@ namespace Work_Experience_Search.Migrations
                     b.ToTable("Project");
                 });
 
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectImage", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Image")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectImage");
+                });
+
             modelBuilder.Entity("Work_Experience_Search.Models.Tag", b =>
                 {
                     b.Property<int>("Id")
@@ -118,6 +152,10 @@ namespace Work_Experience_Search.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Icon")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Title")
@@ -155,6 +193,22 @@ namespace Work_Experience_Search.Migrations
                         .HasForeignKey("CompanyId");
 
                     b.Navigation("Company");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectImage", b =>
+                {
+                    b.HasOne("Work_Experience_Search.Models.Project", "Project")
+                        .WithMany("Images")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.Project", b =>
+                {
+                    b.Navigation("Images");
                 });
 #pragma warning restore 612, 618
         }
