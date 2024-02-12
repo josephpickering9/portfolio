@@ -123,7 +123,7 @@ export default defineNuxtComponent({
     useMeta().updateMeta({
       title: project.title,
       description: project.shortDescription,
-      image: project.bannerUrl ? getImageUrl(project.bannerUrl) : undefined,
+      image: project.cardUrl ? getImageUrl(project.cardUrl) : undefined,
     })
 
     return {
