@@ -2,25 +2,29 @@
   <div :class="{ 'search-active': isSearchActive }" class="search-box-container">
     <TagAutoComplete
       v-model="tags"
+      v-model:model-search="search"
       type="text"
       class="search-input"
-      placeholder="Search"
+      :placeholder="placeholder"
       :show-empty-message="false"
+      :open-on-focus="false"
       @focus="handleFocus"
       @blur="handleBlur"
     />
     <div v-if="isSearchActive" class="search-results">
-      <ProjectList :tags="tags" />
+      <ProjectList :model-search="search" :tags="tags" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import { useProjectStore } from '../store/ProjectStore'
 import ProjectList from '../components/lists/ProjectList.vue'
 import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
+import useMeta from '../composables/useMeta'
+import { notEmpty } from '../utils/array-helper'
 
 interface Data {
   isSearchActive: boolean
@@ -34,6 +38,11 @@ export default defineComponent({
     ProjectList,
     TagAutoComplete,
   },
+  setup() {
+    const { updateMeta } = useMeta()
+
+    updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
+  },
   data(): Data {
     return {
       isSearchActive: false,
@@ -41,10 +50,18 @@ export default defineComponent({
       tags: [],
     }
   },
+  computed: {
+    placeholder(): string {
+      return this.isSearchActive ? 'Search by tag or keyword' : 'Search'
+    },
+  },
+  mounted() {
+    this.setValues()
+  },
   methods: {
     isEmpty,
     async getProjects() {
-      await useProjectStore().getProjects(this.search)
+      await useProjectStore().getProjects()
     },
     handleFocus() {
       this.isSearchActive = true
@@ -54,13 +71,41 @@ export default defineComponent({
         this.isSearchActive = false
       }
     },
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+      const tags = route.query.tags ? route.query.tags : []
+      this.tags = Array.isArray(tags) ? tags.map((tag) => tag?.toString()).filter(notEmpty) : [tags]
+
+      this.isSearchActive = !isEmpty(this.search) || this.tags.length > 0
+    },
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+          tags: this.tags ? this.tags : undefined,
+        },
+      })
+    },
+  },
+  watch: {
+    $route() {
+      this.setValues()
+    },
+    search() {
+      this.updateQueryParams()
+    },
+    tags() {
+      this.updateQueryParams()
+    },
   },
 })
 </script>
 
 <style scoped>
 .search-box-container {
-  @apply flex flex-grow transform flex-col items-center justify-center space-y-6;
+  @apply flex flex-grow transform flex-col items-center justify-center space-y-6 px-4 py-1;
   transition: all 0.3s ease;
 }
 

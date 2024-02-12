@@ -14,21 +14,28 @@ export const useProjectStore = defineStore('projectStore', {
     projectError: undefined as string | undefined,
     projectCreating: false,
     projectCreateError: undefined as string | undefined,
+    relatedProjects: [] as Project[],
+    relatedProjectsLoading: false,
   }),
   actions: {
-    async getProjects(search?: string): Promise<void> {
-      if (this.projectsLoading) return
+    async getProjects(search?: string): Promise<Project[]> {
+      if (this.projectsLoading) return []
+
+      let response: Project[] = []
 
       try {
         this.projectsError = undefined
         this.projectsLoading = true
 
-        this.projects = await ProjectService.getProject(search)
+        response = await ProjectService.getProject(search)
+        this.projects = response
       } catch (error) {
         this.projectsError = extractError(error)
       } finally {
         this.projectsLoading = false
       }
+
+      return response
     },
     async getProject(id: number): Promise<void> {
       if (!id || this.projectLoading) return
@@ -37,12 +44,43 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectError = undefined
         this.projectLoading = true
 
-        this.project = await ProjectService.getProjectId(id)
+        this.project = await ProjectService.getProject1(id)
       } catch (error) {
         this.projectError = extractError(error)
       } finally {
         this.projectLoading = false
       }
+    },
+    async getProjectBySlug(slug: string): Promise<void> {
+      if (!slug || this.projectLoading) return
+
+      try {
+        this.projectError = undefined
+        this.projectLoading = true
+
+        this.project = await ProjectService.getProjectSlug(slug)
+      } catch (error) {
+        this.projectError = extractError(error)
+      } finally {
+        this.projectLoading = false
+      }
+    },
+    async getRelatedProjects(id: number): Promise<Project[]> {
+      if (!id || this.relatedProjectsLoading) return []
+
+      let response: Project[] = []
+
+      try {
+        this.relatedProjectsLoading = true
+
+        response = await ProjectService.getProjectRelated(id)
+        this.relatedProjects = response
+      } catch {
+      } finally {
+        this.relatedProjectsLoading = false
+      }
+
+      return response
     },
     async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreating) return
@@ -87,7 +125,7 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectCreateError = undefined
         this.projectCreating = true
 
-        await ProjectService.deleteProjectId(id)
+        await ProjectService.de(id)
       } catch (error) {
         this.projectCreateError = extractError(error)
       } finally {

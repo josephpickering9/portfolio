@@ -44,29 +44,13 @@ export class TagService {
      * @returns Tag Success
      * @throws ApiError
      */
-    public static getTagId(
-        id?: number,
+    public static getTag1(
+        id: number,
     ): CancelablePromise<Tag> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/tag/id',
-            query: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @param id
-     * @returns any Success
-     * @throws ApiError
-     */
-    public static deleteTagId(
-        id?: number,
-    ): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/tag/id',
-            query: {
+            url: '/tag/{id}',
+            path: {
                 'id': id,
             },
         });
@@ -89,6 +73,38 @@ export class TagService {
             },
             body: requestBody,
             mediaType: 'application/json',
+        });
+    }
+    /**
+     * @param id
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static deleteTag(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/tag/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param slug
+     * @returns Tag Success
+     * @throws ApiError
+     */
+    public static getTagSlug(
+        slug: string,
+    ): CancelablePromise<Tag> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/tag/slug/{slug}',
+            path: {
+                'slug': slug,
+            },
         });
     }
 }

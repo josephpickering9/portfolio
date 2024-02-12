@@ -1,14 +1,19 @@
 <template>
-  <div class="flex flex-col gap-2">
-    <AutoComplete v-model="value" :data="companyItems" :label="label">
-      <template #item="{ item }">
-        <CompanyItem :company="companies.find((company) => company.name === item.title)" />
-      </template>
-      <template #selectedItem>
-        <CompanyItem :company="companies.find((company) => company.id === value?.value)" />
-      </template>
-    </AutoComplete>
-  </div>
+  <AutoComplete
+    v-model="value"
+    :data="companyItems"
+    :label="label"
+    :placeholder="placeholder"
+    :size="size"
+    :disabled="disabled"
+  >
+    <template #item="{ item }">
+      <CompanyItem :company="companies.find((company) => company.name === item.title)" />
+    </template>
+    <template #selectedItem>
+      <CompanyItem :company="companies.find((company) => company.id === value?.value)" :size="selectedSize" />
+    </template>
+  </AutoComplete>
 </template>
 
 <script lang="ts">
@@ -35,6 +40,18 @@ export default defineComponent({
       type: Number,
       default: null,
     },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    placeholder: {
+      type: String,
+      default: undefined,
+    },
+    size: {
+      type: String,
+      default: 'md',
+    },
   },
   emits: ['update:modelValue'],
   data(): Data {
@@ -59,15 +76,36 @@ export default defineComponent({
 
       return this.companies.find((company) => company.id === this.value?.value)
     },
+    selectedSize(): string {
+      switch (this.size) {
+        case 'xs':
+          return 'xs'
+        case 'sm':
+          return 'xs'
+        case 'md':
+          return 'sm'
+        case 'lg':
+          return 'md'
+        default:
+          return 'sm'
+      }
+    },
   },
   async mounted() {
     if (this.companies.length === 0) await useCompanyStore().getCompanies()
+
+    if (this.modelValue) this.setValue()
+  },
+  methods: {
+    setValue() {
+      this.value = this.companyItems.find((item) => item.value === this.modelValue)
+    },
   },
   watch: {
     modelValue() {
       if (this.value?.value === this.modelValue) return
 
-      this.value = this.companyItems.find((item) => item.value === this.modelValue)
+      this.setValue()
     },
     value() {
       this.$emit('update:modelValue', this.value?.value)

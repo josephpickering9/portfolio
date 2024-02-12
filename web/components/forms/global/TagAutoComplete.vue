@@ -1,10 +1,12 @@
 <template>
   <div class="flex flex-col gap-2">
     <AutoComplete
+      v-model:model-search="search"
       :data="tagItems"
       :label="label"
       :show-selected="false"
-      placeholder="Search"
+      :open-on-focus="openOnFocus"
+      :placeholder="placeholder"
       @select="selectTag"
       @blur="$emit('blur')"
       @focus="$emit('focus')"
@@ -14,7 +16,7 @@
       </template>
     </AutoComplete>
     <div class="flex min-h-8 items-center px-4">
-      <div v-if="convertedTags && convertedTags.length" class="flex items-center gap-2">
+      <div v-if="convertedTags && convertedTags.length" class="flex flex-wrap items-center gap-2">
         <Tag v-for="(tag, index) in convertedTags" :key="index" :tag="tag" clearable @remove="removeTag" />
       </div>
       <div v-else-if="showEmptyMessage" class="flex items-center text-sm italic text-gray-500">No tags added</div>
@@ -33,6 +35,7 @@ import Tag from '../../tags/Tag.vue'
 
 interface Data {
   value: string[]
+  search?: string
 }
 
 export default defineComponent({
@@ -47,15 +50,28 @@ export default defineComponent({
       type: Array as PropType<string[]>,
       default: () => [],
     },
+    modelSearch: {
+      type: String,
+      default: '',
+    },
+    placeholder: {
+      type: String,
+      default: null,
+    },
     showEmptyMessage: {
       type: Boolean,
       default: true,
     },
+    openOnFocus: {
+      type: Boolean,
+      default: true,
+    },
   },
-  emits: ['update:modelValue', 'focus', 'blur'],
+  emits: ['update:modelValue', 'update:modelSearch', 'focus', 'blur'],
   data(): Data {
     return {
       value: [],
+      search: undefined,
     }
   },
   computed: {
@@ -113,6 +129,12 @@ export default defineComponent({
     },
     value() {
       this.$emit('update:modelValue', this.value)
+    },
+    modelSearch() {
+      this.search = this.modelSearch
+    },
+    search() {
+      this.$emit('update:modelSearch', this.search)
     },
   },
 })

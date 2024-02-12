@@ -2,9 +2,18 @@
   <div class="companies prose w-full max-w-5xl space-y-8">
     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
       <h1 class="m-0">Companies</h1>
-      <div class="flex flex-col items-center gap-4 md:flex-row">
+      <div class="flex items-center gap-4">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
-        <FormButton label="Add Company" type="primary" size="sm" href="/companies/new" :disabled="loading" />
+        <ClientOnly>
+          <FormButton
+            v-if="isAuthenticated"
+            label="Add Company"
+            type="primary"
+            size="sm"
+            href="/companies/new"
+            :disabled="loading"
+          />
+        </ClientOnly>
       </div>
     </div>
     <div v-if="loading" class="flex flex-col items-center space-y-4">
@@ -24,12 +33,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import Skeleton from '../loading/Skeleton.vue'
 import { useCompanyStore } from '../../store/CompanyStore'
 import type { Company } from '../../api/models/Company'
 import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
+import useAuth from '../../composables/useAuth'
 import CompanyListItem from './CompanyListItem.vue'
 
 interface Data {
@@ -44,6 +54,13 @@ export default defineComponent({
     CompanyListItem,
     TextInput,
     FormButton,
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   data(): Data {
     return {
@@ -69,11 +86,32 @@ export default defineComponent({
     },
   },
   async mounted() {
+    this.setValues()
     await useCompanyStore().getCompanies()
+  },
+  methods: {
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+    },
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+        },
+      })
+    },
   },
   watch: {
     companies() {
       this.initialLoad = false
+    },
+    $route() {
+      this.setValues()
+    },
+    search() {
+      this.updateQueryParams()
     },
   },
 })

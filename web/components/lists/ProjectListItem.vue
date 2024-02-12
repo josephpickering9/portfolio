@@ -1,14 +1,19 @@
 <template>
-  <NuxtLink v-if="project" :to="`/projects/${project.id}`" class="card card-bordered w-full bg-base-100 shadow-xl">
+  <NuxtLink
+    v-if="project"
+    :to="`/projects/${project.slug}`"
+    class="card card-bordered w-full bg-base-100 shadow-xl"
+    @mousedown.stop.prevent="(event) => event.preventDefault()"
+  >
     <figure>
       <img :src="backgroundImage" :alt="`${project.title} Background Image`" class="h-[230px] w-full object-cover" />
     </figure>
     <div class="card-body px-6 pb-4 pt-6">
-      <div class="flex items-center gap-2">
-        <img v-if="project.image" :src="image" class="h-6 w-6" />
-        <h2 class="card-title">{{ project.title }}</h2>
+      <div class="m-0 flex items-center gap-2">
+        <img v-if="project.logoUrl" :src="image" class="m-0 h-6 w-6" />
+        <h2 class="card-title m-0">{{ project.title }}</h2>
       </div>
-      <p class="pb-2 text-sm italic">{{ project.shortDescription }}</p>
+      <p class="m-0 pb-2 text-sm italic">{{ project.shortDescription }}</p>
       <div class="card-actions justify-end">
         <Tag v-for="(tag, index) in project.tags.slice(0, 2)" :key="index" :tag="tag" />
         <small v-if="project.tags.length > 2">+{{ project.tags.length - 2 }}</small>
@@ -36,14 +41,14 @@ export default defineComponent({
   },
   computed: {
     image(): string {
-      if (!this.project?.image) return 'https://via.placeholder.com/320x200'
+      if (!this.project?.logoUrl) return 'https://via.placeholder.com/320x200'
 
-      return getImageUrl(this.project.image)
+      return getImageUrl(this.project.logoUrl)
     },
     backgroundImage(): string {
-      if (!this.project?.backgroundImage) return 'https://via.placeholder.com/320x200'
+      if (!this.project?.cardUrl) return 'https://via.placeholder.com/320x200'
 
-      return getImageUrl(this.project.backgroundImage)
+      return getImageUrl(this.project.cardUrl)
     },
   },
 })

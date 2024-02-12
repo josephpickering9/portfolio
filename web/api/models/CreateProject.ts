@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CreateProjectImage } from './CreateProjectImage';
 export type CreateProject = {
     title: string;
     shortDescription: string;
@@ -9,8 +10,8 @@ export type CreateProject = {
     companyId?: number | null;
     year: number;
     website?: string | null;
-    image?: Blob | null;
-    backgroundImage?: Blob | null;
+    showMockup: boolean;
+    images?: Array<CreateProjectImage>;
     tags: Array<string>;
 };
 

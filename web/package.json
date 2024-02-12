@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "openapi": "openapi --input ./api/docs/swagger.json --output ./api --client axios",
     "fetch-docs": "node ./api/docs/fetch.js",
-    "fetch-codegen": "yarn fetch-docs && yarn openapi",
+    "openapi-request": "node ./api/docs/openapi-request.js",
+    "fetch-codegen": "yarn fetch-docs && yarn openapi && yarn openapi-request",
     "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
     "lint:full": "eslint --ext .js,.vue,.ts --ignore-path .gitignore .",
     "lint:commit": "eslint"
@@ -19,6 +20,7 @@
     "*.{js,vue,ts}": "yarn lint:commit"
   },
   "dependencies": {
+    "@auth0/auth0-vue": "^2.3.3",
     "@nuxtjs/tailwindcss": "^6.10.4",
     "@pinia/nuxt": "^0.5.1",
     "@tiptap/pm": "^2.1.16",
@@ -27,8 +29,9 @@
     "@types/node": "^20.11.5",
     "axios": "^1.6.5",
     "date-fns": "^3.2.0",
-    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21",
     "pinia": "^2.1.7",
+    "pinia-plugin-persistedstate": "^3.2.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3",
     "vue3-colorpicker": "^2.2.3"
@@ -36,9 +39,12 @@
   "devDependencies": {
     "@nuxtjs/eslint-config-typescript": "^12.1.0",
     "@nuxtjs/eslint-module": "^4.1.0",
+    "@pinia-plugin-persistedstate/nuxt": "^1.2.0",
     "@tailwindcss/typography": "^0.5.10",
+    "@types/lodash-es": "^4.17.12",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
+    "@vite-pwa/nuxt": "^0.4.0",
     "daisyui": "^4.6.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
@@ -50,6 +56,7 @@
     "lint-staged": "^15.2.0",
     "nuxt": "^3.9.3",
     "nuxt-icon": "^0.6.8",
+    "nuxt-simple-sitemap": "^4.4.1",
     "openapi-typescript-codegen": "^0.27.0",
     "prettier": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.5.11",

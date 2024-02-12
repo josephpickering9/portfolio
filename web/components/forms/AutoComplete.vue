@@ -10,6 +10,7 @@
           :required="required"
           :disabled="disabled"
           class="input input-bordered w-full pr-8"
+          :class="inputClass"
           @input="handleInputDebounce"
           @focus="focus"
           @blur="blur"
@@ -20,7 +21,7 @@
         />
       </div>
       <div v-else class="flex items-center">
-        <div class="input input-bordered flex w-full items-center pr-8">
+        <div class="input input-bordered flex w-full items-center pr-8" :class="inputClass">
           <slot name="selectedItem">
             <span v-if="value" class="truncate">{{ value.title }}</span>
           </slot>
@@ -32,7 +33,7 @@
         ref="results"
         tabindex="0"
         :class="resultsClass"
-        class="input input-bordered absolute z-50 my-2 h-auto max-h-52 w-full overflow-hidden overflow-y-auto rounded-md p-0 shadow"
+        class="input input-bordered absolute z-50 my-2 h-auto max-h-60 w-full min-w-72 overflow-hidden overflow-y-auto rounded-md p-0 shadow"
       >
         <ul class="m-0 w-full list-none bg-base-100 p-0">
           <li
@@ -62,7 +63,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
-import { debounce, type DebouncedFunc, isEmpty } from 'lodash'
+import { debounce, type DebouncedFunc, isEmpty } from 'lodash-es'
 import type { SearchItem } from '../../types/SearchItem'
 import FormElementContainer from './FormElementContainer.vue'
 
@@ -87,6 +88,10 @@ export default defineComponent({
     modelValue: {
       type: Object as PropType<SearchItem>,
       default: undefined,
+    },
+    modelSearch: {
+      type: String,
+      default: '',
     },
     data: {
       type: Array as PropType<SearchItem[]>,
@@ -116,8 +121,16 @@ export default defineComponent({
       type: Boolean,
       default: true,
     },
+    openOnFocus: {
+      type: Boolean,
+      default: true,
+    },
+    size: {
+      type: String,
+      default: 'md',
+    },
   },
-  emits: ['update:modelValue', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
+  emits: ['update:modelValue', 'update:modelSearch', 'search', 'select', 'focus', 'blur', 'keyup.enter'],
   data(): Data {
     return {
       value: this.modelValue,
@@ -150,6 +163,14 @@ export default defineComponent({
         'top-full': !this.showResultsAbove,
       }
     },
+    inputClass(): object {
+      return {
+        'input-xs': this.size === 'xs',
+        'input-sm': this.size === 'sm',
+        'input-md': this.size === 'md',
+        'input-lg': this.size === 'lg',
+      }
+    },
   },
   mounted() {
     this.calculateInputPosition()
@@ -172,7 +193,7 @@ export default defineComponent({
       this.search = ''
     },
     focus() {
-      if (this.searchResults.length) {
+      if (this.openOnFocus && this.searchResults.length) {
         this.showOptions = true
         this.checkScrollPosition()
       }
@@ -290,6 +311,12 @@ export default defineComponent({
       if (this.value?.value === this.modelValue?.value) return
 
       this.$emit('update:modelValue', this.value)
+    },
+    modelSearch() {
+      this.search = this.modelSearch
+    },
+    search() {
+      this.$emit('update:modelSearch', this.search)
     },
     searchResults() {
       this.highlighted = -1

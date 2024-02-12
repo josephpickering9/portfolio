@@ -6,10 +6,6 @@ module.exports = {
       exec_mode: 'cluster',
       instances: 'max',
       script: './.output/server/index.mjs',
-      node_args: '--loader ts-node/esm',
-      env: {
-        NODE_OPTIONS: '--experimental-specifier-resolution=node',
-      },
     },
   ],
 }

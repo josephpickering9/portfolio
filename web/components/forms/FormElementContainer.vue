@@ -5,7 +5,7 @@
     </div>
     <slot />
   </label>
-  <div v-else class="w-full">
+  <div v-else class="relative w-full">
     <slot />
   </div>
 </template>

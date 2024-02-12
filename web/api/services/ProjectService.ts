@@ -43,29 +43,13 @@ export class ProjectService {
      * @returns Project Success
      * @throws ApiError
      */
-    public static getProjectId(
-        id?: number,
+    public static getProject1(
+        id: number,
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/project/id',
-            query: {
-                'id': id,
-            },
-        });
-    }
-    /**
-     * @param id
-     * @returns any Success
-     * @throws ApiError
-     */
-    public static deleteProjectId(
-        id?: number,
-    ): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/project/id',
-            query: {
+            url: '/project/{id}',
+            path: {
                 'id': id,
             },
         });
@@ -88,6 +72,54 @@ export class ProjectService {
             },
             formData: formData,
             mediaType: 'multipart/form-data',
+        });
+    }
+    /**
+     * @param id
+     * @returns any Success
+     * @throws ApiError
+     */
+    public static deleteProject(
+        id: number,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/project/{id}',
+            path: {
+                'id': id,
+            },
+        });
+    }
+    /**
+     * @param slug
+     * @returns Project Success
+     * @throws ApiError
+     */
+    public static getProjectSlug(
+        slug: string,
+    ): CancelablePromise<Project> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/project/slug/{slug}',
+            path: {
+                'slug': slug,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @returns Project Success
+     * @throws ApiError
+     */
+    public static getProjectRelated(
+        id: number,
+    ): CancelablePromise<Array<Project>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/project/{id}/related',
+            path: {
+                'id': id,
+            },
         });
     }
 }

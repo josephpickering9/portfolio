@@ -2,10 +2,12 @@
   <div class="tags prose w-full max-w-5xl">
     <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
       <h1 class="m-0">Tags</h1>
-      <div class="flex flex-col items-center gap-4 md:flex-row">
+      <div class="flex items-center gap-4">
         <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
-        <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" :disabled="loading" />
-        <FormButton label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
+        <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" placeholder="Type" :disabled="loading" />
+        <ClientOnly>
+          <FormButton v-if="isAuthenticated" label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
+        </ClientOnly>
       </div>
     </div>
     <div v-if="loading" class="flex flex-col items-center space-y-4">
@@ -30,14 +32,16 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { isEmpty } from 'lodash'
+import { isEmpty } from 'lodash-es'
 import Skeleton from '../loading/Skeleton.vue'
 import { useTagStore } from '../../store/TagStore'
 import type { Tag } from '../../api/models/Tag'
-import type { TagType } from '../../api/models/TagType'
+import { TagType } from '../../api/models/TagType'
 import TextInput from '../forms/TextInput.vue'
 import FormButton from '../forms/FormButton.vue'
 import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
+import useAuth from '../../composables/useAuth'
+import { getEnumValue } from '../../utils/enum-helper'
 import TagListItem from './TagListItem.vue'
 
 interface Data {
@@ -54,6 +58,13 @@ export default defineComponent({
     TextInput,
     FormButton,
     TagTypeSelectList,
+  },
+  setup() {
+    const { isAuthenticated } = useAuth()
+
+    return {
+      isAuthenticated,
+    }
   },
   data(): Data {
     return {
@@ -97,11 +108,37 @@ export default defineComponent({
     },
   },
   async mounted() {
+    this.setValues()
     await useTagStore().getTags()
+  },
+  methods: {
+    setValues() {
+      const route = this.$route
+      this.search = route.query.search?.toString() || this.search
+      this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
+    },
+    updateQueryParams() {
+      this.$router.push({
+        path: this.$route.path,
+        query: {
+          search: !isEmpty(this.search) ? this.search : undefined,
+          type: this.tagType ? this.tagType : undefined,
+        },
+      })
+    },
   },
   watch: {
     tags() {
       this.initialLoad = false
+    },
+    $route() {
+      this.setValues()
+    },
+    search() {
+      this.updateQueryParams()
+    },
+    tagType() {
+      this.updateQueryParams()
     },
   },
 })

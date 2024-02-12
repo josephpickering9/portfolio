@@ -16,7 +16,7 @@ export const useTagStore = defineStore('tagStore', {
     tagCreateError: undefined as string | undefined,
   }),
   actions: {
-    async getTags(search?: string = undefined): Promise<void> {
+    async getTags(search?: string): Promise<void> {
       if (this.tagsLoading) return
 
       try {
@@ -37,7 +37,21 @@ export const useTagStore = defineStore('tagStore', {
         this.tagError = undefined
         this.tagLoading = true
 
-        this.tag = await TagService.getTagId(id)
+        this.tag = await TagService.getTag1(id)
+      } catch (error) {
+        this.tagError = extractError(error)
+      } finally {
+        this.tagLoading = false
+      }
+    },
+    async getTagBySlug(slug: string): Promise<void> {
+      if (!slug || this.tagLoading) return
+
+      try {
+        this.tagError = undefined
+        this.tagLoading = true
+
+        this.tag = await TagService.getTagSlug(slug)
       } catch (error) {
         this.tagError = extractError(error)
       } finally {
@@ -87,7 +101,7 @@ export const useTagStore = defineStore('tagStore', {
         this.tagCreateError = undefined
         this.tagCreating = true
 
-        await TagService.deleteTagId(id)
+        await TagService.deleteTag(id)
       } catch (error) {
         this.tagCreateError = extractError(error)
       } finally {

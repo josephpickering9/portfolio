@@ -8,5 +8,6 @@ export type Company = {
     description: string;
     website?: string | null;
     logo?: string | null;
+    slug: string;
 };
 

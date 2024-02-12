@@ -1,7 +1,7 @@
 <template>
   <div v-if="icon" class="flex w-full items-center gap-2">
     <Icon :name="icon" />
-    <span>{{ icon.replace('mdi:', '') }}</span>
+    <span>{{ icon.replace('mdi:', '').replace('simple-icons:', '') }}</span>
   </div>
 </template>
 

@@ -108,32 +108,48 @@ const getUrl = (config: OpenAPIConfig, options: ApiRequestOptions): string => {
     return url;
 };
 
+
 export const getFormData = (options: ApiRequestOptions): FormData | undefined => {
-    if (options.formData) {
-        const formData = new FormData();
+  if (options.formData) {
+    const formData = new FormData()
 
-        const process = (key: string, value: any) => {
-            if (isString(value) || isBlob(value)) {
-                formData.append(key, value);
-            } else {
-                formData.append(key, JSON.stringify(value));
-            }
-        };
+    const process = (key: string, value: any, parentKey?: string) => {
+      const fullKey = parentKey ? `${parentKey}[${key}]` : key
 
-        Object.entries(options.formData)
-            .filter(([_, value]) => isDefined(value))
-            .forEach(([key, value]) => {
-                if (Array.isArray(value)) {
-                    value.forEach(v => process(key, v));
-                } else {
-                    process(key, value);
-                }
-            });
-
-        return formData;
+      if (isBlob(value)) {
+        const fullKeyBlob = parentKey ? `${parentKey}.${key}` : key
+        formData.append(fullKeyBlob, value)
+      } else if (isString(value)) {
+        formData.append(fullKey, value)
+      } else if (Array.isArray(value)) {
+        value.forEach((item, index) => {
+          if (isString(item) || isBlob(item)) {
+            formData.append(`${fullKey}[${index}]`, item)
+          } else {
+            process(index.toString(), item, fullKey)
+          }
+        })
+      } else if (typeof value === 'object' && value !== null) {
+        Object.entries(value).forEach(([nestedKey, nestedValue]) => {
+          process(nestedKey, nestedValue, fullKey)
+        })
+      } else {
+        formData.append(fullKey, JSON.stringify(value))
+      }
     }
-    return undefined;
-};
+
+    Object.entries(options.formData)
+      .filter(([_, value]) => value !== undefined && value !== null)
+      .forEach(([key, value]) => {
+        process(key, value)
+      })
+
+    return formData
+  }
+
+  return undefined
+}
+;
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 
