@@ -3,10 +3,15 @@
     <div class="flex w-full flex-col space-y-4">
       <div class="flex items-center gap-2">
         <img v-if="company.logo" :src="logo" class="m-0 h-6 w-6" />
-        <a :href="company.website ?? '#'" target="_blank" rel="noreferrer">
-          <h2 class="card-title m-0">{{ company.name }}</h2>
-        </a>
-        <Icon name="mdi:launch" />
+        <h2 v-if="isEmpty(company.website) || company.website === '#'" class="m-0">
+          {{ company.name }}
+        </h2>
+        <div v-else class="flex items-center gap-1">
+          <a :href="company.website ?? '#'" target="_blank" rel="noreferrer" class="m-0">
+            <h2 class="card-title m-0">{{ company.name }}</h2>
+          </a>
+          <Icon name="mdi:launch" />
+        </div>
       </div>
       <p class="pb-2 text-sm italic">{{ company.description }}</p>
     </div>
@@ -22,6 +27,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
+import { isEmpty } from 'lodash-es'
 import type { Company as CompanyModel } from '../../api/models/Company'
 import { getImageUrl } from '../../utils/image-helper'
 import FormButton from '../forms/FormButton.vue'
@@ -50,6 +56,9 @@ export default defineComponent({
 
       return getImageUrl(this.company.logo)
     },
+  },
+  methods: {
+    isEmpty,
   },
 })
 </script>

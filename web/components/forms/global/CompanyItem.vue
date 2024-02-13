@@ -1,7 +1,13 @@
 <template>
   <div v-if="company" class="flex w-full items-center gap-2">
     <img :src="imageUrl" class="m-0 rounded-full" :class="imageClass" />
-    <span v-if="!showLink" class="m-0 font-semibold" :class="textClass">{{ company.name }}</span>
+    <span
+      v-if="!showLink || isEmpty(company.website) || company.website === '#'"
+      class="m-0 font-semibold"
+      :class="textClass"
+    >
+      {{ company.name }}
+    </span>
     <div v-else class="flex items-center gap-1">
       <a :href="company.website ?? '#'" target="_blank" rel="noreferrer" class="m-0">
         {{ company.name }}
@@ -14,6 +20,7 @@
 <script lang="ts">
 import type { PropType } from 'vue'
 import { defineComponent } from 'vue'
+import { isEmpty } from 'lodash-es'
 import type { Company } from '../../../api'
 import { getImageUrl } from '../../../utils/image-helper'
 import { Icon } from '#components'
@@ -57,6 +64,9 @@ export default defineComponent({
         'w-6 h-6': this.size === 'lg',
       }
     },
+  },
+  methods: {
+    isEmpty,
   },
 })
 </script>
