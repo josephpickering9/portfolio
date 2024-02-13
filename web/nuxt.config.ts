@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     public: {
       apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
       base: process.env.NUXT_PUBLIC_BASE ?? '',
-      auth0Domain: process.env.NUXT_PUBLIC_AUTH0_DOMAIN ?? '',
+      auth0Domain: process.env.NUXT_AUTH0_DOMAIN ?? '',
       auth0ClientId: process.env.NUXT_AUTH0_CLIENT_ID,
     },
   },

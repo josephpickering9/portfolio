@@ -31,14 +31,26 @@ This project leverages the power of Nuxt 3, Tailwind CSS, and daisyUI library to
 - **OpenAPI TypeScript Generation:** Utilises [`openapi-typescript-codegen`](https://github.com/ferdikoomen/openapi-typescript-codegen) to automatically generate TypeScript definitions from Swagger documentation.
 - **Integration with Work Experience (API):** This frontend is connected to a dedicated API service, providing dynamic data and interaction capabilities.
 - **Progressive Web Application:** Enhanced with progressive web application capacilities, utilising the [`@vite-pwa/nuxt`](https://nuxt.com/modules/vite-pwa-nuxt) package
+- **Authentication:** Integrated with Auth0 for secure and scalable user authentication.
+
+## Getting Started
+
+### Prerequisites
+
+Before running this project, you should have the following installed:
+
+- Node.js (LTS version recommended)
+- Yarn package manager
+- Access to a Postgres database for the backend API
+- An Auth0 account for handling authentication
 
 ## Installation
 
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com/josephpickering9/work-experience.git
-   cd work-experience
+   git clone https://github.com/josephpickering9/work_experience.git
+   cd work_experience
    ```
 
 2. **Install Dependencies:**
@@ -85,6 +97,14 @@ $ yarn codegen
 # fetch latest swagger.json and generate files
 $ yarn fetch-codegen
 ```
+
+## Authentication with Auth0
+
+This project uses Auth0 for secure and scalable user authentication. To integrate Auth0:
+
+- Create an Auth0 application and API in your Auth0 dashboard.
+- Configure the necessary Auth0 settings in your .env file, including NUXT_AUTH0_DOMAIN, NUXT_AUTH0_CLIENT_ID, and NUXT_AUTH0_CLIENT_SECRET.
+- Ensure the Work Experience API
 
 ## Deployment
 
