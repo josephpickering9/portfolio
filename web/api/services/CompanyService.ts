@@ -95,12 +95,12 @@ export class CompanyService {
      * @returns Company Success
      * @throws ApiError
      */
-    public static getCompanySlug(
+    public static getCompany2(
         slug: string,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/company/slug/{slug}',
+            url: '/company/{slug}',
             path: {
                 'slug': slug,
             },

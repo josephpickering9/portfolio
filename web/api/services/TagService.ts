@@ -96,12 +96,12 @@ export class TagService {
      * @returns Tag Success
      * @throws ApiError
      */
-    public static getTagSlug(
+    public static getTag2(
         slug: string,
     ): CancelablePromise<Tag> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/tag/slug/{slug}',
+            url: '/tag/{slug}',
             path: {
                 'slug': slug,
             },

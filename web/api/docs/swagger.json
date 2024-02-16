@@ -208,7 +208,7 @@
         }
       }
     },
-    "/company/slug/{slug}": {
+    "/company/{slug}": {
       "get": {
         "tags": [
           "Company"
@@ -474,7 +474,7 @@
         }
       }
     },
-    "/project/slug/{slug}": {
+    "/project/{slug}": {
       "get": {
         "tags": [
           "Project"
@@ -560,18 +560,6 @@
                 }
               }
             }
-          }
-        }
-      }
-    },
-    "/slug": {
-      "post": {
-        "tags": [
-          "Slug"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
           }
         }
       }
@@ -791,7 +779,7 @@
         }
       }
     },
-    "/tag/slug/{slug}": {
+    "/tag/{slug}": {
       "get": {
         "tags": [
           "Tag"
@@ -969,6 +957,11 @@
           },
           "type": {
             "$ref": "#/components/schemas/ImageType"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1126,6 +1119,11 @@
             "$ref": "#/components/schemas/ImageType"
           },
           "order": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "projectId": {
             "type": "integer",
             "format": "int32",
             "nullable": true

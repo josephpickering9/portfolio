@@ -58,7 +58,7 @@ export const useProjectStore = defineStore('projectStore', {
         this.projectError = undefined
         this.projectLoading = true
 
-        this.project = await ProjectService.getProjectSlug(slug)
+        this.project = await ProjectService.getProject2(slug)
       } catch (error) {
         this.projectError = extractError(error)
       } finally {

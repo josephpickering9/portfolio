@@ -7,5 +7,6 @@ export type CreateProjectImage = {
     id?: number | null;
     image?: Blob | null;
     type: ImageType;
+    order?: number | null;
 };
 

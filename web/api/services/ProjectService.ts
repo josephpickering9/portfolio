@@ -95,12 +95,12 @@ export class ProjectService {
      * @returns Project Success
      * @throws ApiError
      */
-    public static getProjectSlug(
+    public static getProject2(
         slug: string,
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/project/slug/{slug}',
+            url: '/project/{slug}',
             path: {
                 'slug': slug,
             },
