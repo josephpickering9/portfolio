@@ -147,6 +147,36 @@ namespace Work_Experience_Search.Migrations
                     b.ToTable("ProjectImage");
                 });
 
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectRepository", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("ProjectId")
+                        .IsRequired()
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectRepository");
+                });
+
             modelBuilder.Entity("Work_Experience_Search.Models.Tag", b =>
                 {
                     b.Property<int>("Id")
@@ -209,6 +239,17 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.HasOne("Work_Experience_Search.Models.Project", "Project")
                         .WithMany("Images")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectRepository", b =>
+                {
+                    b.HasOne("Work_Experience_Search.Models.Project", "Project")
+                        .WithMany()
                         .HasForeignKey("ProjectId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
