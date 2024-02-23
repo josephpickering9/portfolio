@@ -4,6 +4,7 @@
 /* eslint-disable */
 import type { Company } from './Company';
 import type { ProjectImage } from './ProjectImage';
+import type { ProjectRepository } from './ProjectRepository';
 import type { Tag } from './Tag';
 export type Project = {
     id: number;
@@ -17,6 +18,7 @@ export type Project = {
     showMockup: boolean;
     slug: string;
     images: Array<ProjectImage>;
+    repositories: Array<ProjectRepository>;
     tags: Array<Tag>;
     relatedProjects?: Array<Project>;
     logo?: ProjectImage;

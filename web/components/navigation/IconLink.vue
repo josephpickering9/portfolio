@@ -6,7 +6,7 @@
         {{ label }}
       </a>
     </div>
-    <Icon name="mdi:launch" />
+    <!-- <Icon name="mdi:launch" /> -->
   </div>
 </template>
 

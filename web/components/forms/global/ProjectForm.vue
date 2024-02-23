@@ -36,6 +36,7 @@
       />
     </div>
     <TagAutoComplete v-model="tags" label="Tags" />
+    <RepositoryInput v-model="repositories" label="Repositories" />
     <div class="flex items-center justify-between space-x-2">
       <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
       <FormButton
@@ -63,11 +64,12 @@ import FileInput from '../FileInput.vue'
 import FileInputList from '../FileInputList.vue'
 import FormButton from '../FormButton.vue'
 import { getImageUrl } from '../../../utils/image-helper'
-import { ImageType, type CreateProjectImage } from '../../../api'
+import { ImageType, type CreateProjectImage, type CreateProjectRepository } from '../../../api'
 import Toggle from '../Toggle.vue'
 import YearSelectList from './YearSelectList.vue'
 import TagAutoComplete from './TagAutoComplete.vue'
 import CompanyAutoComplete from './CompanyAutoComplete.vue'
+import RepositoryInput from './RepositoryInput.vue'
 
 interface Data {
   title: string
@@ -88,6 +90,7 @@ interface Data {
   year: number
   website: string
   tags: string[]
+  repositories: CreateProjectRepository[]
 }
 
 export default defineComponent({
@@ -102,6 +105,7 @@ export default defineComponent({
     CompanyAutoComplete,
     FormButton,
     Toggle,
+    RepositoryInput,
   },
   props: {
     slug: {
@@ -129,6 +133,7 @@ export default defineComponent({
       website: '',
       showMockup: false,
       tags: [],
+      repositories: [],
     }
   },
   computed: {
@@ -158,6 +163,7 @@ export default defineComponent({
         showMockup: this.showMockup,
         images: this.createProjectImageValue,
         tags: this.tags,
+        repositories: this.repositories,
       }
     },
     createProjectImageValue(): CreateProjectImage[] {
@@ -221,6 +227,7 @@ export default defineComponent({
         this.website = this.project.website ?? ''
         this.showMockup = this.project.showMockup
         this.tags = this.project.tags.map((tag) => tag.title) ?? []
+        this.repositories = this.project.repositories ?? []
         this.logoUrl = this.project.logoUrl ? getImageUrl(this.project.logoUrl) : undefined
         this.bannerUrl = this.project.bannerUrl ? getImageUrl(this.project.bannerUrl) : undefined
         this.cardUrl = this.project.cardUrl ? getImageUrl(this.project.cardUrl) : undefined

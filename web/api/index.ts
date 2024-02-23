@@ -11,10 +11,12 @@ export type { Company } from './models/Company';
 export type { CreateCompany } from './models/CreateCompany';
 export type { CreateProject } from './models/CreateProject';
 export type { CreateProjectImage } from './models/CreateProjectImage';
+export type { CreateProjectRepository } from './models/CreateProjectRepository';
 export type { CreateTag } from './models/CreateTag';
 export { ImageType } from './models/ImageType';
 export type { Project } from './models/Project';
 export type { ProjectImage } from './models/ProjectImage';
+export type { ProjectRepository } from './models/ProjectRepository';
 export type { Tag } from './models/Tag';
 export { TagType } from './models/TagType';
 
