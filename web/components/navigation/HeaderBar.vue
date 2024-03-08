@@ -77,7 +77,7 @@
 
     <div v-if="showMobileMenu" class="mobile-menu md:hidden">
       <div class="flex flex-1 flex-col items-center p-4">
-        <ul class="menu flex w-full flex-col items-center justify-start p-4 py-10 text-xl">
+        <ul class="menu flex w-full flex-col items-center justify-start p-4 text-xl">
           <li><NuxtLink to="/projects" @click="toggleMobileMenu">Projects</NuxtLink></li>
           <li><NuxtLink to="/companies" @click="toggleMobileMenu">Companies</NuxtLink></li>
           <li><NuxtLink to="/tags" @click="toggleMobileMenu">Tags</NuxtLink></li>
@@ -205,7 +205,6 @@ export default defineComponent({
 <style scoped>
 .mobile-menu {
   @apply fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100;
-  /* height: calc(100% - 116px); */
   height: calc(100% - 64px);
   transition: top 0.3s;
 }
