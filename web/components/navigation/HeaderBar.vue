@@ -111,7 +111,6 @@
             </button>
           </li>
           <li class="w-full"><div class="divider" /></li>
-
           <ClientOnly>
             <li v-if="!isAuthenticated">
               <FormButton type="primary" size="sm" label="Login" @click="login" />

@@ -10,8 +10,13 @@
     >
       <template #item="{ element, index }">
         <div :key="index" class="carousel-item relative w-4/5 sm:w-auto">
-          <img :src="getImageUrl(element)" :width="width" :height="height" class="m-0 rounded-box" />
-
+          <img
+            :src="getImageUrl(element)"
+            :alt="`Carousel Image ${index + 1}`"
+            :width="width"
+            :height="height"
+            class="m-0 rounded-box"
+          />
           <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', element)">
             <Icon :name="hoverButtonIcon" size="2em" />
           </button>
@@ -20,18 +25,23 @@
     </Draggable>
     <div v-else ref="carousel" class="carousel carousel-center w-full space-x-4">
       <div v-for="(image, index) in images" :key="index" class="carousel-item relative w-4/5 sm:w-auto">
-        <img :src="getImageUrl(image)" :width="width" :height="height" class="m-0 rounded-box" />
-
+        <img
+          :src="getImageUrl(image)"
+          :alt="`Carousel Image ${index + 1}`"
+          :width="width"
+          :height="height"
+          class="m-0 rounded-box"
+        />
         <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', image)">
           <Icon :name="hoverButtonIcon" size="2em" />
         </button>
       </div>
     </div>
 
-    <button v-if="showArrows" class="carousel-arrow-left" @click="scrollLeft">
+    <button v-if="showArrows" type="button" class="carousel-arrow-left" @click="scrollLeft">
       <Icon name="material-symbols:chevron-left" size="2em" />
     </button>
-    <button v-if="showArrows" class="carousel-arrow-right" @click="scrollRight">
+    <button v-if="showArrows" type="button" class="carousel-arrow-right" @click="scrollRight">
       <Icon name="material-symbols:chevron-right" size="2em" />
     </button>
   </div>

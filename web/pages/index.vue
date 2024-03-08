@@ -90,14 +90,13 @@ export default defineComponent({
     },
   },
   watch: {
-    $route() {
-      this.setValues()
-    },
-    search() {
-      this.updateQueryParams()
-    },
-    tags() {
-      this.updateQueryParams()
+    tags: {
+      handler() {
+        this.$nextTick(() => {
+          this.updateQueryParams()
+        })
+      },
+      deep: true,
     },
   },
 })

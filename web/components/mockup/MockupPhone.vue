@@ -3,7 +3,7 @@
     <div class="camera"></div>
     <div class="display">
       <div class="artboard phone-1 flex !w-auto border-t-[12px] border-black">
-        <iframe :src="url" class="w-full" />
+        <iframe :src="url" name="Mockup Phone" class="w-full" />
       </div>
     </div>
   </div>

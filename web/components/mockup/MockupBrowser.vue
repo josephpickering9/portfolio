@@ -4,7 +4,7 @@
       <div class="input">{{ url }}</div>
     </div>
     <div class="flex h-full min-h-96 w-full bg-base-200">
-      <iframe :src="url" class="w-full" />
+      <iframe :src="url" name="Mockup Browser" class="w-full" />
     </div>
   </div>
 </template>

@@ -13,7 +13,11 @@
       </div>
       <div class="card card-bordered w-full bg-base-100 shadow-xl md:w-1/2">
         <figure class="m-0">
-          <img :src="cardUrl ?? 'https://via.placeholder.com/320x200'" class="h-[230px] w-full object-cover" />
+          <img
+            :src="cardUrl ?? 'https://via.placeholder.com/320x200'"
+            :alt="`${project.title} Card Image`"
+            class="h-[230px] w-full object-cover"
+          />
         </figure>
         <div class="card-body px-6 py-6">
           <FormGroup :errors="v$.card?.$errors" name="Card">

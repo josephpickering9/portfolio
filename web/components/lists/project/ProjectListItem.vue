@@ -10,7 +10,7 @@
     </figure>
     <div class="card-body px-6 pb-4 pt-6">
       <div class="m-0 flex items-center gap-2">
-        <img v-if="project.logoUrl" :src="image" class="m-0 h-6 w-6" />
+        <img v-if="project.logoUrl" :src="image" :alt="`${project.title} Logo`" class="m-0 h-6 w-6" />
         <h2 class="card-title m-0">{{ project.title }}</h2>
       </div>
       <p class="m-0 pb-2 text-sm italic">{{ project.shortDescription }}</p>

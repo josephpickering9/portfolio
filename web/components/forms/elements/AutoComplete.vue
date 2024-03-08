@@ -70,6 +70,7 @@ import FormElementContainer from './FormElementContainer.vue'
 interface Data {
   value?: SearchItem
   search: string
+  textSearch: string
   showOptions: boolean
   inputPosition: { top: number; height: number }
   showResultsAbove: boolean
@@ -188,7 +189,6 @@ export default defineComponent({
     handleSelect(item: SearchItem) {
       this.$emit('select', item)
       this.$emit('update:modelValue', item)
-      this.value = item
       this.showOptions = false
       this.search = ''
     },
