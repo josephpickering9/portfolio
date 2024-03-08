@@ -32,12 +32,12 @@ export default defineComponent({
   name: 'CompanyAutoComplete',
   components: { AutoComplete, CompanyItem },
   props: {
-    label: {
-      type: String,
+    modelValue: {
+      type: Number as () => number | null | undefined,
       default: null,
     },
-    modelValue: {
-      type: Number,
+    label: {
+      type: String,
       default: null,
     },
     disabled: {

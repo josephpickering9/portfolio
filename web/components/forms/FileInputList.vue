@@ -1,38 +1,34 @@
 <template>
-  <FormElementContainer :label="label">
-    <div class="flex flex-col gap-4">
-      <input
-        ref="file"
-        type="file"
-        class="file-input file-input-bordered w-full"
-        :multiple="multiple"
-        @change="inputChange"
-      />
-      <div v-if="images.length" class="flex w-full flex-wrap items-center gap-4">
-        <button
-          v-for="(url, index) in images"
-          :key="index"
-          type="button"
-          class="group relative rounded-full"
-          @click.stop.prevent="removeImage(url)"
-        >
-          <img :src="url" class="m-0 h-12 w-12 rounded-full" />
-          <div
-            class="absolute top-0 z-10 !hidden h-full w-full items-center justify-center rounded-full group-hover:!flex group-hover:bg-black group-hover:bg-opacity-70"
-          >
-            <Icon name="material-symbols:delete" size="2em" />
-          </div>
-        </button>
+  <div class="flex flex-col gap-4">
+    <FormElementContainer :label="label">
+      <div class="flex flex-col gap-4">
+        <input
+          ref="file"
+          type="file"
+          class="file-input file-input-bordered w-full"
+          :multiple="multiple"
+          @change="inputChange"
+        />
       </div>
+    </FormElementContainer>
+    <div v-if="images && images.length" class="flex w-full flex-wrap items-center gap-4">
+      <Carousel
+        v-model="images"
+        width="180px"
+        :show-hover-button="true"
+        :draggable="true"
+        :show-arrows="true"
+        @hover-button="removeImage"
+      />
     </div>
-  </FormElementContainer>
+  </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
+import Carousel from '../lists/Carousel.vue'
 import FormElementContainer from './FormElementContainer.vue'
-import { Icon } from '#components'
 
 interface Data {
   images: string[]
@@ -40,7 +36,7 @@ interface Data {
 
 export default defineComponent({
   name: 'FileInputList',
-  components: { FormElementContainer, Icon },
+  components: { FormElementContainer, Carousel },
   props: {
     label: {
       type: String,

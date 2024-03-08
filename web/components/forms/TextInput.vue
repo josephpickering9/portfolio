@@ -30,11 +30,11 @@ export default defineComponent({
   name: 'TextInput',
   components: { FormElementContainer },
   props: {
-    label: {
-      type: String,
+    modelValue: {
+      type: String as () => string | null | undefined,
       default: null,
     },
-    modelValue: {
+    label: {
       type: String,
       default: null,
     },

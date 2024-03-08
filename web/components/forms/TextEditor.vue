@@ -1,7 +1,7 @@
 <template>
   <div>
     <FormElementContainer :label="label" />
-    <div class="textarea textarea-bordered w-full">
+    <div class="textarea textarea-bordered min-h-[20rem] w-full">
       <div v-if="editor" class="editor-buttons">
         <button
           :disabled="!editor.can().chain().focus().toggleBold().run()"
@@ -230,8 +230,10 @@ export default defineComponent({
     margin: 2rem 0;
   }
 }
+</style>
 
-.tiptap:focus {
-  outline: none;
+<style>
+.ProseMirror-focused {
+  @apply outline-none;
 }
 </style>

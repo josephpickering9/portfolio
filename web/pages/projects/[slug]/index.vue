@@ -3,7 +3,7 @@
     <Skeleton v-if="loading" />
     <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
       <!-- TODO: dark/light gradient -->
-      <div class="header-container header-container-dark" :style="headerStyle">
+      <div class="header-container header-container-dark" :style="bannerStyle">
         <div class="prose z-10 flex w-full max-w-full items-center justify-between gap-4 overflow-hidden px-8">
           <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center">
             <div class="flex items-center justify-start space-x-2 md:hidden">
@@ -31,8 +31,8 @@
       </div>
 
       <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 overflow-hidden px-8 md:mt-0">
-        <div class="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-          <div v-if="Object.keys(groupedTags).length > 0" class="flex flex-wrap items-center gap-x-4 gap-y-1">
+        <div class="flex flex-col gap-6" :class="headerClass">
+          <div v-if="Object.keys(groupedTags).length > 0" class="project-tags flex flex-wrap items-center gap-x-4 gap-y-1">
             <div v-for="(typeTags, type) in groupedTags" :key="type">
               <small class="m-0 italic">{{ type }}</small>
               <div class="flex flex-wrap gap-2">
@@ -40,7 +40,7 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-6">
+          <div class="project-links flex flex-wrap items-center gap-x-4 gap-y-2">
             <IconLink
               v-if="project.website"
               :to="project.website"
@@ -68,8 +68,22 @@
         <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
         <div class="project-description" v-html="project.description" />
 
-        <Carousel v-if="desktopImages.length" title="Desktop" :images="desktopImages" width="1007" height="508" />
-        <Carousel v-if="mobileImages.length" title="Mobile" :images="mobileImages" width="335" height="673" />
+        <Carousel
+          v-if="desktopImages.length"
+          v-model="desktopImages"
+          title="Desktop"
+          width="1007"
+          height="508"
+          :show-arrows="true"
+        />
+        <Carousel
+          v-if="mobileImages.length"
+          v-model="mobileImages"
+          title="Mobile"
+          width="335"
+          height="673"
+          :show-arrows="true"
+        />
 
         <div
           v-if="project.website && project.showMockup"
@@ -109,7 +123,6 @@ import { useCompanyStore } from '../../../store/CompanyStore'
 import useMeta from '../../../composables/useMeta'
 import { getImageUrl } from '../../../utils/image-helper'
 import useAuth from '../../../composables/useAuth'
-import { getShadeFromOklsh } from '../../../utils/colour-helper'
 import Carousel from '../../../components/lists/Carousel.vue'
 import ProjectList from '../../../components/lists/ProjectList.vue'
 import { defineNuxtComponent } from '#app'
@@ -205,25 +218,28 @@ export default defineNuxtComponent({
 
       return sortedGroupedTags
     },
-    headerClass(): object {
-      if (!process.client) return {}
-
-      const oklsh = getComputedStyle(document.getElementsByClassName('title')[0]).getPropertyValue('--tw-prose-headings')
-      return {
-        [`header-container-${getShadeFromOklsh(oklsh)}`]: true,
-      }
-    },
-    headerStyle(): object {
+    bannerStyle(): object {
       if (!this.project?.bannerUrl) return {}
 
       return {
         backgroundImage: `url(${getImageUrl(this.project.bannerUrl)})`,
       }
     },
+    headerClass(): object {
+      const length = this.project?.tags.length ?? 0
+
+      return {
+        'xl:flex-row xl:items-end xl:justify-between': length < 8,
+        'xl:flex-col xl:items-start xl:justify-start': length >= 800,
+      }
+    },
   },
   async mounted() {
     if (!this.slug) return
     if (this.project?.slug !== this.slug) await useProjectStore().getProjectBySlug(this.slug)
+  },
+  methods: {
+    getImageUrl,
   },
   beforeUnmount() {
     useProjectStore().project = undefined

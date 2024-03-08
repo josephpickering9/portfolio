@@ -1,11 +1,7 @@
 <template>
-  <div v-if="company" class="flex w-full items-center gap-2">
+  <div v-if="company" class="flex items-center gap-2">
     <img :src="imageUrl" class="m-0 rounded-full" :class="imageClass" />
-    <span
-      v-if="!showLink || isEmpty(company.website) || company.website === '#'"
-      class="m-0 font-semibold"
-      :class="textClass"
-    >
+    <span v-if="!showLink || isEmpty(company.website) || company.website === '#'" class="m-0" :class="textClass">
       {{ company.name }}
     </span>
     <div v-else class="flex items-center gap-1">

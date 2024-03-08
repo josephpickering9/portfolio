@@ -263,7 +263,7 @@ export default defineComponent({
     adjustResultsPosition() {
       const spaceAbove = this.inputPosition.top
       const spaceBelow = window.innerHeight - this.inputPosition.top - this.inputPosition.height
-      this.showResultsAbove = spaceBelow < 200 && spaceAbove > spaceBelow
+      this.showResultsAbove = spaceBelow < 250 && spaceAbove > spaceBelow
     },
     checkScrollPosition() {
       this.$nextTick(() => {

@@ -29,7 +29,7 @@ export const getFormData = (options: ApiRequestOptions): FormData | undefined =>
         Object.entries(value).forEach(([nestedKey, nestedValue]) => {
           process(nestedKey, nestedValue, fullKey)
         })
-      } else {
+      } else if (value) {
         formData.append(fullKey, JSON.stringify(value))
       }
     }
