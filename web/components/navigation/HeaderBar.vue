@@ -71,7 +71,7 @@
 
     <div v-if="showMobileMenu" class="mobile-menu md:hidden">
       <div class="flex h-full w-full flex-col items-center p-4">
-        <ul class="menu flex w-full flex-col items-center justify-start p-4 py-20 text-xl">
+        <ul class="menu flex w-full flex-col items-center justify-start p-4 py-10 text-xl">
           <li><NuxtLink to="/projects" @click="toggleMobileMenu">Projects</NuxtLink></li>
           <li><NuxtLink to="/companies" @click="toggleMobileMenu">Companies</NuxtLink></li>
           <li><NuxtLink to="/tags" @click="toggleMobileMenu">Tags</NuxtLink></li>
