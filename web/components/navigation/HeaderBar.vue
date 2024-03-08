@@ -76,8 +76,9 @@
     </div>
 
     <div v-if="showMobileMenu" class="mobile-menu md:hidden">
-      <div class="flex flex-1 flex-col items-center p-4">
-        <ul class="menu flex w-full flex-col items-center justify-start p-4 text-xl">
+      <div class="flex flex-1 flex-col items-center px-4">
+        <ul class="menu flex w-full flex-col items-center justify-start p-4 pt-0 text-xl">
+          <li><ThemeController /></li>
           <li><NuxtLink to="/projects" @click="toggleMobileMenu">Projects</NuxtLink></li>
           <li><NuxtLink to="/companies" @click="toggleMobileMenu">Companies</NuxtLink></li>
           <li><NuxtLink to="/tags" @click="toggleMobileMenu">Tags</NuxtLink></li>
@@ -87,7 +88,7 @@
               :href="linkedInUrl"
               target="_blank"
               rel="noopener noreferrer"
-              class="btn btn-wide items-center justify-center bg-[#2682BE] text-lg text-black"
+              class="btn btn-wide bg-[#2682BE] text-lg text-black"
             >
               <Icon name="mdi:linkedin" size="1.5em" />
               <span>LinkedIn</span>
@@ -97,7 +98,7 @@
             <a
               href="/Joseph Pickering CV.pdf"
               download="Joseph-Pickering-CV"
-              class="btn btn-wide mt-4 items-center justify-center bg-[#F84C4D] text-lg text-black"
+              class="btn btn-wide mt-4 bg-[#F84C4D] text-lg text-black"
             >
               <Icon name="mdi:file-pdf" size="1.5em" />
               Download CV
@@ -110,7 +111,7 @@
             </button>
           </li>
           <li class="w-full"><div class="divider" /></li>
-          <li><ThemeController /></li>
+
           <ClientOnly>
             <li v-if="!isAuthenticated">
               <FormButton type="primary" size="sm" label="Login" @click="login" />

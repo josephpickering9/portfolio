@@ -52,6 +52,10 @@ export default defineNuxtConfig({
 
   pwa: {
     includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+    workbox: {
+      globPatterns: ['**/*.{js,css}'],
+      navigateFallback: null,
+    },
     manifest: {
       name: 'Work Experience',
       short_name: 'Work Experience',
