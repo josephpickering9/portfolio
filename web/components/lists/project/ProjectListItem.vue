@@ -24,9 +24,9 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { Project } from '../../api/models/Project'
-import { getImageUrl } from '../../utils/image-helper'
-import Tag from '../tags/Tag.vue'
+import type { Project } from '../../../api/models/Project'
+import { getImageUrl } from '../../../utils/image-helper'
+import Tag from '../../tags/Tag.vue'
 
 export default defineComponent({
   name: 'ProjectListItem',
@@ -53,3 +53,4 @@ export default defineComponent({
   },
 })
 </script>
+../../../api/models/Project../../../utils/image-helper

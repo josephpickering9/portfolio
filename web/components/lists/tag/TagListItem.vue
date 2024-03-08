@@ -13,10 +13,10 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { Tag as TagModel } from '../../api/models/Tag'
-import Tag from '../tags/Tag.vue'
-import FormButton from '../forms/FormButton.vue'
-import useAuth from '../../composables/useAuth'
+import type { Tag as TagModel } from '../../../api/models/Tag'
+import Tag from '../../tags/Tag.vue'
+import FormButton from '../../forms/elements/FormButton.vue'
+import useAuth from '../../../composables/useAuth'
 
 export default defineComponent({
   name: 'TagListItem',
@@ -36,3 +36,4 @@ export default defineComponent({
   },
 })
 </script>
+../../../api/models/Tag../../../composables/useAuth

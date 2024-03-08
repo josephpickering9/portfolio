@@ -46,17 +46,17 @@
 import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash-es'
 import type { PropType } from 'vue'
-import Skeleton from '../loading/Skeleton.vue'
-import { useProjectStore } from '../../store/ProjectStore'
-import type { Project } from '../../api/models/Project'
-import { TagType } from '../../api'
-import TextInput from '../forms/TextInput.vue'
-import FormButton from '../forms/FormButton.vue'
-import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
-import { LoadingType } from '../../types/LoadingType'
-import useAuth from '../../composables/useAuth'
-import { getEnumValue } from '../../utils/enum-helper'
-import CompanyAutoComplete from '../forms/global/CompanyAutoComplete.vue'
+import Skeleton from '../../loading/Skeleton.vue'
+import { useProjectStore } from '../../../store/ProjectStore'
+import type { Project } from '../../../api/models/Project'
+import { TagType } from '../../../api'
+import TextInput from '../../forms/elements/TextInput.vue'
+import FormButton from '../../forms/elements/FormButton.vue'
+import TagTypeSelectList from '../../forms/tag/TagTypeSelectList.vue'
+import { LoadingType } from '../../../types/LoadingType'
+import useAuth from '../../../composables/useAuth'
+import { getEnumValue } from '../../../utils/enum-helper'
+import CompanyAutoComplete from '../../forms/company/CompanyAutoComplete.vue'
 import ProjectListItem from './ProjectListItem.vue'
 
 interface Data {
@@ -218,3 +218,4 @@ export default defineComponent({
   },
 })
 </script>
+../../../store/ProjectStore../../../api/models/Project../../../api../../../types/LoadingType../../../composables/useAuth../../../utils/enum-helper

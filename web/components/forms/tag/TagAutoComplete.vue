@@ -30,7 +30,7 @@ import type { PropType } from 'vue'
 import type { SearchItem } from '../../../types/SearchItem'
 import { TagType, type Tag as TagModel } from '../../../api'
 import { useTagStore } from '../../../store/TagStore'
-import AutoComplete from '../AutoComplete.vue'
+import AutoComplete from '../elements/AutoComplete.vue'
 import Tag from '../../tags/Tag.vue'
 
 interface Data {

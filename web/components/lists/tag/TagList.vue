@@ -33,15 +33,15 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash-es'
-import Skeleton from '../loading/Skeleton.vue'
-import { useTagStore } from '../../store/TagStore'
-import type { Tag } from '../../api/models/Tag'
-import { TagType } from '../../api/models/TagType'
-import TextInput from '../forms/TextInput.vue'
-import FormButton from '../forms/FormButton.vue'
-import TagTypeSelectList from '../forms/global/TagTypeSelectList.vue'
-import useAuth from '../../composables/useAuth'
-import { getEnumValue } from '../../utils/enum-helper'
+import Skeleton from '../../loading/Skeleton.vue'
+import { useTagStore } from '../../../store/TagStore'
+import type { Tag } from '../../../api/models/Tag'
+import { TagType } from '../../../api/models/TagType'
+import TextInput from '../../forms/elements/TextInput.vue'
+import FormButton from '../../forms/elements/FormButton.vue'
+import TagTypeSelectList from '../../forms/tag/TagTypeSelectList.vue'
+import useAuth from '../../../composables/useAuth'
+import { getEnumValue } from '../../../utils/enum-helper'
 import TagListItem from './TagListItem.vue'
 
 interface Data {
@@ -143,3 +143,4 @@ export default defineComponent({
   },
 })
 </script>
+../../../store/TagStore../../../api/models/Tag../../../api/models/TagType../../../composables/useAuth../../../utils/enum-helper

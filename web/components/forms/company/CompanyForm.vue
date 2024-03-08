@@ -26,9 +26,9 @@ import { useCompanyStore } from '../../../store/CompanyStore'
 import { useNotificationStore } from '../../../store/NotificationStore'
 import type { CreateCompany } from '../../../api/models/CreateCompany'
 import type { Company } from '../../../api/models/Company'
-import TextInput from '../TextInput.vue'
-import FormButton from '../FormButton.vue'
-import FileInput from '../FileInput.vue'
+import TextInput from '../elements/TextInput.vue'
+import FormButton from '../elements/FormButton.vue'
+import FileInput from '../elements/FileInput.vue'
 import { getImageUrl } from '../../../utils/image-helper'
 
 interface Data {

@@ -1,7 +1,7 @@
 <template>
   <div v-if="form" class="flex flex-col gap-4 pb-4">
-    <FormGroup :errors="v$.form?.description?.$errors" name="Description">
-      <TextEditor v-model="form.description" label="Description" :disabled="loading" />
+    <FormGroup :errors="v$.form?.repositories?.$errors" name="Repositories">
+      <RepositoryInput v-model="form.repositories" />
     </FormGroup>
   </div>
 </template>
@@ -12,18 +12,17 @@ import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep } from 'lodash-es'
 import type { CreateProject, Project } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
-import FormGroup from '../FormGroup.vue'
-import TextEditor from '../TextEditor.vue'
-import useValidation from '../../../composables/useValidation'
+import FormGroup from '../elements/FormGroup.vue'
 import { defaultProjectForm } from '../../../mocks/Defaults'
+import RepositoryInput from '../repository/RepositoryInput.vue'
 
 interface Data {
   form: CreateProject
 }
 
 export default defineComponent({
-  name: 'ProjectDescriptionForm',
-  components: { FormGroup, TextEditor },
+  name: 'ProjectRepositoriesForm',
+  components: { FormGroup, RepositoryInput },
   props: {
     modelValue: {
       type: Object as PropType<CreateProject>,
@@ -49,7 +48,7 @@ export default defineComponent({
   },
   methods: {
     async validate(): Promise<boolean> {
-      return await useValidation().validate(this.v$)
+      return await true
     },
   },
   watch: {

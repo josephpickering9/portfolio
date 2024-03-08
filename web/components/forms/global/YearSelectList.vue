@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import SelectList from '../SelectList.vue'
+import SelectList from '../elements/SelectList.vue'
 import type { SelectListItem } from '../../../types/SelectListItem'
 
 interface Data {

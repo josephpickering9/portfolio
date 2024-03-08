@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ProjectForm from '../../components/forms/global/ProjectForm.vue'
+import ProjectForm from '../../components/forms/project/ProjectForm.vue'
 import useMeta from '../../composables/useMeta'
 
 export default defineComponent({

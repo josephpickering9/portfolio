@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import useMeta from '../../composables/useMeta'
-import TagList from '../../components/lists/TagList.vue'
+import TagList from '../../components/lists/tag/TagList.vue'
 
 export default defineComponent({
   // eslint-disable-next-line vue/match-component-file-name

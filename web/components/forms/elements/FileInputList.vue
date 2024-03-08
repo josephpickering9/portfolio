@@ -27,7 +27,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
-import Carousel from '../lists/Carousel.vue'
+import Carousel from '../../layouts/Carousel.vue'
 import FormElementContainer from './FormElementContainer.vue'
 
 interface Data {

@@ -21,8 +21,8 @@
 import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash-es'
 import { useProjectStore } from '../store/ProjectStore'
-import ProjectList from '../components/lists/ProjectList.vue'
-import TagAutoComplete from '../components/forms/global/TagAutoComplete.vue'
+import ProjectList from '../components/lists/project/ProjectList.vue'
+import TagAutoComplete from '../components/forms/tag/TagAutoComplete.vue'
 import useMeta from '../composables/useMeta'
 import { notEmpty } from '../utils/array-helper'
 

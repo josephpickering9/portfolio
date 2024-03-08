@@ -26,12 +26,12 @@ import { useTagStore } from '../../../store/TagStore'
 import { useNotificationStore } from '../../../store/NotificationStore'
 import type { CreateTag } from '../../../api/models/CreateTag'
 import type { Tag } from '../../../api/models/Tag'
-import TextInput from '../TextInput.vue'
-import FormButton from '../FormButton.vue'
+import TextInput from '../elements/TextInput.vue'
+import FormButton from '../elements/FormButton.vue'
 import { TagType } from '../../../api'
-import ColourPicker from '../ColourPicker.vue'
+import ColourPicker from '../elements/ColourPicker.vue'
+import IconAutoComplete from '../global/IconAutoComplete.vue'
 import TagTypeSelectList from './TagTypeSelectList.vue'
-import IconAutoComplete from './IconAutoComplete.vue'
 
 interface Data {
   title: string

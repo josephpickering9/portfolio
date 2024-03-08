@@ -6,7 +6,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import ProjectList from '../../components/lists/ProjectList.vue'
+import ProjectList from '../../components/lists/project/ProjectList.vue'
 import useMeta from '../../composables/useMeta'
 
 export default defineComponent({

@@ -34,12 +34,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import { isEmpty } from 'lodash-es'
-import Skeleton from '../loading/Skeleton.vue'
-import { useCompanyStore } from '../../store/CompanyStore'
-import type { Company } from '../../api/models/Company'
-import TextInput from '../forms/TextInput.vue'
-import FormButton from '../forms/FormButton.vue'
-import useAuth from '../../composables/useAuth'
+import Skeleton from '../../loading/Skeleton.vue'
+import { useCompanyStore } from '../../../store/CompanyStore'
+import type { Company } from '../../../api/models/Company'
+import TextInput from '../../forms/elements/TextInput.vue'
+import FormButton from '../../forms/elements/FormButton.vue'
+import useAuth from '../../../composables/useAuth'
 import CompanyListItem from './CompanyListItem.vue'
 
 interface Data {

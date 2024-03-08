@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import useMeta from '../../composables/useMeta'
-import CompanyList from '../../components/lists/CompanyList.vue'
+import CompanyList from '../components/lists/company/CompanyList.vue'
 
 export default defineComponent({
   // eslint-disable-next-line vue/match-component-file-name

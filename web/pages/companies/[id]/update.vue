@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import useMeta from '../../../composables/useMeta'
-import CompanyForm from '../../../components/forms/global/CompanyForm.vue'
+import CompanyForm from '../../../components/forms/company/CompanyForm.vue'
 
 export default defineComponent({
   // eslint-disable-next-line vue/match-component-file-name

@@ -13,7 +13,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { PropType } from 'vue'
-import SelectList from '../SelectList.vue'
+import SelectList from '../elements/SelectList.vue'
 import { TagType, type Tag } from '../../../api'
 import { useTagStore } from '../../../store/TagStore'
 import type { SelectListItem } from '../../../types/SelectListItem'

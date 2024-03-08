@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import useMeta from '../../composables/useMeta'
-import TagForm from '../../components/forms/global/TagForm.vue'
+import TagForm from '../../components/forms/tag/TagForm.vue'
 
 export default defineComponent({
   // eslint-disable-next-line vue/match-component-file-name

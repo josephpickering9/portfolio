@@ -32,13 +32,13 @@ import { required, numeric, url } from '@vuelidate/validators'
 import { cloneDeep } from 'lodash-es'
 import type { CreateProject, Project } from '../../../api'
 import { useProjectStore } from '../../../store/ProjectStore'
-import FormGroup from '../FormGroup.vue'
-import TextInput from '../TextInput.vue'
+import FormGroup from '../elements/FormGroup.vue'
+import TextInput from '../elements/TextInput.vue'
 import { defaultProjectForm } from '../../../mocks/Defaults'
 import useValidation from '../../../composables/useValidation'
-import YearSelectList from './YearSelectList.vue'
-import CompanyAutoComplete from './CompanyAutoComplete.vue'
-import TagAutoComplete from './TagAutoComplete.vue'
+import YearSelectList from '../global/YearSelectList.vue'
+import CompanyAutoComplete from '../company/CompanyAutoComplete.vue'
+import TagAutoComplete from '../tag/TagAutoComplete.vue'
 
 interface Data {
   form: CreateProject

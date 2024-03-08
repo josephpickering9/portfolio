@@ -29,9 +29,9 @@
 import { defineComponent, type PropType } from 'vue'
 import { isEmpty } from 'lodash-es'
 import type { Company as CompanyModel } from '../../api/models/Company'
-import { getImageUrl } from '../../utils/image-helper'
-import FormButton from '../forms/FormButton.vue'
-import useAuth from '../../composables/useAuth'
+import { getImageUrl } from '../../../utils/image-helper'
+import FormButton from '../../forms/elements/FormButton.vue'
+import useAuth from '../../../composables/useAuth'
 import { Icon } from '#components'
 
 export default defineComponent({
