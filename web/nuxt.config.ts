@@ -25,6 +25,7 @@ export default defineNuxtConfig({
       base: process.env.NUXT_PUBLIC_BASE ?? '',
       auth0Domain: process.env.NUXT_AUTH0_DOMAIN ?? '',
       auth0ClientId: process.env.NUXT_AUTH0_CLIENT_ID,
+      linkedInUrl: process.env.NUXT_PUBLIC_LINKEDIN_URL ?? '',
     },
   },
 

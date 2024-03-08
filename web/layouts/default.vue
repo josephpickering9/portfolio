@@ -1,5 +1,5 @@
 <template>
-  <div class="flex min-h-screen flex-col">
+  <div class="flex min-h-dvh flex-col">
     <HeaderBar />
     <main class="flex flex-grow overflow-hidden overflow-y-auto">
       <div class="container mx-auto flex flex-grow flex-col overflow-hidden">

@@ -18,10 +18,6 @@
         <li><NuxtLink to="/companies">Companies</NuxtLink></li>
         <li><NuxtLink to="/tags">Tags</NuxtLink></li>
       </ul>
-      <div v-if="false" class="form-control">
-        <!-- TODO: Hook this up -->
-        <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
-      </div>
       <ThemeController />
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="avatar btn btn-circle btn-ghost">
@@ -34,8 +30,34 @@
             tabindex="0"
             class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box border border-gray-600 bg-base-100 p-2 shadow"
           >
-            <li v-if="!isAuthenticated"><button type="button" @click="login">Login</button></li>
-            <li v-if="isAuthenticated"><button type="button" @click="logout">Logout</button></li>
+            <li>
+              <a
+                :href="linkedInUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="btn btn-sm justify-start bg-[#2682BE] text-black"
+              >
+                <Icon name="mdi:linkedin" size="1.5em" />
+                LinkedIn
+              </a>
+            </li>
+            <li>
+              <a
+                href="/Joseph Pickering CV.pdf"
+                download="Joseph-Pickering-CV"
+                class="btn btn-sm justify-start bg-[#F84C4D] text-black"
+              >
+                <Icon name="mdi:file-pdf" size="1.5em" />
+                Download CV
+              </a>
+            </li>
+            <li class="w-full"><div class="divider" /></li>
+            <li v-if="!isAuthenticated">
+              <FormButton type="primary" size="sm" label="Login" @click="login" />
+            </li>
+            <li v-else>
+              <FormButton type="accent" label="Logout" size="sm" @click="logout" />
+            </li>
           </ul>
         </ClientOnly>
       </div>
@@ -54,10 +76,36 @@
           <li><NuxtLink to="/companies" @click="toggleMobileMenu">Companies</NuxtLink></li>
           <li><NuxtLink to="/tags" @click="toggleMobileMenu">Tags</NuxtLink></li>
           <li class="w-full"><div class="divider" /></li>
+          <li>
+            <a
+              :href="linkedInUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="btn btn-wide items-center justify-center bg-[#2682BE] text-lg text-black"
+            >
+              <Icon name="mdi:linkedin" size="1.5em" />
+              <span>LinkedIn</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href="/Joseph Pickering CV.pdf"
+              download="Joseph-Pickering-CV"
+              class="btn btn-wide mt-4 items-center justify-center bg-[#F84C4D] text-lg text-black"
+            >
+              <Icon name="mdi:file-pdf" size="1.5em" />
+              Download CV
+            </a>
+          </li>
+          <li class="w-full"><div class="divider" /></li>
           <li><ThemeController /></li>
           <ClientOnly>
-            <li v-if="!isAuthenticated"><button type="button" @click="login">Login</button></li>
-            <li v-else><button type="button" @click="logout">Logout</button></li>
+            <li v-if="!isAuthenticated">
+              <FormButton type="primary" size="sm" label="Login" @click="login" />
+            </li>
+            <li v-else>
+              <FormButton type="accent" label="Logout" size="sm" @click="logout" />
+            </li>
           </ClientOnly>
         </ul>
         <div class="mt-auto flex flex-col gap-4">
@@ -74,7 +122,9 @@
 import { defineComponent } from 'vue'
 import useAuth from '../../composables/useAuth'
 import ThemeController from '../theme/ThemeController.vue'
+import FormButton from '../forms/elements/FormButton.vue'
 import { Icon } from '#components'
+import { useRuntimeConfig } from '#app'
 
 interface Data {
   showMobileMenu: boolean
@@ -82,7 +132,7 @@ interface Data {
 
 export default defineComponent({
   name: 'HeaderBar',
-  components: { Icon, ThemeController },
+  components: { Icon, ThemeController, FormButton },
   setup() {
     const { isAuthenticated, login, logout } = useAuth()
 
@@ -97,6 +147,11 @@ export default defineComponent({
       showMobileMenu: false,
     }
   },
+  computed: {
+    linkedInUrl(): string {
+      return useRuntimeConfig().public.linkedInUrl ?? 'https://www.linkedin.com/in/josephpickering'
+    },
+  },
   methods: {
     toggleMobileMenu() {
       this.showMobileMenu = !this.showMobileMenu
@@ -108,7 +163,7 @@ export default defineComponent({
 <style scoped>
 .mobile-menu {
   @apply fixed left-0 top-16 z-50 w-full overflow-y-auto bg-base-100;
-  height: calc(100% - 64px);
+  height: calc(100% - 116px);
   transition: top 0.3s;
 }
 </style>
