@@ -10,7 +10,7 @@
         </ClientOnly>
       </div>
     </div>
-    <div v-if="loading" class="flex flex-col items-center space-y-4">
+    <div v-if="loading" class="mt-12 flex flex-col items-center space-y-4">
       <Skeleton />
       <Skeleton />
       <Skeleton />
