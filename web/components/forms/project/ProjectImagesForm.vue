@@ -14,6 +14,7 @@
       <div class="card card-bordered w-full bg-base-100 shadow-xl md:w-1/2">
         <figure class="m-0">
           <img
+            v-if="project"
             :src="cardUrl ?? 'https://via.placeholder.com/320x200'"
             :alt="`${project.title} Card Image`"
             class="h-[230px] w-full object-cover"

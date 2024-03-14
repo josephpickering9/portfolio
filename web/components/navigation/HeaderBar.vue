@@ -57,6 +57,15 @@
                 Install PWA
               </button>
             </li>
+            <li v-if="isAuthenticated">
+              <button type="button" class="btn btn-secondary btn-sm justify-start" @click="optimiseImages">
+                <Spinner v-if="optimising" />
+                <span v-else>
+                  <Icon name="mdi:file-image-box" size="1.5em" />
+                  Optimise Images
+                </span>
+              </button>
+            </li>
             <li class="w-full"><div class="divider m-0 flex items-center" /></li>
             <li v-if="!isAuthenticated">
               <FormButton type="primary" size="sm" label="Login" @click="login" />
@@ -110,8 +119,17 @@
               Install PWA
             </button>
           </li>
-          <li class="w-full"><div class="divider" /></li>
           <ClientOnly>
+            <li v-if="isAuthenticated">
+              <button type="button" class="btn btn-secondary btn-wide mt-4 text-lg" @click="optimiseImages">
+                <Spinner v-if="optimising" />
+                <span v-else>
+                  <Icon name="mdi:file-image-box" size="1.5em" />
+                  Optimise Images
+                </span>
+              </button>
+            </li>
+            <li class="w-full"><div class="divider" /></li>
             <li v-if="!isAuthenticated">
               <FormButton type="primary" size="sm" label="Login" @click="login" />
             </li>
@@ -136,6 +154,10 @@ import { defineComponent } from 'vue'
 import useAuth from '../../composables/useAuth'
 import ThemeController from '../theme/ThemeController.vue'
 import FormButton from '../forms/elements/FormButton.vue'
+import { useProjectImageStore } from '../../store/ProjectImageStore'
+import Spinner from '../loading/Spinner.vue'
+import { useNotificationStore } from '../../store/NotificationStore'
+import { NotificationPosition } from '../../types/NotificationPosition'
 import FooterBar from './FooterBar.vue'
 import { Icon } from '#components'
 import { useRuntimeConfig } from '#app'
@@ -148,7 +170,7 @@ interface Data {
 
 export default defineComponent({
   name: 'HeaderBar',
-  components: { Icon, ThemeController, FormButton, FooterBar },
+  components: { Icon, ThemeController, FormButton, FooterBar, Spinner },
   setup() {
     const { isAuthenticated, login, logout } = useAuth()
 
@@ -168,6 +190,12 @@ export default defineComponent({
     linkedInUrl(): string {
       return useRuntimeConfig().public.linkedInUrl ?? 'https://www.linkedin.com/in/josephpickering'
     },
+    optimising(): boolean {
+      return useProjectImageStore().optimising
+    },
+    optimiseError(): string | undefined {
+      return useProjectImageStore().optimiseError
+    },
   },
   mounted() {
     window.addEventListener('beforeinstallprompt', (e) => {
@@ -184,6 +212,15 @@ export default defineComponent({
         this.installPrompt.prompt()
         await this.installPrompt.userChoice
         this.installPrompt = undefined
+      }
+    },
+    async optimiseImages() {
+      await useProjectImageStore().optimiseImages()
+
+      if (this.optimiseError) {
+        useNotificationStore().displayErrorNotification(this.optimiseError, NotificationPosition.TOP_LEFT)
+      } else {
+        useNotificationStore().displaySuccessNotification('Images optimised', NotificationPosition.TOP_LEFT)
       }
     },
   },

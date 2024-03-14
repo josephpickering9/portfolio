@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { type Notification } from '../types/Notification'
 import { NotificationType } from '../types/NotificationType'
+import { NotificationPosition } from '../types/NotificationPosition'
 
 export const useNotificationStore = defineStore('notificationStore', {
   state: () => ({
@@ -13,20 +14,25 @@ export const useNotificationStore = defineStore('notificationStore', {
     removeNotification(id: string) {
       this.notifications = this.notifications.filter((n) => n.id !== id)
     },
-    displayNotification(message: string, type: NotificationType, seconds: number = 5) {
-      this.addNotification({ id: crypto.randomUUID().toString(), message, type, seconds })
+    displayNotification(
+      message: string,
+      type: NotificationType,
+      position: NotificationPosition = NotificationPosition.TOP_RIGHT,
+      seconds: number = 5,
+    ) {
+      this.addNotification({ id: crypto.randomUUID().toString(), message, type, position, seconds })
     },
-    displaySuccessNotification(message: string) {
-      this.displayNotification(message, NotificationType.SUCCESS)
+    displaySuccessNotification(message: string, position: NotificationPosition = NotificationPosition.TOP_RIGHT) {
+      this.displayNotification(message, NotificationType.SUCCESS, position)
     },
-    displayErrorNotification(message: string) {
-      this.displayNotification(message, NotificationType.ERROR)
+    displayErrorNotification(message: string, position: NotificationPosition = NotificationPosition.TOP_RIGHT) {
+      this.displayNotification(message, NotificationType.ERROR, position)
     },
-    displayWarningNotification(message: string) {
-      this.displayNotification(message, NotificationType.WARNING)
+    displayWarningNotification(message: string, position: NotificationPosition = NotificationPosition.TOP_RIGHT) {
+      this.displayNotification(message, NotificationType.WARNING, position)
     },
-    displayInfoNotification(message: string) {
-      this.displayNotification(message, NotificationType.INFO)
+    displayInfoNotification(message: string, position: NotificationPosition = NotificationPosition.TOP_RIGHT) {
+      this.displayNotification(message, NotificationType.INFO, position)
     },
   },
 })

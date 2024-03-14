@@ -8,6 +8,7 @@ export type ProjectImage = {
     image: string;
     type: ImageType;
     order?: number | null;
+    isOptimised?: boolean;
     projectId?: number | null;
 };
 

@@ -23,4 +23,5 @@ export { TagType } from './models/TagType';
 export { CompanyService } from './services/CompanyService';
 export { MediaService } from './services/MediaService';
 export { ProjectService } from './services/ProjectService';
+export { ProjectImageService } from './services/ProjectImageService';
 export { TagService } from './services/TagService';

@@ -564,6 +564,18 @@
         }
       }
     },
+    "/projectimage/optimise": {
+      "put": {
+        "tags": [
+          "ProjectImage"
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        }
+      }
+    },
     "/tag": {
       "get": {
         "tags": [
@@ -1163,6 +1175,9 @@
             "type": "integer",
             "format": "int32",
             "nullable": true
+          },
+          "isOptimised": {
+            "type": "boolean"
           },
           "projectId": {
             "type": "integer",
