@@ -115,22 +115,6 @@ jobs:
       matrix:
         server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Cache Yarn dependencies
-        uses: actions/cache@v4
-        with:
-          path: .yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'yarn'
-          
       - name: Activate release
         uses: appleboy/ssh-action@master
         env:
@@ -147,12 +131,12 @@ jobs:
           envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,ENV_PATH,NUXT_ENV
           script: |
             printf "%s" "$NUXT_ENV" > "${RELEASE_PATH}/.env"
-            cd $RELEASE_PATH            
-            yarn install
+            cd $RELEASE_PATH
+            yarn install --frozen-lockfile
             yarn build
             ln -s -n -f $RELEASE_PATH $ACTIVE_RELEASE_PATH
-            pm2 stop ecosystem.config.js
-            pm2 delete ecosystem.config.js
+            pm2 stop ecosystem.config.js || true
+            pm2 delete ecosystem.config.js || true
             pm2 start ecosystem.config.js
             pm2 save
 
