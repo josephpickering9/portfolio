@@ -43,6 +43,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-yarn-
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn'
+
       - name: Compile CSS and JavaScript
         run: |
           yarn install --frozen-lockfile

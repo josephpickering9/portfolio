@@ -1,6 +1,10 @@
 export default defineNuxtConfig({
   devtools: { enabled: true },
 
+  future: {
+    compatibilityVersion: 4,
+  },
+
   ssr: true,
 
   app: {
@@ -35,9 +39,9 @@ export default defineNuxtConfig({
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    'nuxt-icon',
+    '@nuxt/icon',
     '@pinia-plugin-persistedstate/nuxt',
-    'nuxt-simple-sitemap',
+    '@nuxtjs/sitemap',
     '@vite-pwa/nuxt',
   ],
 
