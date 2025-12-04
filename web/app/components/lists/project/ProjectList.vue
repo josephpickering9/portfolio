@@ -42,179 +42,153 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
-import type { PropType } from 'vue'
-import Skeleton from '../../loading/Skeleton.vue'
-import { useProjectStore } from '../../../store/ProjectStore'
-import type { Project } from '../../../../api/models/Project'
-import { TagType } from '../../../../api'
-import TextInput from '../../forms/elements/TextInput.vue'
-import FormButton from '../../forms/elements/FormButton.vue'
-import TagTypeSelectList from '../../forms/tag/TagTypeSelectList.vue'
-import { LoadingType } from '../../../../types/LoadingType'
-import useAuth from '../../../composables/useAuth'
-import { getEnumValue } from '../../../utils/enum-helper'
-import CompanyAutoComplete from '../../forms/company/CompanyAutoComplete.vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import type { Project } from '~/api/models/Project'
+import { TagType } from '~/api'
+import { LoadingType } from '~/types/LoadingType'
+import useAuth from '~/app/composables/useAuth'
+import { getEnumValue } from '~/app/utils/enum-helper'
+import Skeleton from '~/app/components/loading/Skeleton.vue'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import TagTypeSelectList from '~/app/components/forms/tag/TagTypeSelectList.vue'
+import CompanyAutoComplete from '~/app/components/forms/company/CompanyAutoComplete.vue'
 import ProjectListItem from './ProjectListItem.vue'
 
-interface Data {
-  initialLoad: boolean
-  search?: string
-  companyId?: number
-  tagType?: TagType
-  loadingTypeCard: LoadingType
+interface Props {
+  showHeader?: boolean
+  maxWidth?: string
+  tags?: string[]
+  modelSearch?: string
+  setProjects?: Project[]
 }
 
-export default defineComponent({
-  name: 'ProjectList',
-  components: {
-    Skeleton,
-    ProjectListItem,
-    TextInput,
-    FormButton,
-    TagTypeSelectList,
-    CompanyAutoComplete,
-  },
-  props: {
-    showHeader: {
-      type: Boolean,
-      default: false,
-    },
-    maxWidth: {
-      type: String,
-      default: 'max-w-5xl',
-    },
-    tags: {
-      type: Array as () => string[],
-      default: () => [],
-    },
-    modelSearch: {
-      type: String,
-      default: undefined,
-    },
-    setProjects: {
-      type: Array as PropType<Project[]>,
-      default: () => [],
-    },
-  },
-  setup() {
-    const { isAuthenticated } = useAuth()
+const props = withDefaults(defineProps<Props>(), {
+  showHeader: false,
+  maxWidth: 'max-w-5xl',
+  tags: () => [],
+  modelSearch: undefined,
+  setProjects: () => [],
+})
 
-    return {
-      isAuthenticated,
-    }
-  },
-  data(): Data {
-    return {
-      initialLoad: this.setProjects.length === 0,
-      search: undefined,
-      companyId: undefined,
-      tagType: undefined,
-      loadingTypeCard: LoadingType.CARD,
-    }
-  },
-  computed: {
-    projects(): Project[] {
-      return useProjectStore().projects
-    },
-    loading(): boolean {
-      return useProjectStore().projectsLoading || this.initialLoad
-    },
-    filteredProjects(): Project[] {
-      let projects: Project[] = this.setProjects.length ? [...this.setProjects] : [...this.projects]
+const route = useRoute()
+const router = useRouter()
+const { isAuthenticated } = useAuth()
+const projectStore = useProjectStore()
 
-      if (!isEmpty(this.search)) {
-        projects = projects.filter((project) => {
-          if (!this.search) return true
+const initialLoad = ref(props.setProjects.length === 0)
+const search = ref<string | undefined>(undefined)
+const companyId = ref<number | undefined>(undefined)
+const tagType = ref<TagType | undefined>(undefined)
+const loadingTypeCard = ref(LoadingType.CARD)
 
-          return (
-            project.title.toLowerCase().includes(this.search.toLowerCase()) ||
-            project.shortDescription.toLowerCase().includes(this.search.toLowerCase()) ||
-            project.description.toLowerCase().includes(this.search.toLowerCase())
-          )
-        })
-      }
+const projects = computed((): Project[] => {
+  return projectStore.projects
+})
 
-      if (!isEmpty(this.modelSearch) && (this.modelSearch?.length ?? 0) > 3) {
-        projects = projects.filter((project) => {
-          if (!this.modelSearch) return true
+const loading = computed((): boolean => {
+  return projectStore.projectsLoading || initialLoad.value
+})
 
-          return (
-            project.title.toLowerCase().includes(this.modelSearch.toLowerCase()) ||
-            project.shortDescription.toLowerCase().includes(this.modelSearch.toLowerCase()) ||
-            project.description.toLowerCase().includes(this.modelSearch.toLowerCase())
-          )
-        })
-      }
+const filteredProjects = computed((): Project[] => {
+  let projectsFiltered: Project[] = props.setProjects.length ? [...props.setProjects] : [...projects.value]
 
-      if (this.companyId) {
-        projects = projects.filter((project) => project.companyId === this.companyId)
-      }
+  if (!isEmpty(search.value)) {
+    projectsFiltered = projectsFiltered.filter((project) => {
+      if (!search.value) return true
 
-      if (this.tagType) {
-        projects = projects.filter((project) => {
-          return project.tags.some((tag) => tag.type === this.tagType)
-        })
-      }
+      return (
+        project.title.toLowerCase().includes(search.value.toLowerCase()) ||
+        project.shortDescription.toLowerCase().includes(search.value.toLowerCase()) ||
+        project.description.toLowerCase().includes(search.value.toLowerCase())
+      )
+    })
+  }
 
-      if (this.tags.length > 0) {
-        projects = projects.filter((project) => {
-          return project.tags.some((tag) => this.tags.includes(tag.title))
-        })
-      }
+  if (!isEmpty(props.modelSearch) && (props.modelSearch?.length ?? 0) > 3) {
+    projectsFiltered = projectsFiltered.filter((project) => {
+      if (!props.modelSearch) return true
 
-      return projects
-    },
-    wrapperClass(): object {
-      return {
-        [this.maxWidth]: true,
-      }
-    },
-  },
-  async mounted() {
-    this.setValues()
+      return (
+        project.title.toLowerCase().includes(props.modelSearch.toLowerCase()) ||
+        project.shortDescription.toLowerCase().includes(props.modelSearch.toLowerCase()) ||
+        project.description.toLowerCase().includes(props.modelSearch.toLowerCase())
+      )
+    })
+  }
 
-    if (this.setProjects.length === 0) await useProjectStore().getProjects()
-  },
-  methods: {
-    setValues() {
-      const route = this.$route
-      this.search = route.query.search?.toString() || this.search
-      this.companyId = route.query.company ? parseInt(route.query.company.toString()) : undefined
-      this.tagType = route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined
+  if (companyId.value) {
+    projectsFiltered = projectsFiltered.filter((project) => project.companyId === companyId.value)
+  }
+
+  if (tagType.value) {
+    projectsFiltered = projectsFiltered.filter((project) => {
+      return project.tags.some((tag) => tag.type === tagType.value)
+    })
+  }
+
+  if (props.tags.length > 0) {
+    projectsFiltered = projectsFiltered.filter((project) => {
+      return project.tags.some((tag) => props.tags.includes(tag.title))
+    })
+  }
+
+  return projectsFiltered
+})
+
+const wrapperClass = computed(() => ({
+  [props.maxWidth]: true,
+}))
+
+function setValues() {
+  search.value = route.query.search?.toString() || search.value
+  companyId.value = route.query.company ? parseInt(route.query.company.toString()) : undefined
+  tagType.value = route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined
+}
+
+function updateQueryParams() {
+  router.push({
+    path: route.path,
+    query: {
+      search: !isEmpty(search.value) ? search.value : undefined,
+      company: companyId.value ? companyId.value : undefined,
+      type: tagType.value ? tagType.value : undefined,
     },
-    updateQueryParams() {
-      this.$router.push({
-        path: this.$route.path,
-        query: {
-          search: !isEmpty(this.search) ? this.search : undefined,
-          company: this.companyId ? this.companyId : undefined,
-          type: this.tagType ? this.tagType : undefined,
-        },
-      })
-    },
-  },
-  watch: {
-    projects() {
-      this.initialLoad = false
-    },
-    setProjects() {
-      this.initialLoad = false
-    },
-    $route() {
-      this.setValues()
-    },
-    search() {
-      this.updateQueryParams()
-    },
-    companyId() {
-      this.updateQueryParams()
-    },
-    tagType() {
-      this.updateQueryParams()
-    },
-  },
+  })
+}
+
+onMounted(async () => {
+  setValues()
+
+  if (props.setProjects.length === 0) await projectStore.getProjects()
+})
+
+// Watch methods
+watch(projects, () => {
+  initialLoad.value = false
+})
+
+watch(() => props.setProjects, () => {
+  initialLoad.value = false
+})
+
+watch(() => route.query, () => {
+  setValues()
+})
+
+watch(search, () => {
+  updateQueryParams()
+})
+
+watch(companyId, () => {
+  updateQueryParams()
+})
+
+watch(tagType, () => {
+  updateQueryParams()
 })
 </script>

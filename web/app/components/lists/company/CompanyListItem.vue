@@ -2,7 +2,7 @@
   <div v-if="company" class="textarea textarea-bordered flex w-full justify-between bg-base-100 p-4 shadow-xl">
     <div class="flex w-full flex-col space-y-4">
       <div class="flex items-center gap-2">
-        <img v-if="company.logo" :src="logo" :alt="`${company.title} Logo`" class="m-0 h-6 w-6" >
+        <img v-if="company.logo" :src="logo" :alt="`${company.name} Logo`" class="m-0 h-6 w-6" >
         <h2 v-if="isEmpty(company.website) || company.website === '#'" class="m-0">
           {{ company.name }}
         </h2>
@@ -25,40 +25,25 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
-import type { Company as CompanyModel } from '../../../../api/models/Company'
-import { getImageUrl } from '../../../utils/image-helper'
-import FormButton from '../../forms/elements/FormButton.vue'
-import useAuth from '../../../composables/useAuth'
-import { Icon } from '#components'
+import type { Company as CompanyModel } from '~/api/models/Company'
+import { getImageUrl } from '~/app/utils/image-helper'
+import useAuth from '~/app/composables/useAuth'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
 
-export default defineComponent({
-  name: 'CompanyListItem',
-  components: { FormButton, Icon },
-  props: {
-    company: {
-      type: Object as PropType<CompanyModel>,
-      required: true,
-    },
-  },
-  setup() {
-    const { isAuthenticated } = useAuth()
+interface Props {
+  company: CompanyModel
+}
 
-    return {
-      isAuthenticated,
-    }
-  },
-  computed: {
-    logo(): string {
-      if (!this.company?.logo) return 'https://via.placeholder.com/320x200'
+const props = defineProps<Props>()
 
-      return getImageUrl(this.company.logo)
-    },
-  },
-  methods: {
-    isEmpty,
-  },
+const { isAuthenticated } = useAuth()
+
+const logo = computed((): string => {
+  if (!props.company?.logo) return 'https://via.placeholder.com/320x200'
+
+  return getImageUrl(props.company.logo)
 })
 </script>

@@ -20,115 +20,106 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { useTagStore } from '../../../store/TagStore'
-import { useNotificationStore } from '../../../store/NotificationStore'
-import { TagType, type CreateTag, type Tag } from '../../../../api'
-import TextInput from '../elements/TextInput.vue'
-import FormButton from '../elements/FormButton.vue'
-import ColourPicker from '../elements/ColourPicker.vue'
-import IconAutoComplete from '../global/IconAutoComplete.vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useTagStore } from '~/app/store/TagStore'
+import { useNotificationStore } from '~/app/store/NotificationStore'
+import { TagType, type CreateTag, type Tag } from '~/api'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import ColourPicker from '~/app/components/forms/elements/ColourPicker.vue'
+import IconAutoComplete from '~/app/components/forms/global/IconAutoComplete.vue'
 import TagTypeSelectList from './TagTypeSelectList.vue'
 
-interface Data {
-  title: string
-  type: TagType
-  icon?: string
-  customColour?: string
+interface Props {
+  id?: number | null
 }
 
-export default defineComponent({
-  name: 'TagForm',
-  components: {
-    TextInput,
-    FormButton,
-    TagTypeSelectList,
-    IconAutoComplete,
-    ColourPicker,
-  },
-  props: {
-    id: {
-      type: Number,
-      default: null,
-    },
-  },
-  data(): Data {
-    return {
-      title: '',
-      type: TagType.DEFAULT,
-      icon: undefined,
-      customColour: undefined,
+const props = withDefaults(defineProps<Props>(), {
+  id: null,
+})
+
+const router = useRouter()
+const tagStore = useTagStore()
+const notificationStore = useNotificationStore()
+
+const title = ref('')
+const type = ref<TagType>(TagType.DEFAULT)
+const icon = ref<string | undefined>(undefined)
+const customColour = ref<string | undefined>(undefined)
+
+const isUpdate = computed((): boolean => {
+  return props.id !== null
+})
+
+const tag = computed((): Tag | undefined => {
+  return tagStore.tag
+})
+
+const tagError = computed((): string | undefined => {
+  return tagStore.tagError
+})
+
+const loading = computed((): boolean => {
+  return tagStore.tagCreating || tagStore.tagLoading
+})
+
+const error = computed((): string | undefined => {
+  return tagStore.tagCreateError
+})
+
+const createTagValue = computed((): CreateTag => {
+  return {
+    title: title.value,
+    type: type.value,
+    icon: icon.value,
+    customColour: customColour.value,
+  }
+})
+
+async function save() {
+  let response: Tag | undefined
+
+  if (isUpdate.value) {
+    response = await tagStore.updateTag(props.id!, createTagValue.value)
+  } else {
+    response = await tagStore.createTag(createTagValue.value)
+  }
+
+  if (!error.value && response) {
+    router.push(`/tags`)
+    notificationStore.displaySuccessNotification(`Tag ${isUpdate.value ? 'updated' : 'created'} successfully`)
+  } else {
+    notificationStore.displayErrorNotification(error.value || 'An error occurred')
+  }
+}
+
+async function remove() {
+  if (isUpdate.value) {
+    await tagStore.deleteTag(props.id!)
+
+    if (!error.value) {
+      router.push(`/tags`)
+      notificationStore.displaySuccessNotification('Tag deleted successfully')
+    } else {
+      notificationStore.displayErrorNotification(error.value || 'An error occurred')
     }
-  },
-  computed: {
-    isUpdate(): boolean {
-      return this.id !== null
-    },
-    tag(): Tag | undefined {
-      return useTagStore().tag
-    },
-    tagError(): string | undefined {
-      return useTagStore().tagError
-    },
-    loading(): boolean {
-      return useTagStore().tagCreating || useTagStore().tagLoading
-    },
-    error(): string | undefined {
-      return useTagStore().tagCreateError
-    },
-    createTagValue(): CreateTag {
-      return {
-        title: this.title,
-        type: this.type,
-        icon: this.icon,
-        customColour: this.customColour,
-      }
-    },
-  },
-  async mounted() {
-    if (this.isUpdate) {
-      await useTagStore().getTag(this.id)
+  }
+}
 
-      if (!this.tagError && this.tag) {
-        this.title = this.tag.title
-        this.type = this.tag.type
-        this.icon = this.tag.icon ?? ''
-        this.customColour = this.tag.customColour ?? ''
-      } else {
-        useNotificationStore().displayErrorNotification(this.tagError || 'An error occurred')
-      }
+onMounted(async () => {
+  if (isUpdate.value) {
+    await tagStore.getTag(props.id!)
+
+    if (!tagError.value && tag.value) {
+      title.value = tag.value.title
+      type.value = tag.value.type
+      icon.value = tag.value.icon ?? ''
+      customColour.value = tag.value.customColour ?? ''
+    } else {
+      notificationStore.displayErrorNotification(tagError.value || 'An error occurred')
     }
-  },
-  methods: {
-    async save() {
-      let response: Tag | undefined
-
-      if (this.isUpdate) {
-        response = await useTagStore().updateTag(this.id, this.createTagValue)
-      } else {
-        response = await useTagStore().createTag(this.createTagValue)
-      }
-
-      if (!this.error && response) {
-        this.$router.push(`/tags`)
-        useNotificationStore().displaySuccessNotification(`Tag ${this.isUpdate ? 'updated' : 'created'} successfully`)
-      } else {
-        useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-      }
-    },
-    async remove() {
-      if (this.isUpdate) {
-        await useTagStore().deleteTag(this.id)
-
-        if (!this.error) {
-          this.$router.push(`/tags`)
-          useNotificationStore().displaySuccessNotification('Tag deleted successfully')
-        } else {
-          useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-        }
-      }
-    },
-  },
+  }
 })
 </script>

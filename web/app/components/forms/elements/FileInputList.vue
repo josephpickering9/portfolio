@@ -24,70 +24,56 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { PropType } from 'vue'
-import Carousel from '../../layouts/Carousel.vue'
-import FormElementContainer from './FormElementContainer.vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import Carousel from '~/app/components/layouts/Carousel.vue'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
 
-interface Data {
-  images: string[]
+interface Props {
+  label?: string | null
+  modelValue?: FileList | null
+  required?: boolean
+  disabled?: boolean
+  imageUrls?: string[] | null
+  multiple?: boolean
 }
 
-export default defineComponent({
-  name: 'FileInputList',
-  components: { FormElementContainer, Carousel },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: import.meta.server ? Object : FileList,
-      default: null,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    imageUrls: {
-      type: Array as PropType<string[]>,
-      default: null,
-    },
-    multiple: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:modelValue', 'update:file', 'update:imageUrls'],
-  data(): Data {
-    return {
-      images: this.imageUrls,
-    }
-  },
-  methods: {
-    inputChange() {
-      if (this.$refs.file) {
-        const input = this.$refs.file as HTMLInputElement
-        this.$emit('update:file', input.files)
-        this.$emit('update:modelValue', input.files)
-      }
-    },
-    removeImage(url: string) {
-      this.images = this.images.filter((image) => image !== url)
-    },
-  },
-  watch: {
-    imageUrls() {
-      this.images = this.imageUrls
-    },
-    images() {
-      this.$emit('update:imageUrls', this.images)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: undefined,
+  required: false,
+  disabled: false,
+  imageUrls: null,
+  multiple: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: FileList | null]
+  'update:file': [value: FileList | null]
+  'update:imageUrls': [value: string[]]
+}>()
+
+const file = ref<HTMLInputElement | null>(null)
+const images = ref<string[]>(props.imageUrls ?? [])
+
+function inputChange() {
+  if (file.value) {
+    emit('update:file', file.value.files)
+    emit('update:modelValue', file.value.files)
+  }
+}
+
+function removeImage(url: string) {
+  images.value = images.value.filter((image) => image !== url)
+}
+
+// Watch methods
+watch(() => props.imageUrls, (newValue) => {
+  images.value = newValue ?? []
+})
+
+watch(images, (newValue) => {
+  emit('update:imageUrls', newValue)
 })
 </script>

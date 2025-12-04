@@ -1,5 +1,3 @@
-import { useHead, useSeoMeta, useRuntimeConfig } from '#imports'
-
 export default function useMeta() {
   function updateMeta({ title, description, image }: { title?: string; description?: string; image?: string }) {
     const defaultMeta = `${useRuntimeConfig().public.base}/meta.png`

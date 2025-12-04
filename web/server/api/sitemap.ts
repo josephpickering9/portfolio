@@ -1,6 +1,8 @@
-import { OpenAPI, ProjectService } from '../../api'
+import { OpenAPI, ProjectService } from '../../api/index'
+import { defineSitemapEventHandler } from '#imports'
+import { useRuntimeConfig } from 'nuxt/app'
 
-export default defineSitemapEventHandler(async (e) => {
+export default defineSitemapEventHandler(async () => {
   try {
     OpenAPI.BASE = process.env.NUXT_PUBLIC_API_BASE ?? useRuntimeConfig().public.apiBase ?? ''
     const projects = await ProjectService.getProject()

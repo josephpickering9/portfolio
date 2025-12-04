@@ -31,88 +31,72 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
-import Skeleton from '../../loading/Skeleton.vue'
-import { useCompanyStore } from '../../../store/CompanyStore'
-import type { Company } from '../../../../api/models/Company'
-import TextInput from '../../forms/elements/TextInput.vue'
-import FormButton from '../../forms/elements/FormButton.vue'
-import useAuth from '../../../composables/useAuth'
+import { useRoute, useRouter } from 'vue-router'
+import { useCompanyStore } from '~/app/store/CompanyStore'
+import type { Company } from '~/api/models/Company'
+import useAuth from '~/app/composables/useAuth'
+import Skeleton from '~/app/components/loading/Skeleton.vue'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
 import CompanyListItem from './CompanyListItem.vue'
 
-interface Data {
-  initialLoad: boolean
-  search: string
+const route = useRoute()
+const router = useRouter()
+const { isAuthenticated } = useAuth()
+const companyStore = useCompanyStore()
+
+const initialLoad = ref(true)
+const search = ref('')
+
+const companies = computed((): Company[] => {
+  return companyStore.companies
+})
+
+const loading = computed((): boolean => {
+  return companyStore.companiesLoading || initialLoad.value
+})
+
+const filteredCompanies = computed((): Company[] => {
+  let companiesFiltered = companies.value
+
+  if (!isEmpty(search.value)) {
+    companiesFiltered = companiesFiltered.filter((company) => company.name.toLowerCase().includes(search.value.toLowerCase()))
+  }
+
+  return companiesFiltered
+})
+
+function setValues() {
+  search.value = route.query.search?.toString() || search.value
 }
 
-export default defineComponent({
-  name: 'CompanyList',
-  components: {
-    Skeleton,
-    CompanyListItem,
-    TextInput,
-    FormButton,
-  },
-  setup() {
-    const { isAuthenticated } = useAuth()
+function updateQueryParams() {
+  router.push({
+    path: route.path,
+    query: {
+      search: !isEmpty(search.value) ? search.value : undefined,
+    },
+  })
+}
 
-    return {
-      isAuthenticated,
-    }
-  },
-  data(): Data {
-    return {
-      initialLoad: true,
-      search: '',
-    }
-  },
-  computed: {
-    companies(): Company[] {
-      return useCompanyStore().companies
-    },
-    loading(): boolean {
-      return useCompanyStore().companiesLoading || this.initialLoad
-    },
-    filteredCompanies(): Company[] {
-      let companies = this.companies
+onMounted(async () => {
+  setValues()
+  await companyStore.getCompanies()
+})
 
-      if (!isEmpty(this.search)) {
-        companies = companies.filter((company) => company.name.toLowerCase().includes(this.search.toLowerCase()))
-      }
+// Watch methods
+watch(companies, () => {
+  initialLoad.value = false
+})
 
-      return companies
-    },
-  },
-  async mounted() {
-    this.setValues()
-    await useCompanyStore().getCompanies()
-  },
-  methods: {
-    setValues() {
-      const route = this.$route
-      this.search = route.query.search?.toString() || this.search
-    },
-    updateQueryParams() {
-      this.$router.push({
-        path: this.$route.path,
-        query: {
-          search: !isEmpty(this.search) ? this.search : undefined,
-        },
-      })
-    },
-  },
-  watch: {
-    companies() {
-      this.initialLoad = false
-    },
-    $route() {
-      this.setValues()
-    },
-    search() {
-      this.updateQueryParams()
-    },
-  },
+watch(() => route.query, () => {
+  setValues()
+})
+
+watch(search, () => {
+  updateQueryParams()
 })
 </script>

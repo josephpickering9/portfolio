@@ -1,3 +1,5 @@
+import { useRuntimeConfig } from 'nuxt/app'
+
 export const getImageUrl = (image: string): string => {
   if (!image) return ''
   if (image.startsWith('http')) return image

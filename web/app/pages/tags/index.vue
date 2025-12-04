@@ -4,19 +4,11 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import useMeta from '../../composables/useMeta'
-import TagList from '../../components/lists/tag/TagList.vue'
+<script setup lang="ts">
+import useMeta from '~/app/composables/useMeta'
+import TagList from '~/app/components/lists/tag/TagList.vue'
 
-export default defineComponent({
-  // eslint-disable-next-line vue/match-component-file-name
-  name: 'Tags',
-  components: { TagList },
-  setup() {
-    const { updateMeta } = useMeta()
+const { updateMeta } = useMeta()
 
-    updateMeta({ title: 'Tags', description: 'View all of the tags associated with projects' })
-  },
-})
+updateMeta({ title: 'Tags', description: 'View all of the tags associated with projects' })
 </script>

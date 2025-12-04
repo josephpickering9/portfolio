@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
  
@@ -19,9 +19,12 @@ export type { ProjectImage } from './models/ProjectImage';
 export type { ProjectRepository } from './models/ProjectRepository';
 export type { Tag } from './models/Tag';
 export { TagType } from './models/TagType';
+export type { VertexQueryRequest } from './models/VertexQueryRequest';
 
 export { CompanyService } from './services/CompanyService';
 export { MediaService } from './services/MediaService';
 export { ProjectService } from './services/ProjectService';
 export { ProjectImageService } from './services/ProjectImageService';
 export { TagService } from './services/TagService';
+export { VertexIngestService } from './services/VertexIngestService';
+export { VertexQueryService } from './services/VertexQueryService';

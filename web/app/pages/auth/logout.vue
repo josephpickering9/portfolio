@@ -2,16 +2,10 @@
   <p>Logout</p>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import useAuth from '../../composables/useAuth'
+<script setup lang="ts">
+import useAuth from '~/app/composables/useAuth'
 
-export default defineComponent({
-  name: 'Logout',
-  setup() {
-    const { logout } = useAuth()
+const { logout } = useAuth()
 
-    if (logout) logout()
-  },
-})
+if (logout) logout()
 </script>

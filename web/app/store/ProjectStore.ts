@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { ProjectService } from '../../api/services/ProjectService'
-import { extractError } from '../utils/error-helper'
-import type { Project } from '../../api/models/Project'
-import type { CreateProject } from '../../api/models/CreateProject'
+import { ProjectService } from '~/api/services/ProjectService'
+import { extractError } from '~/app/utils/error-helper'
+import type { Project } from '~/api/models/Project'
+import type { CreateProject } from '~/api/models/CreateProject'
 
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({

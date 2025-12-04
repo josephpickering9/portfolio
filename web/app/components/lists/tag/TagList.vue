@@ -30,117 +30,100 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
-import Skeleton from '../../loading/Skeleton.vue'
-import { useTagStore } from '../../../store/TagStore'
-import type { Tag } from '../../../../api/models/Tag'
-import { TagType } from '../../../../api/models/TagType'
-import TextInput from '../../forms/elements/TextInput.vue'
-import FormButton from '../../forms/elements/FormButton.vue'
-import TagTypeSelectList from '../../forms/tag/TagTypeSelectList.vue'
-import useAuth from '../../../composables/useAuth'
-import { getEnumValue } from '../../../utils/enum-helper'
+import { useRoute, useRouter } from 'vue-router'
+import { useTagStore } from '~/app/store/TagStore'
+import type { Tag } from '~/api/models/Tag'
+import { TagType } from '~/api/models/TagType'
+import useAuth from '~/app/composables/useAuth'
+import { getEnumValue } from '~/app/utils/enum-helper'
+import Skeleton from '~/app/components/loading/Skeleton.vue'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import TagTypeSelectList from '~/app/components/forms/tag/TagTypeSelectList.vue'
 import TagListItem from './TagListItem.vue'
 
-interface Data {
-  initialLoad: boolean
-  search: string
-  tagType?: TagType
+const route = useRoute()
+const router = useRouter()
+const { isAuthenticated } = useAuth()
+const tagStore = useTagStore()
+
+const initialLoad = ref(true)
+const search = ref('')
+const tagType = ref<TagType | undefined>(undefined)
+
+const tags = computed((): Tag[] => {
+  return tagStore.tags
+})
+
+const loading = computed((): boolean => {
+  return tagStore.tagsLoading || initialLoad.value
+})
+
+const filteredTags = computed((): Record<string, Tag[]> => {
+  let tagsFiltered = tags.value
+
+  if (!isEmpty(search.value)) {
+    tagsFiltered = tagsFiltered.filter((tag) => tag.title.toLowerCase().includes(search.value.toLowerCase()))
+  }
+
+  if (tagType.value) {
+    tagsFiltered = tagsFiltered.filter((tag) => tag.type === tagType.value)
+  }
+
+  const groupedAndSorted = tagsFiltered.reduce((acc: any, tag: Tag) => {
+    const type = (acc[tag.type] = acc[tag.type] || [])
+    type.push(tag)
+    acc[tag.type].sort((a: Tag, b: Tag) => a.title.localeCompare(b.title))
+    return acc
+  }, {})
+
+  const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
+  const sortedGroupedTags = sortedGroupTitles.reduce((acc: any, title: string) => {
+    acc[title] = groupedAndSorted[title]
+    return acc
+  }, {})
+
+  return sortedGroupedTags
+})
+
+function setValues() {
+  search.value = route.query.search?.toString() || search.value
+  tagType.value = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || tagType.value
 }
 
-export default defineComponent({
-  name: 'TagList',
-  components: {
-    Skeleton,
-    TagListItem,
-    TextInput,
-    FormButton,
-    TagTypeSelectList,
-  },
-  setup() {
-    const { isAuthenticated } = useAuth()
+function updateQueryParams() {
+  router.push({
+    path: route.path,
+    query: {
+      search: !isEmpty(search.value) ? search.value : undefined,
+      type: tagType.value ? tagType.value : undefined,
+    },
+  })
+}
 
-    return {
-      isAuthenticated,
-    }
-  },
-  data(): Data {
-    return {
-      initialLoad: true,
-      search: '',
-      tagType: undefined,
-    }
-  },
-  computed: {
-    tags(): Tag[] {
-      return useTagStore().tags
-    },
-    loading(): boolean {
-      return useTagStore().tagsLoading || this.initialLoad
-    },
-    filteredTags(): Record<string, Tag[]> {
-      let tags = this.tags
+onMounted(async () => {
+  setValues()
+  await tagStore.getTags()
+})
 
-      if (!isEmpty(this.search)) {
-        tags = tags.filter((tag) => tag.title.toLowerCase().includes(this.search.toLowerCase()))
-      }
+// Watch methods
+watch(tags, () => {
+  initialLoad.value = false
+})
 
-      if (this.tagType) {
-        tags = tags.filter((tag) => tag.type === this.tagType)
-      }
+watch(() => route.query, () => {
+  setValues()
+})
 
-      const groupedAndSorted = tags.reduce((acc: any, tag: Tag) => {
-        const type = (acc[tag.type] = acc[tag.type] || [])
-        type.push(tag)
-        acc[tag.type].sort((a: Tag, b: Tag) => a.title.localeCompare(b.title))
-        return acc
-      }, {})
+watch(search, () => {
+  updateQueryParams()
+})
 
-      const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
-      const sortedGroupedTags = sortedGroupTitles.reduce((acc: any, title: string) => {
-        acc[title] = groupedAndSorted[title]
-        return acc
-      }, {})
-
-      return sortedGroupedTags
-    },
-  },
-  async mounted() {
-    this.setValues()
-    await useTagStore().getTags()
-  },
-  methods: {
-    setValues() {
-      const route = this.$route
-      this.search = route.query.search?.toString() || this.search
-      this.tagType = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || this.tagType
-    },
-    updateQueryParams() {
-      this.$router.push({
-        path: this.$route.path,
-        query: {
-          search: !isEmpty(this.search) ? this.search : undefined,
-          type: this.tagType ? this.tagType : undefined,
-        },
-      })
-    },
-  },
-  watch: {
-    tags() {
-      this.initialLoad = false
-    },
-    $route() {
-      this.setValues()
-    },
-    search() {
-      this.updateQueryParams()
-    },
-    tagType() {
-      this.updateQueryParams()
-    },
-  },
+watch(tagType, () => {
+  updateQueryParams()
 })
 </script>
 ../../../store/TagStore../../../api/models/Tag../../../api/models/TagType../../../composables/useAuth../../../utils/enum-helper

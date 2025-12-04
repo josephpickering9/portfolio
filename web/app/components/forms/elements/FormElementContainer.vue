@@ -10,16 +10,12 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+interface Props {
+  label?: string | null
+}
 
-export default defineComponent({
-  name: 'FormElementContainer',
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-  },
+withDefaults(defineProps<Props>(), {
+  label: undefined,
 })
 </script>

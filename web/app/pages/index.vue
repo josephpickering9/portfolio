@@ -21,87 +21,74 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { isEmpty } from 'lodash-es'
-import { useProjectStore } from '../store/ProjectStore'
-import ProjectList from '../components/lists/project/ProjectList.vue'
-import TagAutoComplete from '../components/forms/tag/TagAutoComplete.vue'
-import useMeta from '../composables/useMeta'
-import { notEmpty } from '../utils/array-helper'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import useMeta from '~/app/composables/useMeta'
+import { notEmpty } from '~/app/utils/array-helper'
+import ProjectList from '~/app/components/lists/project/ProjectList.vue'
+import TagAutoComplete from '~/app/components/forms/tag/TagAutoComplete.vue'
 
-interface Data {
-  isSearchActive: boolean
-  search: string
-  tags: string[]
+const route = useRoute()
+const router = useRouter()
+const projectStore = useProjectStore()
+const { updateMeta } = useMeta()
+
+// Meta
+updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
+
+const isSearchActive = ref(false)
+const search = ref('')
+const tags = ref<string[]>([])
+
+const placeholder = computed((): string => {
+  return isSearchActive.value ? 'Search by tag or keyword' : 'Search'
+})
+
+async function getProjects() {
+  await projectStore.getProjects()
 }
 
-export default defineComponent({
-  name: 'Index',
-  components: {
-    ProjectList,
-    TagAutoComplete,
-  },
-  setup() {
-    const { updateMeta } = useMeta()
+function handleFocus() {
+  isSearchActive.value = true
+}
 
-    updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
-  },
-  data(): Data {
-    return {
-      isSearchActive: false,
-      search: '',
-      tags: [],
-    }
-  },
-  computed: {
-    placeholder(): string {
-      return this.isSearchActive ? 'Search by tag or keyword' : 'Search'
-    },
-  },
-  mounted() {
-    this.setValues()
-  },
-  methods: {
-    isEmpty,
-    async getProjects() {
-      await useProjectStore().getProjects()
-    },
-    handleFocus() {
-      this.isSearchActive = true
-    },
-    handleBlur() {
-      if (isEmpty(this.search) && isEmpty(this.tags)) {
-        this.isSearchActive = false
-      }
-    },
-    setValues() {
-      const route = this.$route
-      this.search = route.query.search?.toString() || this.search
-      const tags = route.query.tags ? route.query.tags : []
-      this.tags = Array.isArray(tags) ? tags.map((tag) => tag?.toString()).filter(notEmpty) : [tags]
+function handleBlur() {
+  if (isEmpty(search.value) && isEmpty(tags.value)) {
+    isSearchActive.value = false
+  }
+}
 
-      this.isSearchActive = !isEmpty(this.search) || this.tags.length > 0
+function setValues() {
+  search.value = route.query.search?.toString() || search.value
+  const queryTags = route.query.tags ? route.query.tags : []
+  tags.value = Array.isArray(queryTags)
+    ? queryTags.map((tag) => tag?.toString()).filter(notEmpty)
+    : [queryTags as string]
+
+  isSearchActive.value = !isEmpty(search.value) || tags.value.length > 0
+}
+
+function updateQueryParams() {
+  router.push({
+    path: route.path,
+    query: {
+      search: !isEmpty(search.value) ? search.value : undefined,
+      tags: tags.value && tags.value.length > 0 ? tags.value : undefined,
     },
-    updateQueryParams() {
-      this.$router.push({
-        path: this.$route.path,
-        query: {
-          search: !isEmpty(this.search) ? this.search : undefined,
-          tags: this.tags ? this.tags : undefined,
-        },
-      })
-    },
-  },
-  watch: {
-    tags: {
-      handler() {
-        this.$nextTick(() => {
-          this.updateQueryParams()
-        })
-      },
-      deep: true,
-    },
-  },
+  })
+}
+
+onMounted(() => {
+  setValues()
 })
+
+// Watch methods
+watch(tags, () => {
+  nextTick(() => {
+    updateQueryParams()
+  })
+}, { deep: true })
 </script>

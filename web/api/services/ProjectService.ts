@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -9,7 +9,7 @@ import { request as __request } from '../core/request';
 export class ProjectService {
     /**
      * @param search
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static getProject(
@@ -25,7 +25,7 @@ export class ProjectService {
     }
     /**
      * @param formData
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static postProject(
@@ -40,7 +40,7 @@ export class ProjectService {
     }
     /**
      * @param id
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static getProject1(
@@ -57,7 +57,7 @@ export class ProjectService {
     /**
      * @param id
      * @param formData
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static putProject(
@@ -76,7 +76,7 @@ export class ProjectService {
     }
     /**
      * @param id
-     * @returns any Success
+     * @returns any OK
      * @throws ApiError
      */
     public static deleteProject(
@@ -92,7 +92,7 @@ export class ProjectService {
     }
     /**
      * @param slug
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static getProject2(
@@ -108,7 +108,7 @@ export class ProjectService {
     }
     /**
      * @param id
-     * @returns Project Success
+     * @returns Project OK
      * @throws ApiError
      */
     public static getProjectRelated(

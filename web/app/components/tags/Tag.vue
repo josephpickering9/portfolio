@@ -8,54 +8,47 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType, ref, type StyleValue } from 'vue'
-import type { Tag } from '../../../api'
-import { TagType } from '../../../api'
-import { setTextColourForBackground } from '../../utils/colour-helper'
-import { Icon } from '#components'
+<script setup lang="ts">
+import { computed, type StyleValue } from 'vue'
+import type { Tag } from '~/api'
+import { TagType } from '~/api'
+import { setTextColourForBackground } from '~/app/utils/colour-helper'
 
-export default defineComponent({
-  name: 'Tag',
-  components: { Icon },
-  props: {
-    tag: {
-      type: Object as PropType<Tag>,
-      required: true,
-    },
-    outline: {
-      type: Boolean,
-      default: false,
-    },
-    clearable: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['remove'],
-  computed: {
-    tagClass(): object {
-      return {
-        'badge-outline': this.outline,
-        'badge-error': this.tag.type === ref<TagType>(TagType.BACKEND).value,
-        'badge-success': this.tag.type === ref<TagType>(TagType.FRONTEND).value,
-        'badge-default': this.tag.type === ref<TagType>(TagType.OTHER).value,
-        'badge-primary': this.tag.type === ref<TagType>(TagType.DEV_OPS).value,
-        'badge-neutral': this.tag.type === ref<TagType>(TagType.DEFAULT).value,
-        'badge-accent': this.tag.type === ref<TagType>(TagType.CMS).value,
-        'badge-info': this.tag.type === ref<TagType>(TagType.MOBILE).value,
-        'badge-warning': this.tag.type === ref<TagType>(TagType.DATA).value,
-        [setTextColourForBackground(this.tag.customColour ?? '')]: this.tag.customColour,
-      }
-    },
-    tagStyle(): StyleValue {
-      if (!this.tag.customColour) return {}
+interface Props {
+  tag: Tag
+  outline?: boolean
+  clearable?: boolean
+}
 
-      return {
-        'background-color': this.tag.customColour,
-        'border-color': this.tag.customColour,
-      }
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  outline: false,
+  clearable: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  remove: [tag: Tag]
+}>()
+
+const tagClass = computed(() => ({
+  'badge-outline': props.outline,
+  'badge-error': props.tag.type === TagType.BACKEND,
+  'badge-success': props.tag.type === TagType.FRONTEND,
+  'badge-default': props.tag.type === TagType.OTHER,
+  'badge-primary': props.tag.type === TagType.DEV_OPS,
+  'badge-neutral': props.tag.type === TagType.DEFAULT,
+  'badge-accent': props.tag.type === TagType.CMS,
+  'badge-info': props.tag.type === TagType.MOBILE,
+  'badge-warning': props.tag.type === TagType.DATA,
+  [setTextColourForBackground(props.tag.customColour ?? '')]: props.tag.customColour,
+}))
+
+const tagStyle = computed((): StyleValue => {
+  if (!props.tag.customColour) return {}
+
+  return {
+    'background-color': props.tag.customColour,
+    'border-color': props.tag.customColour,
+  }
 })
 </script>

@@ -18,73 +18,55 @@
   </FormElementContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import FormElementContainer from './FormElementContainer.vue'
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
 
-interface Data {
-  value: string
+interface Props {
+  modelValue?: string | undefined
+  label?: string | undefined
+  placeholder?: string | undefined
+  type?: string
+  required?: boolean
+  disabled?: boolean
+  size?: string | undefined
 }
 
-export default defineComponent({
-  name: 'TextInput',
-  components: { FormElementContainer },
-  props: {
-    modelValue: {
-      type: String as () => string | null | undefined,
-      default: null,
-    },
-    label: {
-      type: String,
-      default: null,
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    type: {
-      type: String,
-      default: 'text',
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: String,
-      default: null,
-    },
-  },
-  emits: ['update:modelValue', 'focus', 'blur', 'keyup.enter'],
-  data(): Data {
-    return {
-      value: this.modelValue,
-    }
-  },
-  computed: {
-    inputClass(): object {
-      return {
-        'input-sm': this.size === 'sm',
-        'input-lg': this.size === 'lg',
-      }
-    },
-  },
-  methods: {
-    clear() {
-      this.value = ''
-    },
-  },
-  watch: {
-    modelValue() {
-      this.value = this.modelValue
-    },
-    value() {
-      this.$emit('update:modelValue', this.value)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: undefined,
+  label: undefined,
+  placeholder: undefined,
+  type: 'text',
+  required: false,
+  disabled: false,
+  size: undefined,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+  'focus': []
+  'blur': []
+  'keyup.enter': []
+}>()
+
+const value = ref(props.modelValue)
+
+const inputClass = computed(() => ({
+  'input-sm': props.size === 'sm',
+  'input-lg': props.size === 'lg',
+}))
+
+function clear() {
+  value.value = ''
+}
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue
+})
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue ?? '')
 })
 </script>

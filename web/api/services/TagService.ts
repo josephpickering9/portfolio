@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -10,7 +10,7 @@ import { request as __request } from '../core/request';
 export class TagService {
     /**
      * @param search
-     * @returns Tag Success
+     * @returns Tag OK
      * @throws ApiError
      */
     public static getTag(
@@ -26,7 +26,7 @@ export class TagService {
     }
     /**
      * @param requestBody
-     * @returns Tag Success
+     * @returns Tag OK
      * @throws ApiError
      */
     public static postTag(
@@ -41,7 +41,7 @@ export class TagService {
     }
     /**
      * @param id
-     * @returns Tag Success
+     * @returns Tag OK
      * @throws ApiError
      */
     public static getTag1(
@@ -58,7 +58,7 @@ export class TagService {
     /**
      * @param id
      * @param requestBody
-     * @returns Tag Success
+     * @returns Tag OK
      * @throws ApiError
      */
     public static putTag(
@@ -77,7 +77,7 @@ export class TagService {
     }
     /**
      * @param id
-     * @returns any Success
+     * @returns any OK
      * @throws ApiError
      */
     public static deleteTag(
@@ -93,7 +93,7 @@ export class TagService {
     }
     /**
      * @param slug
-     * @returns Tag Success
+     * @returns Tag OK
      * @throws ApiError
      */
     public static getTag2(

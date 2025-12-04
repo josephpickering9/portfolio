@@ -1,6 +1,6 @@
 <template>
   <div v-if="company" class="flex items-center gap-2">
-    <img :src="imageUrl" :alt="`${company.title} Logo`" class="m-0 rounded-full" :class="imageClass" >
+    <img :src="imageUrl" :alt="`${company.name} Logo`" class="m-0 rounded-full" :class="imageClass" >
     <span v-if="!showLink || isEmpty(company.website) || company.website === '#'" class="m-0" :class="textClass">
       {{ company.name }}
     </span>
@@ -13,56 +13,41 @@
   </div>
 </template>
 
-<script lang="ts">
-import type { PropType } from 'vue'
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
-import type { Company } from '../../../../api'
-import { getImageUrl } from '../../../utils/image-helper'
-import { Icon } from '#components'
+import type { Company } from '~/api'
+import { getImageUrl } from '~/app/utils/image-helper'
 
-export default defineComponent({
-  name: 'CompanyItem',
-  components: { Icon },
-  props: {
-    company: {
-      type: Object as PropType<Company>,
-      default: () => null,
-    },
-    showLink: {
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: String,
-      default: 'lg',
-    },
-  },
-  computed: {
-    imageUrl(): string {
-      if (!this.company.logo) return ''
+interface Props {
+  company?: Company | null
+  showLink?: boolean
+  size?: string
+}
 
-      return getImageUrl(this.company.logo) ?? ''
-    },
-    textClass(): object {
-      return {
-        'text-xs': this.size === 'xs',
-        'text-sm': this.size === 'sm',
-        'text-md': this.size === 'md',
-        'text-lg': this.size === 'lg',
-      }
-    },
-    imageClass(): object {
-      return {
-        'w-3 h-3': this.size === 'xs',
-        'w-4 h-4': this.size === 'sm',
-        'w-5 h-5': this.size === 'md',
-        'w-6 h-6': this.size === 'lg',
-      }
-    },
-  },
-  methods: {
-    isEmpty,
-  },
+const props = withDefaults(defineProps<Props>(), {
+  company: null,
+  showLink: false,
+  size: 'lg',
 })
+
+const imageUrl = computed((): string => {
+  if (!props.company?.logo) return ''
+
+  return getImageUrl(props.company.logo) ?? ''
+})
+
+const textClass = computed(() => ({
+  'text-xs': props.size === 'xs',
+  'text-sm': props.size === 'sm',
+  'text-md': props.size === 'md',
+  'text-lg': props.size === 'lg',
+}))
+
+const imageClass = computed(() => ({
+  'w-3 h-3': props.size === 'xs',
+  'w-4 h-4': props.size === 'sm',
+  'w-5 h-5': props.size === 'md',
+  'w-6 h-6': props.size === 'lg',
+}))
 </script>

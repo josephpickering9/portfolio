@@ -20,115 +20,107 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { useCompanyStore } from '../../../store/CompanyStore'
-import { useNotificationStore } from '../../../store/NotificationStore'
-import type { CreateCompany } from '../../../../api/models/CreateCompany'
-import type { Company } from '../../../../api/models/Company'
-import TextInput from '../elements/TextInput.vue'
-import FormButton from '../elements/FormButton.vue'
-import FileInput from '../elements/FileInput.vue'
-import { getImageUrl } from '../../../utils/image-helper'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useCompanyStore } from '~/app/store/CompanyStore'
+import { useNotificationStore } from '~/app/store/NotificationStore'
+import type { CreateCompany } from '~/api/models/CreateCompany'
+import type { Company } from '~/api/models/Company'
+import { getImageUrl } from '~/app/utils/image-helper'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import FileInput from '~/app/components/forms/elements/FileInput.vue'
 
-interface Data {
-  name: string
-  description: string
-  logo?: FileList | null
-  logoUrl?: string
-  website?: string
+interface Props {
+  id?: number | null
 }
 
-export default defineComponent({
-  name: 'CompanyForm',
-  components: {
-    TextInput,
-    FormButton,
-    FileInput,
-  },
-  props: {
-    id: {
-      type: Number,
-      default: null,
-    },
-  },
-  data(): Data {
-    return {
-      name: '',
-      description: '',
-      logo: undefined,
-      logoUrl: undefined,
-      website: undefined,
+const props = withDefaults(defineProps<Props>(), {
+  id: null,
+})
+
+const router = useRouter()
+const companyStore = useCompanyStore()
+const notificationStore = useNotificationStore()
+
+const name = ref('')
+const description = ref('')
+const logo = ref<FileList | null | undefined>(undefined)
+const logoUrl = ref<string | undefined>(undefined)
+const website = ref<string | undefined>(undefined)
+
+const isUpdate = computed((): boolean => {
+  return props.id !== null
+})
+
+const company = computed((): Company | undefined => {
+  return companyStore.company
+})
+
+const companyError = computed((): string | undefined => {
+  return companyStore.companyError
+})
+
+const loading = computed((): boolean => {
+  return companyStore.companyCreating || companyStore.companyLoading
+})
+
+const error = computed((): string | undefined => {
+  return companyStore.companyCreateError
+})
+
+const createCompanyValue = computed((): CreateCompany => {
+  return {
+    name: name.value,
+    description: description.value,
+    logo: logo.value ? (logo.value.item(0) as Blob) : undefined,
+    website: website.value,
+  }
+})
+
+async function save() {
+  let response: Company | undefined
+
+  if (isUpdate.value) {
+    response = await companyStore.updateCompany(props.id!, createCompanyValue.value)
+  } else {
+    response = await companyStore.createCompany(createCompanyValue.value)
+  }
+
+  if (!error.value && response) {
+    router.push(`/companies`)
+    notificationStore.displaySuccessNotification(`Company ${isUpdate.value ? 'updated' : 'created'} successfully`)
+  } else {
+    notificationStore.displayErrorNotification(error.value || 'An error occurred')
+  }
+}
+
+async function remove() {
+  if (isUpdate.value) {
+    await companyStore.deleteCompany(props.id!)
+
+    if (!error.value) {
+      router.push(`/companies`)
+      notificationStore.displaySuccessNotification('Company deleted successfully')
+    } else {
+      notificationStore.displayErrorNotification(error.value || 'An error occurred')
     }
-  },
-  computed: {
-    isUpdate(): boolean {
-      return this.id !== null
-    },
-    company(): Company | undefined {
-      return useCompanyStore().company
-    },
-    companyError(): string | undefined {
-      return useCompanyStore().companyError
-    },
-    loading(): boolean {
-      return useCompanyStore().companyCreating || useCompanyStore().companyLoading
-    },
-    error(): string | undefined {
-      return useCompanyStore().companyCreateError
-    },
-    createCompanyValue(): CreateCompany {
-      return {
-        name: this.name,
-        description: this.description,
-        logo: this.logo ? (this.logo.item(0) as Blob) : undefined,
-        website: this.website,
-      }
-    },
-  },
-  async mounted() {
-    if (this.isUpdate) {
-      await useCompanyStore().getCompany(this.id)
+  }
+}
 
-      if (!this.companyError && this.company) {
-        this.name = this.company.name
-        this.description = this.company.description
-        this.logoUrl = this.company.logo ? getImageUrl(this.company.logo) : undefined
-        this.website = this.company.website ?? ''
-      } else {
-        useNotificationStore().displayErrorNotification(this.companyError || 'An error occurred')
-      }
+onMounted(async () => {
+  if (isUpdate.value) {
+    await companyStore.getCompany(props.id!)
+
+    if (!companyError.value && company.value) {
+      name.value = company.value.name
+      description.value = company.value.description
+      logoUrl.value = company.value.logo ? getImageUrl(company.value.logo) : undefined
+      website.value = company.value.website ?? ''
+    } else {
+      notificationStore.displayErrorNotification(companyError.value || 'An error occurred')
     }
-  },
-  methods: {
-    async save() {
-      let response: Company | undefined
-
-      if (this.isUpdate) {
-        response = await useCompanyStore().updateCompany(this.id, this.createCompanyValue)
-      } else {
-        response = await useCompanyStore().createCompany(this.createCompanyValue)
-      }
-
-      if (!this.error && response) {
-        this.$router.push(`/companies`)
-        useNotificationStore().displaySuccessNotification(`Company ${this.isUpdate ? 'updated' : 'created'} successfully`)
-      } else {
-        useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-      }
-    },
-    async remove() {
-      if (this.isUpdate) {
-        await useCompanyStore().deleteCompany(this.id)
-
-        if (!this.error) {
-          this.$router.push(`/companies`)
-          useNotificationStore().displaySuccessNotification('Company deleted successfully')
-        } else {
-          useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-        }
-      }
-    },
-  },
+  }
 })
 </script>

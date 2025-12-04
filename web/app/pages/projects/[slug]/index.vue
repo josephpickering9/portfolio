@@ -114,143 +114,116 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { sortBy } from 'lodash-es'
-import { ImageType, type Company, type Project, type Tag as TagModel } from '../../../../api'
-import { useProjectStore } from '../../../store/ProjectStore'
-import Skeleton from '../../../components/loading/Skeleton.vue'
-import Tag from '../../../components/tags/Tag.vue'
-import IconLink from '../../../components/navigation/IconLink.vue'
-import MockupBrowser from '../../../components/mockup/MockupBrowser.vue'
-import MockupPhone from '../../../components/mockup/MockupPhone.vue'
-import CompanyItem from '../../../components/forms/company/CompanyItem.vue'
-import { useCompanyStore } from '../../../store/CompanyStore'
-import useMeta from '../../../composables/useMeta'
-import { getImageUrl } from '../../../utils/image-helper'
-import useAuth from '../../../composables/useAuth'
-import Carousel from '../../../components/layouts/Carousel.vue'
-import ProjectList from '../../../components/lists/project/ProjectList.vue'
-import { defineNuxtComponent } from '#app'
+import { ImageType, type Tag as TagModel } from '~/api'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import { useCompanyStore } from '~/app/store/CompanyStore'
+import useMeta from '~/app/composables/useMeta'
+import { getImageUrl } from '~/app/utils/image-helper'
+import useAuth from '~/app/composables/useAuth'
+import Skeleton from '~/app/components/loading/Skeleton.vue'
+import Tag from '~/app/components/tags/Tag.vue'
+import IconLink from '~/app/components/navigation/IconLink.vue'
+import MockupBrowser from '~/app/components/mockup/MockupBrowser.vue'
+import MockupPhone from '~/app/components/mockup/MockupPhone.vue'
+import CompanyItem from '~/app/components/forms/company/CompanyItem.vue'
+import Carousel from '~/app/components/layouts/Carousel.vue'
+import ProjectList from '~/app/components/lists/project/ProjectList.vue'
 
-export default defineNuxtComponent({
-  // eslint-disable-next-line vue/match-component-file-name
-  name: 'ProjectIndex',
-  components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem, Carousel, ProjectList },
-  async setup() {
-    const { isAuthenticated } = useAuth()
+const route = useRoute()
+const { isAuthenticated } = useAuth()
+const projectStore = useProjectStore()
+const companyStore = useCompanyStore()
+const { updateMeta } = useMeta()
 
-    const projectSlug = useRoute().params.slug as string
-    const initialProject = useProjectStore().project
-    if (!initialProject || initialProject?.slug !== projectSlug) await useProjectStore().getProjectBySlug(projectSlug)
+const slug = computed(() => route.params.slug as string)
 
-    const project = useProjectStore().project
-    if (!project) return { isAuthenticated }
+const project = computed(() => projectStore.project)
+const loading = computed(() => projectStore.projectLoading)
+const error = computed(() => projectStore.projectError)
+const relatedProjects = computed(() => projectStore.relatedProjects)
+const relatedProjectsLoading = computed(() => projectStore.relatedProjectsLoading)
+const companies = computed(() => companyStore.companies)
 
-    await useProjectStore().getRelatedProjects(project.id)
+const company = computed(() => {
+  if (!project.value?.companyId) return undefined
+  return companies.value.find((c) => c.id === project.value?.companyId)
+})
 
-    const companies = useCompanyStore().companies
-    if (!companies.length) await useCompanyStore().getCompanies()
+const desktopImages = computed(() => {
+  if (!project.value) return []
+  return sortBy(
+    project.value.images.filter((image) => image.type === ImageType.DESKTOP),
+    'order',
+  ).map((image) => image.image)
+})
 
-    useMeta().updateMeta({
-      title: project.title,
-      description: project.shortDescription,
-      image: project.cardUrl ? getImageUrl(project.cardUrl) : undefined,
+const mobileImages = computed(() => {
+  if (!project.value) return []
+  return sortBy(
+    project.value.images.filter((image) => image.type === ImageType.MOBILE),
+    'order',
+  ).map((image) => image.image)
+})
+
+const groupedTags = computed(() => {
+  if (!project.value) return {}
+  const tags = project.value.tags
+  const groupedAndSorted = tags.reduce((acc: any, tag: TagModel) => {
+    const type = (acc[tag.type] = acc[tag.type] || [])
+    type.push(tag)
+    acc[tag.type].sort((a: TagModel, b: TagModel) => a.title.localeCompare(b.title))
+    return acc
+  }, {})
+  const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
+  return sortedGroupTitles.reduce((acc: any, title: string) => {
+    acc[title] = groupedAndSorted[title]
+    return acc
+  }, {})
+})
+
+const bannerStyle = computed(() => {
+  if (!project.value?.bannerUrl) return {}
+  return {
+    backgroundImage: `url(${getImageUrl(project.value.bannerUrl)})`,
+  }
+})
+
+const headerClass = computed(() => {
+  const length = project.value?.tags.length ?? 0
+  return {
+    'xl:flex-row xl:items-end xl:justify-between': length < 8,
+    'xl:flex-col xl:items-start xl:justify-start': length >= 800,
+  }
+})
+
+onMounted(async () => {
+  if (!slug.value) return
+
+  if (!project.value || project.value.slug !== slug.value) {
+    await projectStore.getProjectBySlug(slug.value)
+  }
+
+  if (project.value) {
+    await projectStore.getRelatedProjects(project.value.id)
+
+    updateMeta({
+      title: project.value.title,
+      description: project.value.shortDescription,
+      image: project.value.cardUrl ? getImageUrl(project.value.cardUrl) : undefined,
     })
+  }
 
-    return {
-      isAuthenticated,
-    }
-  },
-  computed: {
-    slug(): string {
-      return useRoute().params.slug as string
-    },
-    project(): Project | undefined {
-      return useProjectStore().project
-    },
-    loading(): boolean {
-      return useProjectStore().projectLoading
-    },
-    error(): string | undefined {
-      return useProjectStore().projectError
-    },
-    relatedProjects(): Project[] {
-      return useProjectStore().relatedProjects
-    },
-    relatedProjectsLoading(): boolean {
-      return useProjectStore().relatedProjectsLoading
-    },
-    companies(): Company[] {
-      return useCompanyStore().companies
-    },
-    company(): Company | undefined {
-      if (!this.project?.companyId) return undefined
+  if (!companies.value.length) {
+    await companyStore.getCompanies()
+  }
+})
 
-      return this.companies.find((company) => company.id === this.project?.companyId)
-    },
-    desktopImages(): string[] {
-      if (!this.project) return []
-
-      return sortBy(
-        this.project.images.filter((image) => image.type === ImageType.DESKTOP),
-        'order',
-      ).map((image) => image.image)
-    },
-    mobileImages(): string[] {
-      if (!this.project) return []
-
-      return sortBy(
-        this.project.images.filter((image) => image.type === ImageType.MOBILE),
-        'order',
-      ).map((image) => image.image)
-    },
-    groupedTags(): Record<string, TagModel[]> {
-      if (!this.project) return {}
-
-      const tags = this.project.tags
-
-      const groupedAndSorted = tags.reduce((acc: any, tag: TagModel) => {
-        const type = (acc[tag.type] = acc[tag.type] || [])
-        type.push(tag)
-        acc[tag.type].sort((a: TagModel, b: TagModel) => a.title.localeCompare(b.title))
-        return acc
-      }, {})
-
-      const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
-      const sortedGroupedTags = sortedGroupTitles.reduce((acc: any, title: string) => {
-        acc[title] = groupedAndSorted[title]
-        return acc
-      }, {})
-
-      return sortedGroupedTags
-    },
-    bannerStyle(): object {
-      if (!this.project?.bannerUrl) return {}
-
-      return {
-        backgroundImage: `url(${getImageUrl(this.project.bannerUrl)})`,
-      }
-    },
-    headerClass(): object {
-      const length = this.project?.tags.length ?? 0
-
-      return {
-        'xl:flex-row xl:items-end xl:justify-between': length < 8,
-        'xl:flex-col xl:items-start xl:justify-start': length >= 800,
-      }
-    },
-  },
-  async mounted() {
-    if (!this.slug) return
-    if (this.project?.slug !== this.slug) await useProjectStore().getProjectBySlug(this.slug)
-  },
-  beforeUnmount() {
-    useProjectStore().project = undefined
-  },
-  methods: {
-    getImageUrl,
-  },
+onBeforeUnmount(() => {
+  projectStore.project = undefined
 })
 </script>
 

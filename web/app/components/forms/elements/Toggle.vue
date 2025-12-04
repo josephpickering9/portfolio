@@ -4,44 +4,35 @@
   </FormElementContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import FormElementContainer from './FormElementContainer.vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
 
-interface Data {
-  value: boolean
+interface Props {
+  modelValue?: boolean
+  label?: string | undefined
+  disabled?: boolean
 }
 
-export default defineComponent({
-  name: 'Toggle',
-  components: { FormElementContainer },
-  props: {
-    modelValue: {
-      type: Boolean,
-      default: false,
-    },
-    label: {
-      type: String,
-      default: undefined,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: this.modelValue,
-    }
-  },
-  watch: {
-    modelValue(newValue: boolean): void {
-      this.value = newValue
-    },
-    value(newValue: boolean): void {
-      this.$emit('update:modelValue', newValue)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
+  label: undefined,
+  disabled: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
+
+const value = ref(props.modelValue)
+
+// Watch methods
+watch(() => props.modelValue, (newValue: boolean) => {
+  value.value = newValue
+})
+
+watch(value, (newValue: boolean) => {
+  emit('update:modelValue', newValue)
 })
 </script>

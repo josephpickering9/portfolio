@@ -4,24 +4,13 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import ProjectForm from '../../components/forms/project/ProjectForm.vue'
-import useMeta from '../../composables/useMeta'
+<script setup lang="ts">
+import ProjectForm from '~/app/components/forms/project/ProjectForm.vue'
+import useMeta from '~/app/composables/useMeta'
 
-export default defineComponent({
-  // eslint-disable-next-line vue/match-component-file-name
-  name: 'NewProject',
-  components: {
-    ProjectForm,
-  },
-  setup() {
-    const { updateMeta } = useMeta()
+definePageMeta({ middleware: 'auth' })
 
-    updateMeta({ title: 'New Project', description: 'Create a new project' })
+const { updateMeta } = useMeta()
 
-     
-    definePageMeta({ middleware: 'auth' })
-  },
-})
+updateMeta({ title: 'New Project', description: 'Create a new project' })
 </script>

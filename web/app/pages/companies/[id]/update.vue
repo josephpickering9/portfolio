@@ -4,24 +4,13 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import useMeta from '../../../composables/useMeta'
-import CompanyForm from '../../../components/forms/company/CompanyForm.vue'
+<script setup lang="ts">
+import useMeta from '~/app/composables/useMeta'
+import CompanyForm from '~/app/components/forms/company/CompanyForm.vue'
 
-export default defineComponent({
-  // eslint-disable-next-line vue/match-component-file-name
-  name: 'UpdateCompany',
-  components: {
-    CompanyForm,
-  },
-  setup() {
-    const { updateMeta } = useMeta()
+definePageMeta({ middleware: 'auth' })
 
-    updateMeta({ title: 'Update Company', description: 'Update an existing company' })
+const { updateMeta } = useMeta()
 
-     
-    definePageMeta({ middleware: 'auth' })
-  },
-})
+updateMeta({ title: 'Update Company', description: 'Update an existing company' })
 </script>

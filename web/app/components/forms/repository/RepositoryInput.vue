@@ -32,80 +32,68 @@
   </FormElementContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { PropType } from 'vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
-import { required, url } from '@vuelidate/validators'
-import type { CreateProjectRepository } from '../../../../api'
-import TextInput from '../elements/TextInput.vue'
-import FormButton from '../elements/FormButton.vue'
-import FormElementContainer from '../elements/FormElementContainer.vue'
-import useValidation from '../../../composables/useValidation'
-import FormGroup from '../elements/FormGroup.vue'
-import { Icon } from '#components'
+import { required, url as urlValidator } from '@vuelidate/validators'
+import type { CreateProjectRepository } from '~/api'
+import useValidation from '~/app/composables/useValidation'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
+import FormGroup from '~/app/components/forms/elements/FormGroup.vue'
 
-interface Data {
-  value: CreateProjectRepository[]
-  title: string
-  url: string
+interface Props {
+  label?: string | null
+  modelValue?: CreateProjectRepository[]
+  showEmptyMessage?: boolean
 }
 
-export default defineComponent({
-  name: 'RepositoryInput',
-  components: { TextInput, FormButton, FormElementContainer, Icon, FormGroup },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: Array as PropType<CreateProjectRepository[]>,
-      default: () => [],
-    },
-    showEmptyMessage: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  emits: ['update:modelValue'],
-  setup() {
-    return { v$: useVuelidate() }
-  },
-  data(): Data {
-    return {
-      value: [],
-      title: '',
-      url: '',
-    }
-  },
-  validations() {
-    return {
-      title: { required },
-      url: { required, url },
-    }
-  },
-  methods: {
-    async addRepository() {
-      const isValid = await useValidation().validate(this.v$)
-      if (!isValid) return
-
-      this.value.push({ title: this.title, url: this.url })
-      this.title = ''
-      this.url = ''
-      this.v$.$reset()
-    },
-    removeRepository(index: number) {
-      this.value.splice(index, 1)
-    },
-  },
-  watch: {
-    modelValue() {
-      this.value = this.modelValue
-    },
-    value() {
-      this.$emit('update:modelValue', this.value)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: () => [],
+  showEmptyMessage: true,
 })
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: CreateProjectRepository[]]
+}>()
+
+const validation = useValidation()
+
+const value = ref<CreateProjectRepository[]>([])
+const title = ref('')
+const url = ref('')
+
+// Validation
+const rules = {
+  title: { required },
+  url: { required, url: urlValidator },
+}
+
+const v$ = useVuelidate(rules, { title, url })
+
+async function addRepository() {
+  const isValid = await validation.validate(v$)
+  if (!isValid) return
+
+  value.value.push({ title: title.value, url: url.value })
+  title.value = ''
+  url.value = ''
+  v$.value.$reset()
+}
+
+function removeRepository(index: number) {
+  value.value.splice(index, 1)
+}
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue
+}, { immediate: true })
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue)
+}, { deep: true })
 </script>

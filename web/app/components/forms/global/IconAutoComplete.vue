@@ -9,58 +9,47 @@
   </AutoComplete>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { SearchItem } from '../../../../types/SearchItem'
-import { ListIcon } from '../../../assets/data/icons'
-import AutoComplete from '../elements/AutoComplete.vue'
-import IconListItem from '../../lists/icon/IconListItem.vue'
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import type { SearchItem } from '~/types/SearchItem'
+import { ListIcon } from '~/app/assets/data/icons'
+import AutoComplete from '~/app/components/forms/elements/AutoComplete.vue'
+import IconListItem from '~/app/components/lists/icon/IconListItem.vue'
 
-interface Data {
-  value?: SearchItem
+interface Props {
+  label?: string | null
+  modelValue?: string | null
 }
 
-export default defineComponent({
-  name: 'IconAutoComplete',
-  components: { AutoComplete, IconListItem },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: String,
-      default: null,
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: undefined,
-    }
-  },
-  computed: {
-    iconItems(): SearchItem[] {
-      return ListIcon.map((icon) => {
-        return {
-          title: icon,
-          value: icon,
-        }
-      })
-    },
-  },
-  methods: {
-    selectIcon(item?: SearchItem): void {
-      this.$emit('update:modelValue', item?.title)
-    },
-  },
-  watch: {
-    modelValue() {
-      this.value = { title: this.modelValue, value: this.modelValue }
-    },
-    value() {
-      this.$emit('update:modelValue', this.value?.title)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: undefined,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: string | undefined]
+}>()
+
+const value = ref<SearchItem | undefined>(undefined)
+
+const iconItems = computed((): SearchItem[] => {
+  return ListIcon.map((icon) => ({
+    title: icon,
+    value: icon,
+  }))
+})
+
+function selectIcon(item?: SearchItem): void {
+  emit('update:modelValue', item?.title)
+}
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue ? { title: newValue, value: newValue } : undefined
+})
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue?.title)
 })
 </script>

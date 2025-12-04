@@ -17,28 +17,17 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import { LoadingType } from '../../../types/LoadingType'
+<script setup lang="ts">
+import { LoadingType } from '~/types/LoadingType'
 
-interface Data {
-  typeCard: LoadingType
-  typeProfile: LoadingType
+interface Props {
+  type?: LoadingType
 }
 
-export default defineComponent({
-  name: 'Skeleton',
-  props: {
-    type: {
-      type: String as () => LoadingType,
-      default: LoadingType.PROFILE,
-    },
-  },
-  data(): Data {
-    return {
-      typeCard: LoadingType.CARD,
-      typeProfile: LoadingType.PROFILE,
-    }
-  },
+withDefaults(defineProps<Props>(), {
+  type: LoadingType.PROFILE,
 })
+
+const typeCard = LoadingType.CARD
+const typeProfile = LoadingType.PROFILE
 </script>

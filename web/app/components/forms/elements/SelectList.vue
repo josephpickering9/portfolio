@@ -18,76 +18,54 @@
   </FormElementContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import type { SelectListItem } from '../../../../types/SelectListItem'
-import FormElementContainer from './FormElementContainer.vue'
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import type { SelectListItem } from '~/types/SelectListItem'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
 
-interface Data {
-  value: string | number | null
+interface Props {
+  label?: string | null
+  modelValue?: string | number | null
+  options?: SelectListItem[]
+  required?: boolean
+  disabled?: boolean
+  size?: string | null
+  placeholder?: string | null
+  clearable?: boolean
 }
 
-export default defineComponent({
-  name: 'SelectList',
-  components: { FormElementContainer },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: [String, Number],
-      default: null,
-    },
-    options: {
-      type: Array as PropType<SelectListItem[]>,
-      default: () => [],
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: String,
-      default: null,
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    clearable: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: this.modelValue,
-    }
-  },
-  computed: {
-    selectClass(): object {
-      return {
-        'select-sm': this.size === 'sm',
-        'select-md': this.size === 'md',
-        'select-lg': this.size === 'lg',
-        'bg-none': this.value && this.clearable,
-      }
-    },
-  },
-  watch: {
-    modelValue() {
-      this.value = this.modelValue
-    },
-    value() {
-      this.$emit('update:modelValue', this.value)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: undefined,
+  options: () => [],
+  required: false,
+  disabled: false,
+  size: null,
+  placeholder: undefined,
+  clearable: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: string | number | null]
+}>()
+
+const value = ref<string | number | null>(props.modelValue)
+
+const selectClass = computed(() => ({
+  'select-sm': props.size === 'sm',
+  'select-md': props.size === 'md',
+  'select-lg': props.size === 'lg',
+  'bg-none': value.value && props.clearable,
+}))
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue
+})
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue)
 })
 </script>
 ../../../types/SelectListItem

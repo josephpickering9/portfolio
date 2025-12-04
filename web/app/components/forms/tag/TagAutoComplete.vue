@@ -24,118 +24,115 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { PropType } from 'vue'
-import type { SearchItem } from '../../../../types/SearchItem'
-import { TagType, type Tag as TagModel } from '../../../../api'
-import { useTagStore } from '../../../store/TagStore'
-import AutoComplete from '../elements/AutoComplete.vue'
-import Tag from '../../tags/Tag.vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import type { SearchItem } from '~/types/SearchItem'
+import { TagType, type Tag as TagModel } from '~/api'
+import { useTagStore } from '~/app/store/TagStore'
+import AutoComplete from '~/app/components/forms/elements/AutoComplete.vue'
+import Tag from '~/app/components/tags/Tag.vue'
 
-interface Data {
-  value: string[]
-  search?: string
+interface Props {
+  label?: string | undefined
+  modelValue?: string[]
+  modelSearch?: string
+  placeholder?: string | undefined
+  showEmptyMessage?: boolean
+  openOnFocus?: boolean
 }
 
-export default defineComponent({
-  name: 'TagAutoComplete',
-  components: { AutoComplete, Tag },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    modelSearch: {
-      type: String,
-      default: '',
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    showEmptyMessage: {
-      type: Boolean,
-      default: true,
-    },
-    openOnFocus: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  emits: ['update:modelValue', 'update:modelSearch', 'focus', 'blur'],
-  data(): Data {
-    return {
-      value: [],
-      search: undefined,
-    }
-  },
-  computed: {
-    tags(): TagModel[] {
-      return useTagStore().tags
-    },
-    tagItems(): SearchItem[] {
-      return this.tags
-        .filter((tag) => !this.convertedTags.some((c) => c.title === tag.title))
-        .map((tag) => {
-          return {
-            title: tag.title,
-            value: tag.id,
-          }
-        })
-    },
-    convertedTags(): TagModel[] {
-      return this.value.map((title) => {
-        const tag = this.tags.find((t) => t.title === title)
-        if (tag) return tag
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: () => [],
+  modelSearch: '',
+  placeholder: undefined,
+  showEmptyMessage: true,
+  openOnFocus: true,
+})
 
-        return {
-          id: 0,
-          title,
-          type: TagType.DEFAULT,
-          projects: [],
-        }
-      })
-    },
-  },
-  async mounted() {
-    if (this.tags.length === 0) await useTagStore().getTags()
-  },
-  methods: {
-    selectTag(tag: SearchItem) {
-      this.value.push(tag.title)
-      this.$emit('update:modelValue', this.value)
-    },
-    removeTag(tag: TagModel) {
-      this.value = this.value.filter((t) => t !== tag.title)
-      this.$emit('update:modelValue', this.value)
-    },
-    defaultTag(title: string): TagModel {
-      return {
-        id: 0,
-        title,
-        type: TagType.DEFAULT,
-        projects: [],
-      }
-    },
-  },
-  watch: {
-    modelValue() {
-      this.value = this.modelValue
-    },
-    value() {
-      this.$emit('update:modelValue', this.value)
-    },
-    modelSearch() {
-      this.search = this.modelSearch
-    },
-    search() {
-      this.$emit('update:modelSearch', this.search)
-    },
-  },
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: string[]]
+  'update:modelSearch': [value: string | undefined]
+  'focus': []
+  'blur': []
+}>()
+
+const tagStore = useTagStore()
+
+const value = ref<string[]>([])
+const search = ref<string | undefined>(undefined)
+
+const tags = computed((): TagModel[] => {
+  return tagStore.tags
+})
+
+const tagItems = computed((): SearchItem[] => {
+  return tags.value
+    .filter((tag) => !convertedTags.value.some((c) => c.title === tag.title))
+    .map((tag) => ({
+      title: tag.title,
+      value: tag.id,
+    }))
+})
+
+const convertedTags = computed((): TagModel[] => {
+  return value.value.map((title) => {
+    const tag = tags.value.find((t) => t.title === title)
+    if (tag) return tag
+
+    return {
+      id: 0,
+      title,
+      slug: title.toLowerCase().replace(/\s+/g, '-'),
+      type: TagType.DEFAULT,
+      icon: undefined,
+      customColour: undefined,
+    }
+  })
+})
+
+function selectTag(tag: SearchItem | undefined) {
+  if (!tag) return
+  value.value.push(tag.title)
+  emit('update:modelValue', value.value)
+}
+
+function removeTag(tag: TagModel) {
+  value.value = value.value.filter((t) => t !== tag.title)
+  emit('update:modelValue', value.value)
+}
+
+function defaultTag(title: string): TagModel {
+  return {
+    id: 0,
+    title,
+    slug: title.toLowerCase().replace(/\s+/g, '-'),
+    type: TagType.DEFAULT,
+    icon: undefined,
+    customColour: undefined,
+  }
+}
+
+onMounted(async () => {
+  if (tags.value.length === 0) await tagStore.getTags()
+})
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue
+})
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue)
+})
+
+watch(() => props.modelSearch, (newValue) => {
+  search.value = newValue
+})
+
+watch(search, (newValue) => {
+  emit('update:modelSearch', newValue)
 })
 </script>
+

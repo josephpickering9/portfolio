@@ -1,4 +1,4 @@
-import type { CreateProject } from '../api'
+import type { CreateProject } from '~/api'
 
 export const defaultProjectForm: CreateProject = {
   title: '',

@@ -22,35 +22,28 @@
   </NuxtLink>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
-import type { Project } from '../../../../api/models/Project'
-import { getImageUrl } from '../../../utils/image-helper'
-import Tag from '../../tags/Tag.vue'
+<script setup lang="ts">
+import { computed } from 'vue'
+import type { Project } from '~/api/models/Project'
+import { getImageUrl } from '~/app/utils/image-helper'
+import Tag from '~/app/components/tags/Tag.vue'
 
-export default defineComponent({
-  name: 'ProjectListItem',
-  components: {
-    Tag,
-  },
-  props: {
-    project: {
-      type: Object as PropType<Project>,
-      required: true,
-    },
-  },
-  computed: {
-    image(): string {
-      if (!this.project?.logoUrl) return 'https://via.placeholder.com/320x200'
+interface Props {
+  project: Project
+}
 
-      return getImageUrl(this.project.logoUrl)
-    },
-    backgroundImage(): string {
-      if (!this.project?.cardUrl) return 'https://via.placeholder.com/320x200'
+const props = defineProps<Props>()
 
-      return getImageUrl(this.project.cardUrl)
-    },
-  },
+const image = computed((): string => {
+  if (!props.project?.logoUrl) return 'https://via.placeholder.com/320x200'
+
+  return getImageUrl(props.project.logoUrl)
+})
+
+const backgroundImage = computed((): string => {
+  if (!props.project?.cardUrl) return 'https://via.placeholder.com/320x200'
+
+  return getImageUrl(props.project.cardUrl)
 })
 </script>
 ../../../api/models/Project../../../utils/image-helper

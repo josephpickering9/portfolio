@@ -57,206 +57,176 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType, type StyleValue } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import type { StyleValue } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep, sortBy } from 'lodash-es'
-import { ImageType } from '../../../../api'
-import type { CreateProject, CreateProjectImage, Project } from '../../../../api'
-import { useProjectStore } from '../../../store/ProjectStore'
-import FormGroup from '../elements/FormGroup.vue'
-import FileInput from '../elements/FileInput.vue'
-import FileInputList from '../elements/FileInputList.vue'
-import Toggle from '../elements/Toggle.vue'
-import useValidation from '../../../composables/useValidation'
-import { getImageUrl } from '../../../utils/image-helper'
-import { defaultProjectForm } from '../../../../mocks/Defaults'
+import { ImageType } from '~/api'
+import type { CreateProject, CreateProjectImage, Project } from '~/api'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import useValidation from '~/app/composables/useValidation'
+import { getImageUrl } from '~/app/utils/image-helper'
+import { defaultProjectForm } from '~/mocks/Defaults'
+import FormGroup from '~/app/components/forms/elements/FormGroup.vue'
+import FileInput from '~/app/components/forms/elements/FileInput.vue'
+import FileInputList from '~/app/components/forms/elements/FileInputList.vue'
+import Toggle from '~/app/components/forms/elements/Toggle.vue'
 
-interface Data {
-  form: CreateProject
-  desktop: FileList | null
-  mobile: FileList | null
-  logo: FileList | null
-  banner: FileList | null
-  card: FileList | null
-  logoUrl?: string
-  bannerUrl?: string
-  cardUrl?: string
-  desktopUrls: string[]
-  mobileUrls: string[]
-  showMockup: boolean
+interface Props {
+  modelValue?: CreateProject
 }
 
-export default defineComponent({
-  name: 'ProjectImagesForm',
-  components: { FormGroup, FileInput, FileInputList, Toggle },
-  props: {
-    modelValue: {
-      type: Object as PropType<CreateProject>,
-      default: () => cloneDeep(defaultProjectForm),
-    },
-  },
-  emits: ['update:modelValue'],
-  setup() {
-    return { v$: useVuelidate() }
-  },
-  data(): Data {
-    return {
-      form: this.modelValue,
-      logo: null,
-      banner: null,
-      card: null,
-      desktop: null,
-      mobile: null,
-      logoUrl: undefined,
-      bannerUrl: undefined,
-      cardUrl: undefined,
-      desktopUrls: [],
-      mobileUrls: [],
-      showMockup: false,
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => cloneDeep(defaultProjectForm),
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: CreateProject]
+}>()
+
+const projectStore = useProjectStore()
+const validation = useValidation()
+
+const form = ref<CreateProject>(props.modelValue)
+const desktop = ref<FileList | null>(null)
+const mobile = ref<FileList | null>(null)
+const logo = ref<FileList | null>(null)
+const banner = ref<FileList | null>(null)
+const card = ref<FileList | null>(null)
+const logoUrl = ref<string | undefined>(undefined)
+const bannerUrl = ref<string | undefined>(undefined)
+const cardUrl = ref<string | undefined>(undefined)
+const desktopUrls = ref<string[]>([])
+const mobileUrls = ref<string[]>([])
+const showMockup = ref(false)
+
+// Validation
+const v$ = useVuelidate()
+
+const project = computed((): Project | undefined => {
+  return projectStore.project
+})
+
+const loading = computed((): boolean => {
+  return projectStore.projectCreating || projectStore.projectLoading
+})
+
+const headerStyle = computed((): StyleValue => {
+  return {
+    backgroundImage: `url(${bannerUrl.value ?? 'https://via.placeholder.com/1500x300'})`,
+  }
+})
+
+const createProjectImageValue = computed((): CreateProjectImage[] => {
+  const images: CreateProjectImage[] = []
+
+  if (logo.value) {
+    images.push({ type: ImageType.LOGO, image: logo.value.item(0) as Blob })
+  } else if (logoUrl.value && project.value?.logo) {
+    images.push({ id: project.value.logo.id, type: ImageType.LOGO })
+  }
+
+  if (banner.value) {
+    images.push({ type: ImageType.BANNER, image: banner.value.item(0) as Blob })
+  } else if (bannerUrl.value && project.value?.banner) {
+    images.push({ id: project.value.banner.id, type: ImageType.BANNER })
+  }
+
+  if (card.value) {
+    images.push({ type: ImageType.CARD, image: card.value.item(0) as Blob })
+  } else if (cardUrl.value && project.value?.card) {
+    images.push({ id: project.value.card.id, type: ImageType.CARD })
+  }
+
+  if (desktop.value?.length) {
+    for (let i = 0; i < desktop.value.length; i++) {
+      images.push({ type: ImageType.DESKTOP, image: desktop.value.item(i) as Blob })
     }
-  },
-  computed: {
-    project(): Project | undefined {
-      return useProjectStore().project
-    },
-    loading(): boolean {
-      return useProjectStore().projectCreating || useProjectStore().projectLoading
-    },
-    headerStyle(): StyleValue {
+  }
+  const desktops = project.value?.images.filter(
+    (image) => image.type === ImageType.DESKTOP && desktopUrls.value.includes(getImageUrl(image.image)),
+  )
+  if (desktops) {
+    desktops.forEach((image) =>
+      images.push({
+        id: image.id,
+        type: ImageType.DESKTOP,
+        order: desktopUrls.value.indexOf(getImageUrl(image.image)) + 1,
+      }),
+    )
+  }
+
+  if (mobile.value?.length) {
+    for (let i = 0; i < mobile.value.length; i++) {
+      images.push({ type: ImageType.MOBILE, image: mobile.value.item(i) as Blob })
+    }
+  }
+  const mobiles = project.value?.images.filter(
+    (image) => image.type === ImageType.MOBILE && mobileUrls.value.includes(getImageUrl(image.image)),
+  )
+  if (mobiles) {
+    mobiles.forEach((image) =>
+      images.push({
+        id: image.id,
+        type: ImageType.MOBILE,
+        order: mobileUrls.value.indexOf(getImageUrl(image.image)) + 1,
+      }),
+    )
+  }
+
+  return images
+})
+
+async function validate(): Promise<boolean> {
+  return await validation.validate(v$)
+}
+
+// Expose methods for parent component
+defineExpose({
+  validate,
+})
+
+onMounted(() => {
+  if (project.value) {
+    form.value.images = project.value.images.map((image) => {
       return {
-        backgroundImage: `url(${this.bannerUrl ?? 'https://via.placeholder.com/1500x300'})`,
+        id: image.id,
+        type: image.type,
+        order: image.order,
       }
-    },
-    createProjectImageValue(): CreateProjectImage[] {
-      const images: CreateProjectImage[] = []
+    })
+  }
+})
 
-      if (this.logo) {
-        images.push({ type: ImageType.LOGO, image: this.logo.item(0) as Blob })
-      } else if (this.logoUrl && this.project?.logo) {
-        images.push({ id: this.project.logo.id, type: ImageType.LOGO })
-      }
+// Watch methods
+watch(project, () => {
+  if (!project.value) return
 
-      if (this.banner) {
-        images.push({ type: ImageType.BANNER, image: this.banner.item(0) as Blob })
-      } else if (this.bannerUrl && this.project?.banner) {
-        images.push({ id: this.project.banner.id, type: ImageType.BANNER })
-      }
+  logoUrl.value = project.value.logoUrl ? getImageUrl(project.value.logoUrl) : undefined
+  bannerUrl.value = project.value.bannerUrl ? getImageUrl(project.value.bannerUrl) : undefined
+  cardUrl.value = project.value.cardUrl ? getImageUrl(project.value.cardUrl) : undefined
+  desktopUrls.value = sortBy(
+    project.value.images.filter((image) => image.type === ImageType.DESKTOP),
+    'order',
+  ).map((image) => getImageUrl(image.image))
+  mobileUrls.value = sortBy(
+    project.value.images.filter((image) => image.type === ImageType.MOBILE),
+    'order',
+  ).map((image) => getImageUrl(image.image))
+}, { immediate: true })
 
-      if (this.card) {
-        images.push({ type: ImageType.CARD, image: this.card.item(0) as Blob })
-      } else if (this.cardUrl && this.project?.card) {
-        images.push({ id: this.project.card.id, type: ImageType.CARD })
-      }
+watch(() => props.modelValue, (newValue) => {
+  form.value = newValue
+}, { immediate: true })
 
-      if (this.desktop?.length) {
-        for (let i = 0; i < this.desktop.length; i++) {
-          images.push({ type: ImageType.DESKTOP, image: this.desktop.item(i) as Blob })
-        }
-      }
-      const desktops = this.project?.images.filter(
-        (image) => image.type === ImageType.DESKTOP && this.desktopUrls.includes(getImageUrl(image.image)),
-      )
-      if (desktops) {
-        desktops.forEach((image) =>
-          images.push({
-            id: image.id,
-            type: ImageType.DESKTOP,
-            order: this.desktopUrls.indexOf(getImageUrl(image.image)) + 1,
-          }),
-        )
-      }
+watch(form, (newValue) => {
+  emit('update:modelValue', newValue)
+}, { deep: true })
 
-      if (this.mobile?.length) {
-        for (let i = 0; i < this.mobile.length; i++) {
-          images.push({ type: ImageType.MOBILE, image: this.mobile.item(i) as Blob })
-        }
-      }
-      const mobiles = this.project?.images.filter(
-        (image) => image.type === ImageType.MOBILE && this.mobileUrls.includes(getImageUrl(image.image)),
-      )
-      if (mobiles) {
-        mobiles.forEach((image) =>
-          images.push({
-            id: image.id,
-            type: ImageType.MOBILE,
-            order: this.mobileUrls.indexOf(getImageUrl(image.image)) + 1,
-          }),
-        )
-      }
-
-      return images
-    },
-  },
-  mounted() {
-    if (this.project) {
-      this.form.images = this.project.images.map((image) => {
-        return {
-          id: image.id,
-          type: image.type,
-          order: image.order,
-        }
-      })
-    }
-  },
-  methods: {
-    async validate(): Promise<boolean> {
-      return await useValidation().validate(this.v$)
-    },
-  },
-  watch: {
-    project: {
-      handler() {
-        if (!this.project) return
-
-        this.logoUrl = this.project.logoUrl ? getImageUrl(this.project.logoUrl) : undefined
-        this.bannerUrl = this.project.bannerUrl ? getImageUrl(this.project.bannerUrl) : undefined
-        this.cardUrl = this.project.cardUrl ? getImageUrl(this.project.cardUrl) : undefined
-        this.desktopUrls = sortBy(
-          this.project.images.filter((image) => image.type === ImageType.DESKTOP),
-          'order',
-        ).map((image) => getImageUrl(image.image))
-        this.mobileUrls = sortBy(
-          this.project.images.filter((image) => image.type === ImageType.MOBILE),
-          'order',
-        ).map((image) => getImageUrl(image.image))
-      },
-      immediate: true,
-    },
-    modelValue: {
-      handler(value: CreateProject) {
-        this.form = value
-      },
-      immediate: true,
-    },
-    form: {
-      handler(value: CreateProject) {
-        this.$emit('update:modelValue', value)
-      },
-      deep: true,
-    },
-    logo() {
-      this.form.images = this.createProjectImageValue
-    },
-    banner() {
-      this.form.images = this.createProjectImageValue
-    },
-    card() {
-      this.form.images = this.createProjectImageValue
-    },
-    desktop() {
-      this.form.images = this.createProjectImageValue
-    },
-    mobile() {
-      this.form.images = this.createProjectImageValue
-    },
-    desktopUrls() {
-      this.form.images = this.createProjectImageValue
-    },
-    mobileUrls() {
-      this.form.images = this.createProjectImageValue
-    },
-  },
+watch([logo, banner, card, desktop, mobile, desktopUrls, mobileUrls], () => {
+  form.value.images = createProjectImageValue.value
 })
 </script>
 

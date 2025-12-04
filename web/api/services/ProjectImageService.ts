@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -7,7 +7,7 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class ProjectImageService {
     /**
-     * @returns any Success
+     * @returns any OK
      * @throws ApiError
      */
     public static putProjectimageOptimise(): CancelablePromise<any> {

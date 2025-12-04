@@ -149,25 +149,19 @@
   </header>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import useAuth from '../../composables/useAuth'
-import ThemeController from '../theme/ThemeController.vue'
-import FormButton from '../forms/elements/FormButton.vue'
-import { useProjectImageStore } from '../../store/ProjectImageStore'
-import Spinner from '../loading/Spinner.vue'
-import { useNotificationStore } from '../../store/NotificationStore'
-import { NotificationPosition } from '../../../types/NotificationPosition'
-import FooterBar from './FooterBar.vue'
-import { Icon } from '#components'
-import { useRuntimeConfig } from '#app'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import useAuth from '~/app/composables/useAuth'
+import { useProjectImageStore } from '~/app/store/ProjectImageStore'
+import { useNotificationStore } from '~/app/store/NotificationStore'
+import { NotificationPosition } from '~/types/NotificationPosition'
+import ThemeController from '~/app/components/theme/ThemeController.vue'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import Spinner from '~/app/components/loading/Spinner.vue'
+import FooterBar from '~/app/components/navigation/FooterBar.vue'
 
-interface Data {
-  showMobileMenu: boolean
-   
-  installPrompt?: BeforeInstallPromptEvent
-}
-
+// Interfaces
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
   readonly userChoice: Promise<{
@@ -177,74 +171,67 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
 }
 
-export default defineComponent({
-  name: 'HeaderBar',
-  components: { Icon, ThemeController, FormButton, FooterBar, Spinner },
-  setup() {
-    const { isAuthenticated, login, logout } = useAuth()
+const route = useRoute()
+const { isAuthenticated, login, logout } = useAuth()
+const projectImageStore = useProjectImageStore()
+const notificationStore = useNotificationStore()
+const runtimeConfig = useRuntimeConfig()
 
-    return {
-      isAuthenticated,
-      login,
-      logout,
-    }
-  },
-  data(): Data {
-    return {
-      showMobileMenu: false,
-      installPrompt: undefined,
-    }
-  },
-  computed: {
-    linkedInUrl(): string {
-      return useRuntimeConfig().public.linkedInUrl ?? 'https://www.linkedin.com/in/josephpickering'
-    },
-    optimising(): boolean {
-      return useProjectImageStore().optimising
-    },
-    optimiseError(): string | undefined {
-      return useProjectImageStore().optimiseError
-    },
-  },
-  mounted() {
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault()
-      this.installPrompt = e
-    })
-  },
-  methods: {
-    toggleMobileMenu() {
-      this.showMobileMenu = !this.showMobileMenu
-    },
-    async installPwa() {
-      if (this.installPrompt) {
-        this.installPrompt.prompt()
-        await this.installPrompt.userChoice
-        this.installPrompt = undefined
-      }
-    },
-    async optimiseImages() {
-      await useProjectImageStore().optimiseImages()
+const showMobileMenu = ref(false)
+const installPrompt = ref<BeforeInstallPromptEvent | undefined>(undefined)
 
-      if (this.optimiseError) {
-        useNotificationStore().displayErrorNotification(this.optimiseError, NotificationPosition.TOP_LEFT)
-      } else {
-        useNotificationStore().displaySuccessNotification('Images optimised', NotificationPosition.TOP_LEFT)
-      }
-    },
-  },
-  watch: {
-    $route() {
-      this.showMobileMenu = false
-    },
-    showMobileMenu() {
-      if (this.showMobileMenu) {
-        document.body.style.overflow = 'hidden'
-      } else {
-        document.body.style.overflow = 'auto'
-      }
-    },
-  },
+const linkedInUrl = computed((): string => {
+  return runtimeConfig.public.linkedInUrl ?? 'https://www.linkedin.com/in/josephpickering'
+})
+
+const optimising = computed((): boolean => {
+  return projectImageStore.optimising
+})
+
+const optimiseError = computed((): string | undefined => {
+  return projectImageStore.optimiseError
+})
+
+function toggleMobileMenu() {
+  showMobileMenu.value = !showMobileMenu.value
+}
+
+async function installPwa() {
+  if (installPrompt.value) {
+    installPrompt.value.prompt()
+    await installPrompt.value.userChoice
+    installPrompt.value = undefined
+  }
+}
+
+async function optimiseImages() {
+  await projectImageStore.optimiseImages()
+
+  if (optimiseError.value) {
+    notificationStore.displayErrorNotification(optimiseError.value, NotificationPosition.TOP_LEFT)
+  } else {
+    notificationStore.displaySuccessNotification('Images optimised', NotificationPosition.TOP_LEFT)
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault()
+    installPrompt.value = e as BeforeInstallPromptEvent
+  })
+})
+
+// Watch methods
+watch(() => route.path, () => {
+  showMobileMenu.value = false
+})
+
+watch(showMobileMenu, (newValue) => {
+  if (newValue) {
+    document.body.style.overflow = 'hidden'
+  } else {
+    document.body.style.overflow = 'auto'
+  }
 })
 </script>
 

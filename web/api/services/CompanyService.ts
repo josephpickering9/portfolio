@@ -1,4 +1,4 @@
-/* generated using openapi-typescript-codegen -- do no edit */
+/* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
@@ -9,7 +9,7 @@ import { request as __request } from '../core/request';
 export class CompanyService {
     /**
      * @param search
-     * @returns Company Success
+     * @returns Company OK
      * @throws ApiError
      */
     public static getCompany(
@@ -25,7 +25,7 @@ export class CompanyService {
     }
     /**
      * @param formData
-     * @returns Company Success
+     * @returns Company OK
      * @throws ApiError
      */
     public static postCompany(
@@ -40,7 +40,7 @@ export class CompanyService {
     }
     /**
      * @param id
-     * @returns Company Success
+     * @returns Company OK
      * @throws ApiError
      */
     public static getCompany1(
@@ -57,7 +57,7 @@ export class CompanyService {
     /**
      * @param id
      * @param formData
-     * @returns Company Success
+     * @returns Company OK
      * @throws ApiError
      */
     public static putCompany(
@@ -76,7 +76,7 @@ export class CompanyService {
     }
     /**
      * @param id
-     * @returns any Success
+     * @returns any OK
      * @throws ApiError
      */
     public static deleteCompany(
@@ -92,7 +92,7 @@ export class CompanyService {
     }
     /**
      * @param slug
-     * @returns Company Success
+     * @returns Company OK
      * @throws ApiError
      */
     public static getCompany2(

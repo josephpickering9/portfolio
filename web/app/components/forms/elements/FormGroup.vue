@@ -7,30 +7,24 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed } from 'vue'
 import type { ErrorObject } from '@vuelidate/core'
-import type { PropType } from 'vue'
-import { defineComponent } from 'vue'
 
-export default defineComponent({
-  name: 'FormGroup',
-  props: {
-    errors: {
-      type: Array as PropType<ErrorObject[]>,
-      default: () => [],
-    },
-    name: {
-      type: String,
-      default: undefined,
-    },
-  },
-  computed: {
-    error(): string | undefined {
-      if (!this.errors.length) return undefined
+interface Props {
+  errors?: ErrorObject[]
+  name?: string | undefined
+}
 
-      return this.errors[0]?.$message.toString().replace('Value', this.name ?? 'Value')
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  errors: () => [],
+  name: undefined,
+})
+
+const error = computed((): string | undefined => {
+  if (!props.errors.length) return undefined
+
+  return props.errors[0]?.$message.toString().replace('Value', props.name ?? 'Value')
 })
 </script>
 

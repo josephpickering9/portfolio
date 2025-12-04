@@ -11,56 +11,41 @@
   </FormElementContainer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import FormElementContainer from './FormElementContainer.vue'
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import FormElementContainer from '~/app/components/forms/elements/FormElementContainer.vue'
 
-interface Data {
-  value: string
+interface Props {
+  label?: string | null
+  modelValue?: string | null
+  placeholder?: string | null
+  type?: string
+  required?: boolean
+  disabled?: boolean
 }
 
-export default defineComponent({
-  name: 'TextArea',
-  components: { FormElementContainer },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: String,
-      default: null,
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    type: {
-      type: String,
-      default: 'text',
-    },
-    required: {
-      type: Boolean,
-      default: false,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: this.modelValue,
-    }
-  },
-  watch: {
-    modelValue() {
-      this.value = this.modelValue
-    },
-    value() {
-      this.$emit('update:modelValue', this.value)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: undefined,
+  placeholder: undefined,
+  type: 'text',
+  required: false,
+  disabled: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const value = ref(props.modelValue)
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  value.value = newValue
+})
+
+watch(value, (newValue) => {
+  emit('update:modelValue', newValue ?? '')
 })
 </script>

@@ -16,100 +16,89 @@
   </AutoComplete>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { SearchItem } from '../../../../types/SearchItem'
-import type { Company } from '../../../../api'
-import { useCompanyStore } from '../../../store/CompanyStore'
-import AutoComplete from '../elements/AutoComplete.vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import type { SearchItem } from '~/types/SearchItem'
+import type { Company } from '~/api'
+import { useCompanyStore } from '~/app/store/CompanyStore'
+import AutoComplete from '~/app/components/forms/elements/AutoComplete.vue'
 import CompanyItem from './CompanyItem.vue'
 
-interface Data {
-  value?: SearchItem
+interface Props {
+  modelValue?: number | null | undefined
+  label?: string | null
+  disabled?: boolean
+  placeholder?: string | undefined
+  size?: string
 }
 
-export default defineComponent({
-  name: 'CompanyAutoComplete',
-  components: { AutoComplete, CompanyItem },
-  props: {
-    modelValue: {
-      type: Number as () => number | null | undefined,
-      default: null,
-    },
-    label: {
-      type: String,
-      default: null,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    placeholder: {
-      type: String,
-      default: undefined,
-    },
-    size: {
-      type: String,
-      default: 'md',
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: undefined,
-    }
-  },
-  computed: {
-    companies(): Company[] {
-      return useCompanyStore().companies
-    },
-    companyItems(): SearchItem[] {
-      return this.companies.map((company) => {
-        return {
-          title: company.name,
-          value: company.id,
-        }
-      })
-    },
-    selectedCompany(): Company | undefined {
-      if (!this.value) return undefined
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: undefined,
+  label: undefined,
+  disabled: false,
+  placeholder: undefined,
+  size: 'md',
+})
 
-      return this.companies.find((company) => company.id === this.value?.value)
-    },
-    selectedSize(): string {
-      switch (this.size) {
-        case 'xs':
-          return 'xs'
-        case 'sm':
-          return 'xs'
-        case 'md':
-          return 'sm'
-        case 'lg':
-          return 'md'
-        default:
-          return 'sm'
-      }
-    },
-  },
-  async mounted() {
-    if (this.companies.length === 0) await useCompanyStore().getCompanies()
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: number | undefined]
+}>()
 
-    if (this.modelValue) this.setValue()
-  },
-  methods: {
-    setValue() {
-      this.value = this.companyItems.find((item) => item.value === this.modelValue)
-    },
-  },
-  watch: {
-    modelValue() {
-      if (this.value?.value === this.modelValue) return
+const companyStore = useCompanyStore()
 
-      this.setValue()
-    },
-    value() {
-      this.$emit('update:modelValue', this.value?.value)
-    },
-  },
+const value = ref<SearchItem | undefined>(undefined)
+
+const companies = computed((): Company[] => {
+  return companyStore.companies
+})
+
+const companyItems = computed((): SearchItem[] => {
+  return companies.value.map((company) => ({
+    title: company.name,
+    value: company.id,
+  }))
+})
+
+const selectedCompany = computed((): Company | undefined => {
+  if (!value.value) return undefined
+
+  return companies.value.find((company) => company.id === value.value?.value)
+})
+
+const selectedSize = computed((): string => {
+  switch (props.size) {
+    case 'xs':
+      return 'xs'
+    case 'sm':
+      return 'xs'
+    case 'md':
+      return 'sm'
+    case 'lg':
+      return 'md'
+    default:
+      return 'sm'
+  }
+})
+
+function setValue() {
+  value.value = companyItems.value.find((item) => item.value === props.modelValue)
+}
+
+onMounted(async () => {
+  if (companies.value.length === 0) await companyStore.getCompanies()
+
+  if (props.modelValue) setValue()
+})
+
+// Watch methods
+watch(() => props.modelValue, () => {
+  if (value.value?.value === props.modelValue) return
+
+  setValue()
+})
+
+watch(value, () => {
+  emit('update:modelValue', value.value?.value as number | undefined)
 })
 </script>

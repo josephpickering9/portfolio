@@ -9,28 +9,18 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { computed } from 'vue'
 import { useThemeStore } from './store/ThemeStore'
 import Notifications from './components/notification/Notifications.vue'
 import { useHead } from '#imports'
 
-export default defineComponent({
-  name: 'App',
-  components: {
-    Notifications,
-  },
-  setup() {
-    useHead({
-      title: 'Joseph Pickering',
-    })
-  },
-  computed: {
-    theme(): string {
-      return useThemeStore().selectedTheme
-    },
-  },
+useHead({
+  title: 'Joseph Pickering',
 })
+
+const themeStore = useThemeStore()
+const theme = computed(() => themeStore.selectedTheme)
 </script>
 
 <style>

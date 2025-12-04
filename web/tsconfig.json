@@ -11,6 +11,9 @@
       ],
       "@/*": [
         "./*"
+      ],
+      "#app": [
+        "./node_modules/nuxt/dist/app"
       ]
     },
     // Explicitly skip checking d.ts files in node_modules

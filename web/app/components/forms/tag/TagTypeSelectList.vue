@@ -10,75 +10,59 @@
   />
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
-import type { PropType } from 'vue'
-import SelectList from '../elements/SelectList.vue'
-import { TagType, type Tag } from '../../../../api'
-import { useTagStore } from '../../../store/TagStore'
-import type { SelectListItem } from '../../../../types/SelectListItem'
-import { enumToSelectListItem } from '../../../utils/enum-helper'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { TagType, type Tag } from '~/api'
+import { useTagStore } from '~/app/store/TagStore'
+import type { SelectListItem } from '~/types/SelectListItem'
+import { enumToSelectListItem } from '~/app/utils/enum-helper'
+import SelectList from '~/app/components/forms/elements/SelectList.vue'
 
-interface Data {
-  value: TagType
+interface Props {
+  label?: string | null
+  modelValue?: TagType | null
+  placeholder?: string | null
+  disabled?: boolean
+  size?: string | null
+  clearable?: boolean
 }
 
-export default defineComponent({
-  name: 'TagTypeSelectList',
-  components: { SelectList },
-  props: {
-    label: {
-      type: String,
-      default: null,
-    },
-    modelValue: {
-      type: String as PropType<TagType>,
-      default: null,
-    },
-    placeholder: {
-      type: String,
-      default: null,
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    size: {
-      type: String,
-      default: null,
-    },
-    clearable: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  emits: ['update:modelValue'],
-  data(): Data {
-    return {
-      value: TagType.DEFAULT,
-    }
-  },
-  computed: {
-    tags(): Tag[] {
-      return useTagStore().tags
-    },
-    tagTypes(): SelectListItem[] {
-      return enumToSelectListItem(TagType)
-    },
-  },
-  async mounted() {
-    if (!this.tags.length) await useTagStore().getTags()
-  },
-  watch: {
-    modelValue: {
-      immediate: true,
-      handler(value: TagType): void {
-        this.value = value
-      },
-    },
-    value(value: TagType): void {
-      this.$emit('update:modelValue', value)
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  modelValue: undefined,
+  placeholder: undefined,
+  disabled: false,
+  size: null,
+  clearable: true,
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: TagType]
+}>()
+
+const tagStore = useTagStore()
+
+const value = ref<TagType>(TagType.DEFAULT)
+
+const tags = computed((): Tag[] => {
+  return tagStore.tags
+})
+
+const tagTypes = computed((): SelectListItem[] => {
+  return enumToSelectListItem(TagType)
+})
+
+onMounted(async () => {
+  if (!tags.value.length) await tagStore.getTags()
+})
+
+// Watch methods
+watch(() => props.modelValue, (newValue: TagType | null) => {
+  if (newValue) value.value = newValue
+}, { immediate: true })
+
+watch(value, (newValue: TagType) => {
+  emit('update:modelValue', newValue)
 })
 </script>

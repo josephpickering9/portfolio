@@ -66,7 +66,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted } from 'vue'
-import { useThemeStore } from '../../store/ThemeStore'
+import { useThemeStore } from '~/app/store/ThemeStore'
 
 const themes = [
   'light',

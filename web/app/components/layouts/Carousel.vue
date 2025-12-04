@@ -47,77 +47,64 @@
   </div>
 </template>
 
-<script lang="ts">
-import type { PropType } from 'vue'
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed } from 'vue'
 import Draggable from 'vuedraggable'
-import { getImageUrl } from '../../utils/image-helper'
-import { Icon } from '#components'
+import { getImageUrl } from '~/app/utils/image-helper'
 
-export default defineComponent({
-  name: 'Carousel',
-  components: { Draggable, Icon },
-  props: {
-    modelValue: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-    title: {
-      type: String,
-      default: null,
-    },
-    width: {
-      type: String,
-      default: '100%',
-    },
-    height: {
-      type: String,
-      default: 'auto',
-    },
-    showHoverButton: {
-      type: Boolean,
-      default: false,
-    },
-    hoverButtonIcon: {
-      type: String,
-      default: 'material-symbols:delete',
-    },
-    draggable: {
-      type: Boolean,
-      default: false,
-    },
-    showArrows: {
-      type: Boolean,
-      default: false,
-    },
+interface Props {
+  modelValue?: string[]
+  title?: string | null
+  width?: string
+  height?: string
+  showHoverButton?: boolean
+  hoverButtonIcon?: string
+  draggable?: boolean
+  showArrows?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => [],
+  title: null,
+  width: '100%',
+  height: 'auto',
+  showHoverButton: false,
+  hoverButtonIcon: 'material-symbols:delete',
+  draggable: false,
+  showArrows: false,
+})
+
+// Emits
+const emit = defineEmits<{
+  'hoverButton': [value: string]
+  'update:modelValue': [value: string[]]
+}>()
+
+const carousel = ref<any>(null)
+
+const images = computed({
+  get(): string[] {
+    return props.modelValue
   },
-  emits: ['hoverButton', 'update:modelValue'],
-  computed: {
-    images: {
-      get(): string[] {
-        return this.modelValue
-      },
-      set(value: string[]) {
-        this.$emit('update:modelValue', value)
-      },
-    },
-  },
-  methods: {
-    getImageUrl,
-    getCarouselElement() {
-      const carouselComponent: any = this.$refs.carousel
-      return carouselComponent.$el ? carouselComponent.$el : carouselComponent
-    },
-    scrollLeft() {
-      const carouselElement = this.getCarouselElement()
-      carouselElement.scrollBy({ left: -100, behavior: 'smooth' })
-    },
-    scrollRight() {
-      const carouselElement = this.getCarouselElement()
-      carouselElement.scrollBy({ left: 100, behavior: 'smooth' })
-    },
+  set(value: string[]) {
+    emit('update:modelValue', value)
   },
 })
+
+function getCarouselElement() {
+  const carouselComponent = carousel.value
+  return carouselComponent?.$el ? carouselComponent.$el : carouselComponent
+}
+
+function scrollLeft() {
+  const carouselElement = getCarouselElement()
+  carouselElement?.scrollBy({ left: -100, behavior: 'smooth' })
+}
+
+function scrollRight() {
+  const carouselElement = getCarouselElement()
+  carouselElement?.scrollBy({ left: 100, behavior: 'smooth' })
+}
 </script>
 
 <style scoped>

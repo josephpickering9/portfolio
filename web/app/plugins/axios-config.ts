@@ -1,5 +1,4 @@
-import { OpenAPI } from '../../api'
-import { defineNuxtPlugin, useRuntimeConfig } from '#app'
+import { OpenAPI } from '~/api/index'
 
 export default defineNuxtPlugin(() => {
   OpenAPI.BASE = useRuntimeConfig().public.apiBase

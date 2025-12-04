@@ -25,80 +25,75 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required, numeric, url } from '@vuelidate/validators'
 import { cloneDeep } from 'lodash-es'
-import type { CreateProject, Project } from '../../../../api'
-import { useProjectStore } from '../../../store/ProjectStore'
-import FormGroup from '../elements/FormGroup.vue'
-import TextInput from '../elements/TextInput.vue'
-import { defaultProjectForm } from '../../../../mocks/Defaults'
-import useValidation from '../../../composables/useValidation'
-import YearSelectList from '../global/YearSelectList.vue'
-import CompanyAutoComplete from '../company/CompanyAutoComplete.vue'
-import TagAutoComplete from '../tag/TagAutoComplete.vue'
+import type { CreateProject, Project } from '~/api'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import useValidation from '~/app/composables/useValidation'
+import { defaultProjectForm } from '~/mocks/Defaults'
+import FormGroup from '~/app/components/forms/elements/FormGroup.vue'
+import TextInput from '~/app/components/forms/elements/TextInput.vue'
+import YearSelectList from '~/app/components/forms/global/YearSelectList.vue'
+import CompanyAutoComplete from '~/app/components/forms/company/CompanyAutoComplete.vue'
+import TagAutoComplete from '~/app/components/forms/tag/TagAutoComplete.vue'
 
-interface Data {
-  form: CreateProject
+interface Props {
+  modelValue?: CreateProject
 }
 
-export default defineComponent({
-  name: 'ProjectGeneralForm',
-  components: { FormGroup, TextInput, YearSelectList, CompanyAutoComplete, TagAutoComplete },
-  props: {
-    modelValue: {
-      type: Object as PropType<CreateProject>,
-      default: () => cloneDeep(defaultProjectForm),
-    },
-  },
-  emits: ['update:modelValue'],
-  setup() {
-    return { v$: useVuelidate() }
-  },
-  data(): Data {
-    return {
-      form: this.modelValue,
-    }
-  },
-  computed: {
-    project(): Project | undefined {
-      return useProjectStore().project
-    },
-    loading(): boolean {
-      return useProjectStore().projectCreating || useProjectStore().projectLoading
-    },
-  },
-  validations() {
-    return {
-      form: {
-        title: { required },
-        year: { required, numeric },
-        shortDescription: { required },
-        website: { url },
-        tags: { required },
-      },
-    }
-  },
-  methods: {
-    async validate(): Promise<boolean> {
-      return await useValidation().validate(this.v$)
-    },
-  },
-  watch: {
-    modelValue: {
-      handler(value: CreateProject) {
-        this.form = value
-      },
-      immediate: true,
-    },
-    form: {
-      handler(value: CreateProject) {
-        this.$emit('update:modelValue', value)
-      },
-      deep: true,
-    },
-  },
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => cloneDeep(defaultProjectForm),
 })
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: CreateProject]
+}>()
+
+const projectStore = useProjectStore()
+const validation = useValidation()
+
+const form = ref<CreateProject>(props.modelValue)
+
+// Validation
+const rules = {
+  form: {
+    title: { required },
+    year: { required, numeric },
+    shortDescription: { required },
+    website: { url },
+    tags: { required },
+  },
+}
+
+const v$ = useVuelidate(rules, { form })
+
+const project = computed((): Project | undefined => {
+  return projectStore.project
+})
+
+const loading = computed((): boolean => {
+  return projectStore.projectCreating || projectStore.projectLoading
+})
+
+async function validate(): Promise<boolean> {
+  return await validation.validate(v$)
+}
+
+// Expose methods for parent component
+defineExpose({
+  validate,
+})
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  form.value = newValue
+}, { immediate: true })
+
+watch(form, (newValue) => {
+  emit('update:modelValue', newValue)
+}, { deep: true })
 </script>

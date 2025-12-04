@@ -24,162 +24,159 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep } from 'lodash-es'
-import { useProjectStore } from '../../../store/ProjectStore'
-import { useNotificationStore } from '../../../store/NotificationStore'
-import type { CreateProject } from '../../../../api/models/CreateProject'
-import type { Project } from '../../../../api/models/Project'
-import FormButton from '../elements/FormButton.vue'
-import Tabs from '../../layouts/Tabs.vue'
-import { defaultProjectForm } from '../../../../mocks/Defaults'
+import { useProjectStore } from '~/app/store/ProjectStore'
+import { useNotificationStore } from '~/app/store/NotificationStore'
+import type { CreateProject } from '~/api/models/CreateProject'
+import type { Project } from '~/api/models/Project'
+import { defaultProjectForm } from '~/mocks/Defaults'
+import FormButton from '~/app/components/forms/elements/FormButton.vue'
+import Tabs from '~/app/components/layouts/Tabs.vue'
 import ProjectGeneralForm from './ProjectGeneralForm.vue'
 import ProjectImagesForm from './ProjectImagesForm.vue'
 import ProjectRepositoriesForm from './ProjectRepositoriesForm.vue'
 import ProjectDescriptionForm from './ProjectDescriptionForm.vue'
 
-interface Data {
-  activeTab: number
-  form: CreateProject
-  validated: boolean
+interface Props {
+  slug?: string | null
 }
 
-export default defineComponent({
-  name: 'ProjectForm',
-  components: {
-    FormButton,
-    Tabs,
-    ProjectGeneralForm,
-    ProjectDescriptionForm,
-    ProjectImagesForm,
-    ProjectRepositoriesForm,
-  },
-  props: {
-    slug: {
-      type: String,
-      default: null,
-    },
-  },
-  setup() {
-    return { v$: useVuelidate() }
-  },
-  data(): Data {
-    return {
-      activeTab: 0,
-      form: cloneDeep(defaultProjectForm),
-      validated: false,
+const props = withDefaults(defineProps<Props>(), {
+  slug: null,
+})
+
+const router = useRouter()
+const projectStore = useProjectStore()
+const notificationStore = useNotificationStore()
+
+const activeTab = ref(0)
+const form = ref<CreateProject>(cloneDeep(defaultProjectForm))
+const validated = ref(false)
+
+// Template Refs
+const projectGeneralForm = ref<InstanceType<typeof ProjectGeneralForm> | null>(null)
+const projectDescriptionForm = ref<InstanceType<typeof ProjectDescriptionForm> | null>(null)
+const projectImagesForm = ref<InstanceType<typeof ProjectImagesForm> | null>(null)
+const projectRepositoriesForm = ref<InstanceType<typeof ProjectRepositoriesForm> | null>(null)
+
+// Validation
+const v$ = useVuelidate()
+
+const isUpdate = computed((): boolean => {
+  return props.slug !== null
+})
+
+const project = computed((): Project | undefined => {
+  return projectStore.project
+})
+
+const projectError = computed((): string | undefined => {
+  return projectStore.projectError
+})
+
+const loading = computed((): boolean => {
+  return projectStore.projectCreating || projectStore.projectLoading
+})
+
+const error = computed((): string | undefined => {
+  return projectStore.projectCreateError
+})
+
+async function validate(tab: number): Promise<boolean> {
+  switch (tab) {
+    case 0:
+      return (await projectGeneralForm.value?.validate()) ?? false
+    case 1:
+      return (await projectDescriptionForm.value?.validate()) ?? false
+    case 2:
+      return (await projectImagesForm.value?.validate()) ?? false
+    case 3:
+      return (await projectRepositoriesForm.value?.validate()) ?? false
+    default:
+      return false
+  }
+}
+
+async function save() {
+  const isValid = await validate(activeTab.value)
+  if (!isValid) return
+
+  let response: Project | undefined
+
+  if (isUpdate.value) {
+    if (!project.value) return notificationStore.displayErrorNotification('Project not found')
+
+    response = await projectStore.updateProject(project.value.id, form.value)
+  } else {
+    response = await projectStore.createProject(form.value)
+  }
+
+  if (!error.value && response) {
+    await projectStore.getProjectBySlug(response.slug)
+    router.push(`/projects/${response.slug}`)
+    notificationStore.displaySuccessNotification(`Project ${isUpdate.value ? 'updated' : 'created'} successfully`)
+  } else {
+    notificationStore.displayErrorNotification(error.value || 'An error occurred')
+  }
+}
+
+async function remove() {
+  if (!project.value) return notificationStore.displayErrorNotification('Project not found')
+
+  await projectStore.deleteProject(project.value.id)
+
+  if (!error.value) {
+    router.push(`/projects`)
+    notificationStore.displaySuccessNotification(`Project deleted successfully`)
+  } else {
+    notificationStore.displayErrorNotification(error.value || 'An error occurred')
+  }
+}
+
+onMounted(async () => {
+  if (isUpdate.value) {
+    await projectStore.getProjectBySlug(props.slug!)
+
+    if (!projectError.value && project.value) {
+      form.value.title = project.value.title
+      form.value.shortDescription = project.value.shortDescription
+      form.value.description = project.value.description
+      form.value.companyId = project.value.companyId ?? undefined
+      form.value.year = project.value.year
+      form.value.website = project.value.website ?? ''
+      form.value.showMockup = project.value.showMockup
+      form.value.tags = project.value.tags.map((tag) => tag.title) ?? []
+      form.value.repositories = project.value.repositories ?? []
+      form.value.images = project.value.images.map((image) => {
+        return {
+          id: image.id,
+          type: image.type,
+          image: undefined,
+          order: image.order,
+        }
+      })
+    } else {
+      notificationStore.displayErrorNotification(projectError.value || 'An error occurred')
     }
-  },
-  computed: {
-    isUpdate(): boolean {
-      return this.slug !== null
-    },
-    project(): Project | undefined {
-      return useProjectStore().project
-    },
-    projectError(): string | undefined {
-      return useProjectStore().projectError
-    },
-    loading(): boolean {
-      return useProjectStore().projectCreating || useProjectStore().projectLoading
-    },
-    error(): string | undefined {
-      return useProjectStore().projectCreateError
-    },
-  },
-  async mounted() {
-    if (this.isUpdate) {
-      await useProjectStore().getProjectBySlug(this.slug)
+  }
+})
 
-      if (!this.projectError && this.project) {
-        this.form.title = this.project.title
-        this.form.shortDescription = this.project.shortDescription
-        this.form.description = this.project.description
-        this.form.companyId = this.project.companyId ?? undefined
-        this.form.year = this.project.year
-        this.form.website = this.project.website ?? ''
-        this.form.showMockup = this.project.showMockup
-        this.form.tags = this.project.tags.map((tag) => tag.title) ?? []
-        this.form.repositories = this.project.repositories ?? []
-        this.form.images = this.project.images.map((image) => {
-          return {
-            id: image.id,
-            type: image.type,
-            image: undefined,
-            order: image.order,
-          }
-        })
-      } else {
-        useNotificationStore().displayErrorNotification(this.projectError || 'An error occurred')
-      }
-    }
-  },
-  methods: {
-    async validate(tab: number): Promise<boolean> {
-      switch (tab) {
-        case 0:
-          return await this.$refs.projectGeneralForm?.validate()
-        case 1:
-          return await this.$refs.projectDescriptionForm?.validate()
-        case 2:
-          return await this.$refs.projectImagesForm?.validate()
-        case 3:
-          return await this.$refs.projectRepositoriesForm?.validate()
-        default:
-          return false
-      }
-    },
-    async save() {
-      const isValid = await this.validate(this.activeTab)
-      if (!isValid) return
+// Watch methods
+watch(activeTab, async (newValue: number, oldValue: number) => {
+  if (oldValue === newValue) return
+  if (validated.value) {
+    validated.value = false
+    return
+  }
 
-      let response: Project | undefined
-
-      if (this.isUpdate) {
-        if (!this.project) return useNotificationStore().displayErrorNotification('Project not found')
-
-        response = await useProjectStore().updateProject(this.project.id, this.form)
-      } else {
-        response = await useProjectStore().createProject(this.form)
-      }
-
-      if (!this.error && response) {
-        await useProjectStore().getProjectBySlug(response.slug)
-        this.$router.push(`/projects/${response.slug}`)
-        useNotificationStore().displaySuccessNotification(`Project ${this.isUpdate ? 'updated' : 'created'} successfully`)
-      } else {
-        useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-      }
-    },
-    async remove() {
-      if (!this.project) return useNotificationStore().displayErrorNotification('Project not found')
-
-      await useProjectStore().deleteProject(this.project.id)
-
-      if (!this.error) {
-        this.$router.push(`/projects`)
-        useNotificationStore().displaySuccessNotification(`Project deleted successfully`)
-      } else {
-        useNotificationStore().displayErrorNotification(this.error || 'An error occurred')
-      }
-    },
-  },
-  watch: {
-    async activeTab(newValue: number, oldValue: number) {
-      if (oldValue === newValue) return
-      if (this.validated) {
-        this.validated = false
-        return
-      }
-
-      const isValid = await this.validate(oldValue)
-      if (!isValid) {
-        this.validated = true
-        this.activeTab = oldValue
-      }
-    },
-  },
+  const isValid = await validate(oldValue)
+  if (!isValid) {
+    validated.value = true
+    activeTab.value = oldValue
+  }
 })
 </script>

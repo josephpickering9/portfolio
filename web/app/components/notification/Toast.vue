@@ -4,66 +4,59 @@
   </div>
 </template>
 
-<script lang="ts">
-import { type PropType, defineComponent } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
-import { NotificationType } from '../../../types/NotificationType'
-import type { Notification } from '../../../types/Notification'
-import { useNotificationStore } from '../../store/NotificationStore'
+import { NotificationType } from '~/types/NotificationType'
+import type { Notification } from '~/types/Notification'
+import { useNotificationStore } from '~/app/store/NotificationStore'
 
-interface Data {
-  createdAt: Date | null
-  timeSinceCreated: string
+interface Props {
+  notification?: Notification | null
 }
 
-export default defineComponent({
-  name: 'Toast',
-  props: {
-    notification: {
-      type: Object as PropType<Notification>,
-      default: null,
-    },
-  },
-  data(): Data {
-    return {
-      createdAt: new Date(),
-      timeSinceCreated: 'Just now',
-    }
-  },
-  computed: {
-    typeClass(): string {
-      switch (this.notification.type) {
-        case NotificationType.SUCCESS:
-          return 'alert-success'
-        case NotificationType.ERROR:
-          return 'alert-error'
-        case NotificationType.WARNING:
-          return 'alert-warning'
-        case NotificationType.INFO:
-          return 'alert-info'
-        default:
-          return 'alert-info'
-      }
-    },
-  },
-  mounted() {
-    if (!this.notification) return
+const props = withDefaults(defineProps<Props>(), {
+  notification: null,
+})
 
-    const thirtySeconds = 30 * 1000
-    setTimeout(
-      () => () =>
-        setInterval(() => (this.timeSinceCreated = `${formatDistanceToNow(this.createdAt as Date)} ago`), thirtySeconds),
-      thirtySeconds,
-    )
+const createdAt = ref<Date | null>(new Date())
+const timeSinceCreated = ref('Just now')
 
-    if (this.notification.seconds) {
-      setTimeout(() => this.close(), this.notification.seconds * 1000)
-    }
-  },
-  methods: {
-    close() {
-      useNotificationStore().removeNotification(this.notification.id)
-    },
-  },
+const typeClass = computed((): string => {
+  if (!props.notification) return 'alert-info'
+
+  switch (props.notification.type) {
+    case NotificationType.SUCCESS:
+      return 'alert-success'
+    case NotificationType.ERROR:
+      return 'alert-error'
+    case NotificationType.WARNING:
+      return 'alert-warning'
+    case NotificationType.INFO:
+      return 'alert-info'
+    default:
+      return 'alert-info'
+  }
+})
+
+function close() {
+  if (props.notification) {
+    useNotificationStore().removeNotification(props.notification.id)
+  }
+}
+
+onMounted(() => {
+  if (!props.notification) return
+
+  const thirtySeconds = 30 * 1000
+  setTimeout(
+    () => () =>
+        setInterval(() => (timeSinceCreated.value = `${formatDistanceToNow(createdAt.value as Date)} ago`), thirtySeconds),
+    thirtySeconds,
+  )
+
+  if (props.notification.seconds) {
+    setTimeout(() => close(), props.notification.seconds * 1000)
+  }
 })
 </script>
