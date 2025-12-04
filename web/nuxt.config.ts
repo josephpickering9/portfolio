@@ -1,3 +1,5 @@
+import { fileURLToPath, URL } from 'node:url'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-03',
 
@@ -55,6 +57,9 @@ export default defineNuxtConfig({
 
   alias: {
     cookie: 'cookie',
+    '@api': fileURLToPath(new URL('./api', import.meta.url)),
+    '@types': fileURLToPath(new URL('./types', import.meta.url)),
+    '@mocks': fileURLToPath(new URL('./mocks', import.meta.url)),
   },
 
   sitemap: {

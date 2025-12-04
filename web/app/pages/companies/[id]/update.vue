@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import useMeta from '~/app/composables/useMeta'
-import CompanyForm from '~/app/components/forms/company/CompanyForm.vue'
+import useMeta from '~/composables/useMeta'
+import CompanyForm from '~/components/company/form/CompanyForm.vue'
 
 definePageMeta({ middleware: 'auth' })
 

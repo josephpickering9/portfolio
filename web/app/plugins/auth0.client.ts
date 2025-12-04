@@ -1,5 +1,5 @@
 import { createAuth0, useAuth0 } from '@auth0/auth0-vue'
-import { OpenAPI } from '~/api/index'
+import { OpenAPI } from '@api/index'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()

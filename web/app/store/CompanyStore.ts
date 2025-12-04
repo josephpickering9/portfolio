@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { CompanyService } from '~/api/services/CompanyService'
-import { extractError } from '~/app/utils/error-helper'
-import type { Company } from '~/api/models/Company'
-import type { CreateCompany } from '~/api/models/CreateCompany'
+import { CompanyService } from '@api/services/CompanyService'
+import { extractError } from '~/utils/error-helper'
+import type { Company } from '@api/models/Company'
+import type { CreateCompany } from '@api/models/CreateCompany'
 
 export const useCompanyStore = defineStore('companyStore', {
   state: () => ({

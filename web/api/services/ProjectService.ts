@@ -44,7 +44,7 @@ export class ProjectService {
      * @throws ApiError
      */
     public static getProject1(
-        id: number,
+        id: string,
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -61,7 +61,7 @@ export class ProjectService {
      * @throws ApiError
      */
     public static putProject(
-        id: number,
+        id: string,
         formData?: any,
     ): CancelablePromise<Project> {
         return __request(OpenAPI, {
@@ -80,7 +80,7 @@ export class ProjectService {
      * @throws ApiError
      */
     public static deleteProject(
-        id: number,
+        id: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',
@@ -112,7 +112,7 @@ export class ProjectService {
      * @throws ApiError
      */
     public static getProjectRelated(
-        id: number,
+        id: string,
     ): CancelablePromise<Array<Project>> {
         return __request(OpenAPI, {
             method: 'GET',

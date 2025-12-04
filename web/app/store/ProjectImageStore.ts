@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ProjectImageService } from '~/api'
+import { ProjectImageService } from '@api'
 
 export const useProjectImageStore = defineStore('projectImageStore', {
   state: () => ({

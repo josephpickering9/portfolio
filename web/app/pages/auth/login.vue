@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import useAuth from '~/app/composables/useAuth'
+import useAuth from '~/composables/useAuth'
 
 const { login } = useAuth()
 

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { TagService } from '~/api/services/TagService'
-import { extractError } from '~/app/utils/error-helper'
-import type { Tag } from '~/api/models/Tag'
-import type { CreateTag } from '~/api/models/CreateTag'
+import { TagService } from '@api/services/TagService'
+import { extractError } from '~/utils/error-helper'
+import type { Tag } from '@api/models/Tag'
+import type { CreateTag } from '@api/models/CreateTag'
 
 export const useTagStore = defineStore('tagStore', {
   state: () => ({

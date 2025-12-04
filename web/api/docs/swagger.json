@@ -103,8 +103,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -141,8 +141,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -192,8 +192,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -363,8 +363,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -401,8 +401,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -452,8 +452,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -514,8 +514,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -668,8 +668,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -706,8 +706,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -763,8 +763,8 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
@@ -817,16 +817,7 @@
     "/vertex/ingest": {
       "post": {
         "tags": [
-          "VertexIngest"
-        ],
-        "parameters": [
-          {
-            "name": "tenantId",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
+          "Vertex"
         ],
         "responses": {
           "200": {
@@ -838,7 +829,7 @@
     "/vertex/query": {
       "post": {
         "tags": [
-          "VertexQuery"
+          "Vertex"
         ],
         "requestBody": {
           "content": {
@@ -879,8 +870,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
             "minLength": 1,
@@ -956,8 +947,8 @@
             "type": "string"
           },
           "companyId": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           },
           "year": {
@@ -999,8 +990,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           },
           "image": {
@@ -1027,8 +1018,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           },
           "title": {
@@ -1098,8 +1089,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "title": {
             "minLength": 1,
@@ -1114,8 +1105,8 @@
             "type": "string"
           },
           "companyId": {
-            "type": "integer",
-            "format": "int32",
+            "type": "string",
+            "format": "uuid",
             "nullable": true
           },
           "company": {
@@ -1196,8 +1187,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "image": {
             "minLength": 1,
@@ -1215,9 +1206,8 @@
             "type": "boolean"
           },
           "projectId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -1231,8 +1221,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "title": {
             "minLength": 1,
@@ -1248,9 +1238,8 @@
             "nullable": true
           },
           "projectId": {
-            "type": "integer",
-            "format": "int32",
-            "nullable": true
+            "type": "string",
+            "format": "uuid"
           }
         },
         "additionalProperties": false
@@ -1265,8 +1254,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "integer",
-            "format": "int32"
+            "type": "string",
+            "format": "uuid"
           },
           "title": {
             "minLength": 1,
@@ -1308,10 +1297,6 @@
         "properties": {
           "query": {
             "type": "string"
-          },
-          "tenantId": {
-            "type": "string",
-            "nullable": true
           }
         },
         "additionalProperties": false

@@ -44,7 +44,7 @@ export class CompanyService {
      * @throws ApiError
      */
     public static getCompany1(
-        id: number,
+        id: string,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -61,7 +61,7 @@ export class CompanyService {
      * @throws ApiError
      */
     public static putCompany(
-        id: number,
+        id: string,
         formData?: any,
     ): CancelablePromise<Company> {
         return __request(OpenAPI, {
@@ -80,7 +80,7 @@ export class CompanyService {
      * @throws ApiError
      */
     public static deleteCompany(
-        id: number,
+        id: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',

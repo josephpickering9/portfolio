@@ -1,0 +1,99 @@
+<template>
+  <div v-if="form" class="flex flex-col gap-6 pb-4">
+    <div class="flex flex-col gap-4 md:flex-row">
+      <FormGroup :errors="v$.form?.title?.$errors" name="Title" class="md:w-3/4">
+        <TextInput v-model="form.title" label="Title" :disabled="loading" />
+      </FormGroup>
+      <FormGroup :errors="v$.form?.year?.$errors" name="Year" class="md:w-1/4">
+        <YearSelectList v-model="form.year" label="Year" :disabled="loading" />
+      </FormGroup>
+    </div>
+    <FormGroup :errors="v$.form?.shortDescription?.$errors" name="Short Description">
+      <TextInput v-model="form.shortDescription" label="Short Description" :disabled="loading" />
+    </FormGroup>
+    <div class="flex flex-col gap-4 md:flex-row">
+      <FormGroup :errors="v$.form?.companyId?.$errors" name="Company" class="md:w-2/5">
+        <CompanyAutoComplete v-model="form.companyId" label="Company" :disabled="loading" />
+      </FormGroup>
+      <FormGroup :errors="v$.form?.website?.$errors" name="Website" class="md:w-3/5">
+        <TextInput v-model="form.website" label="Website" :disabled="loading" />
+      </FormGroup>
+    </div>
+    <FormGroup :errors="v$.form?.tags?.$errors" name="Tags">
+      <TagAutoComplete v-model="form.tags" label="Tags" placeholder="Search by tag name" />
+    </FormGroup>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, watch } from 'vue'
+import { useVuelidate } from '@vuelidate/core'
+import { required, numeric, url } from '@vuelidate/validators'
+import { cloneDeep } from 'lodash-es'
+import type { CreateProject, Project } from '@api'
+import { useProjectStore } from '~/store/ProjectStore'
+import useValidation from '~/composables/useValidation'
+import { defaultProjectForm } from '~/utils/default-helper'
+import FormGroup from '~/components/ui/form/FormGroup.vue'
+import TextInput from '~/components/ui/input/TextInput.vue'
+import YearSelectList from '~/components/ui/input/YearSelectList.vue'
+import CompanyAutoComplete from '~/components/company/form/CompanyAutoComplete.vue'
+import TagAutoComplete from '~/components/tag/form/TagAutoComplete.vue'
+
+interface Props {
+  modelValue?: CreateProject
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: () => cloneDeep(defaultProjectForm),
+})
+
+// Emits
+const emit = defineEmits<{
+  'update:modelValue': [value: CreateProject]
+}>()
+
+const projectStore = useProjectStore()
+const validation = useValidation()
+
+const form = ref<CreateProject>(props.modelValue)
+
+// Validation
+const rules = {
+  form: {
+    title: { required },
+    year: { required, numeric },
+    shortDescription: { required },
+    website: { url },
+    tags: { required },
+  },
+}
+
+const v$ = useVuelidate(rules, { form })
+
+const project = computed((): Project | undefined => {
+  return projectStore.project
+})
+
+const loading = computed((): boolean => {
+  return projectStore.projectCreating || projectStore.projectLoading
+})
+
+async function validate(): Promise<boolean> {
+  return await validation.validate(v$)
+}
+
+// Expose methods for parent component
+defineExpose({
+  validate,
+})
+
+// Watch methods
+watch(() => props.modelValue, (newValue) => {
+  form.value = newValue
+}, { immediate: true })
+
+watch(form, (newValue) => {
+  emit('update:modelValue', newValue)
+}, { deep: true })
+</script>

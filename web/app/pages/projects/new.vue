@@ -5,8 +5,8 @@
 </template>
 
 <script setup lang="ts">
-import ProjectForm from '~/app/components/forms/project/ProjectForm.vue'
-import useMeta from '~/app/composables/useMeta'
+import ProjectForm from '~/components/project/forms/ProjectForm.vue'
+import useMeta from '~/composables/useMeta'
 
 definePageMeta({ middleware: 'auth' })
 

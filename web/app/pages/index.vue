@@ -25,18 +25,17 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isEmpty } from 'lodash-es'
-import { useProjectStore } from '~/app/store/ProjectStore'
-import useMeta from '~/app/composables/useMeta'
-import { notEmpty } from '~/app/utils/array-helper'
-import ProjectList from '~/app/components/lists/project/ProjectList.vue'
-import TagAutoComplete from '~/app/components/forms/tag/TagAutoComplete.vue'
+import { useProjectStore } from '~/store/ProjectStore'
+import useMeta from '~/composables/useMeta'
+import { notEmpty } from '~/utils/array-helper'
+import ProjectList from '~/components/project/list/ProjectList.vue'
+import TagAutoComplete from '~/components/tag/form/TagAutoComplete.vue'
 
 const route = useRoute()
 const router = useRouter()
 const projectStore = useProjectStore()
 const { updateMeta } = useMeta()
 
-// Meta
 updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
 
 const isSearchActive = ref(false)
@@ -85,7 +84,6 @@ onMounted(() => {
   setValues()
 })
 
-// Watch methods
 watch(tags, () => {
   nextTick(() => {
     updateQueryParams()

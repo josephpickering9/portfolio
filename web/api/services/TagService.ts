@@ -45,7 +45,7 @@ export class TagService {
      * @throws ApiError
      */
     public static getTag1(
-        id: number,
+        id: string,
     ): CancelablePromise<Tag> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -62,7 +62,7 @@ export class TagService {
      * @throws ApiError
      */
     public static putTag(
-        id: number,
+        id: string,
         requestBody?: CreateTag,
     ): CancelablePromise<Tag> {
         return __request(OpenAPI, {
@@ -81,7 +81,7 @@ export class TagService {
      * @throws ApiError
      */
     public static deleteTag(
-        id: number,
+        id: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'DELETE',

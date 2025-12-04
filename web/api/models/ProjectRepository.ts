@@ -1,12 +1,12 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
- 
+/* eslint-disable */
 export type ProjectRepository = {
-    id: number;
+    id: string;
     title: string;
     url: string;
     order?: number | null;
-    projectId?: number | null;
+    projectId?: string;
 };
 

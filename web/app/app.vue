@@ -11,8 +11,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useThemeStore } from './store/ThemeStore'
-import Notifications from './components/notification/Notifications.vue'
+import { useThemeStore } from '~/store/ThemeStore'
+import Notifications from '~/components/feedback/notification/Notifications.vue'
 import { useHead } from '#imports'
 
 useHead({
