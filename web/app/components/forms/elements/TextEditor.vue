@@ -2,92 +2,105 @@
   <div>
     <FormElementContainer :label="label" />
     <div class="textarea textarea-bordered min-h-[20rem] w-full">
-      <div v-if="editor" class="editor-buttons">
+      <div v-if="editor" class="flex flex-wrap gap-2">
         <button
           :disabled="!editor.can().chain().focus().toggleBold().run()"
-          :class="{ 'is-active': editor.isActive('bold') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('bold') }"
           @click="editor.chain().focus().toggleBold().run()"
         >
           bold
         </button>
         <button
           :disabled="!editor.can().chain().focus().toggleItalic().run()"
-          :class="{ 'is-active': editor.isActive('italic') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('italic') }"
           @click="editor.chain().focus().toggleItalic().run()"
         >
           italic
         </button>
-        <button :class="{ 'is-active': editor.isActive('paragraph') }" @click="editor.chain().focus().setParagraph().run()">
+        <button class="btn btn-outline btn-xs" :class="{ 'btn-active': editor.isActive('paragraph') }" @click="editor.chain().focus().setParagraph().run()">
           paragraph
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 1 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 1 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
         >
           h1
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 2 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 2 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
         >
           h2
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 3 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 3 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
         >
           h3
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 4 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 4 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
         >
           h4
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 5 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 5 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 5 }).run()"
         >
           h5
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('heading', { level: 6 }) }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('heading', { level: 6 }) }"
           @click="editor.chain().focus().toggleHeading({ level: 6 }).run()"
         >
           h6
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('bulletList') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('bulletList') }"
           @click="editor.chain().focus().toggleBulletList().run()"
         >
           bullet list
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('orderedList') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('orderedList') }"
           @click="editor.chain().focus().toggleOrderedList().run()"
         >
           ordered list
         </button>
         <button
           :disabled="!editor.can().chain().focus().toggleCode().run()"
-          :class="{ 'is-active': editor.isActive('code') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('code') }"
           @click="editor.chain().focus().toggleCode().run()"
         >
           code
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('codeBlock') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('codeBlock') }"
           @click="editor.chain().focus().toggleCodeBlock().run()"
         >
           code block
         </button>
         <button
-          :class="{ 'is-active': editor.isActive('blockquote') }"
+          class="btn btn-outline btn-xs"
+          :class="{ 'btn-active': editor.isActive('blockquote') }"
           @click="editor.chain().focus().toggleBlockquote().run()"
         >
           blockquote
         </button>
-        <button @click="editor.chain().focus().setHorizontalRule().run()">horizontal rule</button>
+        <button class="btn btn-outline btn-xs" @click="editor.chain().focus().setHorizontalRule().run()">horizontal rule</button>
       </div>
       <EditorContent :editor="editor" />
     </div>
@@ -163,18 +176,6 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.editor-buttons {
-  @apply flex flex-wrap gap-2;
-}
-
-.editor-buttons button {
-  @apply btn btn-outline btn-xs;
-}
-
-.editor-buttons button.is-active {
-  @apply btn-active;
-}
-
 .tiptap {
   > * + * {
     margin-top: 0.75em;
@@ -234,6 +235,6 @@ export default defineComponent({
 
 <style>
 .ProseMirror-focused {
-  @apply outline-none;
+  outline: none;
 }
 </style>

@@ -5,7 +5,7 @@
         <input
           ref="file"
           type="file"
-          class="file-input file-input-bordered w-full"
+          class="file-input w-full"
           :multiple="multiple"
           @change="inputChange"
         >

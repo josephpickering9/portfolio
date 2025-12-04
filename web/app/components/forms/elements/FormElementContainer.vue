@@ -1,5 +1,5 @@
 <template>
-  <label v-if="label" class="form-control w-full">
+  <label v-if="label" class="w-full">
     <div class="label">
       <span class="label-text">{{ label }}</span>
     </div>

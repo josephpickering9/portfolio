@@ -1,6 +1,54 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: light, dark, cupcake, bumblebee, emerald, corporate, synthwave, retro, cyberpunk, valentine, halloween, garden, forest, aqua, lofi, pastel, fantasy, wireframe, black, luxury, dracula, cmyk, autumn, business, acid, lemonade, night, coffee, winter, dim, nord, sunset;
+}
+
+@layer base {
+  h1 {
+    font-size: 2.25rem;
+    /* text-4xl */
+    line-height: 2.5rem;
+    font-weight: 700;
+    /* font-bold */
+  }
+
+  h2 {
+    font-size: 1.875rem;
+    /* text-3xl */
+    line-height: 2.25rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    /* text-2xl */
+    line-height: 2rem;
+    font-weight: 600;
+    /* font-semibold */
+  }
+
+  h4 {
+    font-size: 1.25rem;
+    /* text-xl */
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+
+  h5 {
+    font-size: 1.125rem;
+    /* text-lg */
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+
+  h6 {
+    font-size: 1rem;
+    /* text-base */
+    line-height: 1.5rem;
+    font-weight: 600;
+  }
+}
 
 body {
   overflow-y: scroll;

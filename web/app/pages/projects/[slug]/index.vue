@@ -256,39 +256,56 @@ export default defineNuxtComponent({
 
 <style scoped>
 .header-container {
-  @apply relative flex h-72 flex-col justify-end bg-cover bg-center py-8;
+  position: relative;
+  display: flex;
+  height: 18rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-size: cover;
+  background-position: center;
+  padding-top: 2rem;
+  padding-bottom: 2rem;
 }
 
 .header-container::after {
   content: '';
-  @apply absolute left-0 top-0 block h-full w-full bg-gradient-to-b from-transparent;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  height: 100%;
+  width: 100%;
+  background-image: linear-gradient(to bottom, transparent, var(--fallback-b1, oklch(var(--b1))));
 }
 
 .header-container-light::after {
-  @apply to-gray-400;
+  --tw-gradient-to: rgb(156 163 175);
 }
 
 .header-container-dark::after {
-  @apply to-black;
+  --tw-gradient-to: rgb(0 0 0);
 }
 
 .title {
-  @apply relative m-0 text-4xl;
+  position: relative;
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 2.5rem;
 }
 </style>
 
 <style>
 .project-description p {
-  @apply mt-0;
+  margin-top: 0;
 }
 
 .project-description li p,
 .project-description ul ul,
 .project-description ol ol {
-  @apply m-0;
+  margin: 0;
 }
 
 .project-description ul ul li {
-  @apply mt-1;
+  margin-top: 0.25rem;
 }
 </style>

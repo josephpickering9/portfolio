@@ -58,6 +58,11 @@ export default defineComponent({
 
 <style>
 .vc-colorpicker {
-  @apply w-72 overflow-hidden rounded-md border border-gray-600 !bg-base-100;
+  width: 18rem;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  border-width: 1px;
+  border-color: rgb(75 85 99);
+  background-color: var(--fallback-b1, oklch(var(--b1))) !important;
 }
 </style>

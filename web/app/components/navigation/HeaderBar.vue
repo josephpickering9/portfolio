@@ -12,7 +12,7 @@
         </NuxtLink>
       </ClientOnly>
     </div>
-    <div class="hidden flex-none gap-2 md:flex">
+    <div class="hidden flex-none gap-2 md:flex md:items-center">
       <ul class="menu menu-horizontal px-1">
         <li><NuxtLink to="/projects">Projects</NuxtLink></li>
         <li><NuxtLink to="/companies">Companies</NuxtLink></li>
@@ -28,7 +28,7 @@
         <ClientOnly>
           <ul
             tabindex="0"
-            class="menu dropdown-content menu-sm z-[1] mt-3 w-52 gap-1 rounded-box border border-gray-600 bg-base-100 p-2 shadow"
+            class="menu dropdown-content menu-sm z-[1] w-52 gap-1 rounded-box border border-gray-600 bg-base-100 p-2 shadow"
           >
             <li>
               <a
@@ -84,7 +84,7 @@
       </button>
     </div>
 
-    <div v-if="showMobileMenu" class="mobile-menu md:hidden">
+    <div v-if="showMobileMenu" class="mobile-menu fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100 md:hidden">
       <div class="flex flex-1 flex-col items-center px-4">
         <ul class="menu flex w-full flex-col items-center justify-start p-4 pt-0 text-xl">
           <li><ThemeController /></li>
@@ -168,6 +168,15 @@ interface Data {
   installPrompt?: BeforeInstallPromptEvent
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: string[]
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed'
+    platform: string
+  }>
+  prompt(): Promise<void>
+}
+
 export default defineComponent({
   name: 'HeaderBar',
   components: { Icon, ThemeController, FormButton, FooterBar, Spinner },
@@ -241,7 +250,6 @@ export default defineComponent({
 
 <style scoped>
 .mobile-menu {
-  @apply fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100;
   height: calc(100% - 64px);
   transition: top 0.3s;
 }

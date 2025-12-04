@@ -1,17 +1,21 @@
 <template>
-  <div :class="{ 'search-active': isSearchActive }" class="search-box-container">
+  <div
+    class="flex flex-grow transform flex-col items-center justify-center gap-6 px-4 py-1 transition-all duration-300 ease-in-out"
+    :class="{ 'justify-start': isSearchActive }"
+  >
     <TagAutoComplete
       v-model="tags"
       v-model:model-search="search"
       type="text"
-      class="search-input"
+      class="z-50 w-full max-w-xs transform transition-all duration-300 ease-in-out"
+      :class="{ 'max-w-5xl': isSearchActive }"
       :placeholder="placeholder"
       :show-empty-message="false"
       :open-on-focus="false"
       @focus="handleFocus"
       @blur="handleBlur"
     />
-    <div v-if="isSearchActive" class="search-results">
+    <div v-if="isSearchActive" class="z-0 flex w-full justify-center">
       <ProjectList :model-search="search" :tags="tags" />
     </div>
   </div>
@@ -101,27 +105,3 @@ export default defineComponent({
   },
 })
 </script>
-
-<style scoped>
-.search-box-container {
-  @apply flex flex-grow transform flex-col items-center justify-center space-y-6 px-4 py-1;
-  transition: all 0.3s ease;
-}
-
-.search-box-container.search-active {
-  @apply justify-start;
-}
-
-.search-box-container .search-input {
-  @apply z-50 w-full max-w-xs transform;
-  transition: all 0.3s ease;
-}
-
-.search-box-container.search-active .search-input {
-  @apply max-w-5xl;
-}
-
-.search-results {
-  @apply z-0 flex w-full justify-center;
-}
-</style>

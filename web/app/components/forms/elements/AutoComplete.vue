@@ -9,7 +9,7 @@
           :placeholder="placeholder"
           :required="required"
           :disabled="disabled"
-          class="input input-bordered w-full pr-8"
+          class="input w-full pr-8"
           :class="inputClass"
           @input="handleInputDebounce"
           @focus="focus"
@@ -21,7 +21,7 @@
         >
       </div>
       <div v-else class="flex items-center">
-        <div class="input input-bordered flex w-full items-center pr-8" :class="inputClass">
+        <div class="input flex w-full items-center pr-8" :class="inputClass">
           <slot name="selectedItem">
             <span v-if="value" class="truncate">{{ value.title }}</span>
           </slot>
@@ -33,7 +33,7 @@
         ref="results"
         tabindex="0"
         :class="resultsClass"
-        class="input input-bordered absolute z-50 my-2 h-auto max-h-60 w-full min-w-72 overflow-hidden overflow-y-auto rounded-md p-0 shadow"
+        class="input absolute z-50 my-2 h-auto max-h-60 w-full min-w-72 overflow-hidden overflow-y-auto rounded-md p-0 shadow"
       >
         <ul class="m-0 w-full list-none bg-base-100 p-0">
           <li

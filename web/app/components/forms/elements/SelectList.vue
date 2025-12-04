@@ -1,6 +1,6 @@
 <template>
   <FormElementContainer :label="label">
-    <select v-model="value" class="select select-bordered w-full" :class="selectClass" :disabled="disabled">
+    <select v-model="value" class="select w-full" :class="selectClass" :disabled="disabled">
       <option v-if="placeholder" :value="null" disabled selected>{{ placeholder }}</option>
       <option v-for="(option, index) in options" :key="index" :value="option.value">
         {{ option.text }}

@@ -17,7 +17,7 @@
             :height="height"
             class="m-0 rounded-box"
           >
-          <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', element)">
+          <button v-if="showHoverButton" type="button" class="absolute left-0 top-0 flex h-full w-full items-center justify-center bg-black bg-opacity-20 opacity-0 transition-opacity duration-300 hover:opacity-100" @click="$emit('hoverButton', element)">
             <Icon :name="hoverButtonIcon" size="2em" />
           </button>
         </div>
@@ -32,16 +32,16 @@
           :height="height"
           class="m-0 rounded-box"
         >
-        <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', image)">
+        <button v-if="showHoverButton" type="button" class="absolute left-0 top-0 flex h-full w-full items-center justify-center bg-black bg-opacity-20 opacity-0 transition-opacity duration-300 hover:opacity-100" @click="$emit('hoverButton', image)">
           <Icon :name="hoverButtonIcon" size="2em" />
         </button>
       </div>
     </div>
 
-    <button v-if="showArrows" type="button" class="carousel-arrow-left" @click="scrollLeft">
+    <button v-if="showArrows" type="button" class="absolute -left-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-left-6" @click="scrollLeft">
       <Icon name="material-symbols:chevron-left" size="2em" />
     </button>
-    <button v-if="showArrows" type="button" class="carousel-arrow-right" @click="scrollRight">
+    <button v-if="showArrows" type="button" class="absolute -right-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-right-6" @click="scrollRight">
       <Icon name="material-symbols:chevron-right" size="2em" />
     </button>
   </div>
@@ -121,23 +121,4 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.carousel-hover-button {
-  @apply absolute left-0 top-0 flex h-full w-full items-center justify-center bg-black bg-opacity-20;
-  @apply opacity-0 transition-opacity duration-300 hover:opacity-100;
-}
-
-.carousel-arrow-left,
-.carousel-arrow-right {
-  @apply absolute top-1/2 -translate-y-1/2 transform;
-  @apply bg-black bg-opacity-50 text-white;
-  @apply z-50 rounded-full p-2;
-}
-
-.carousel-arrow-left {
-  @apply -left-4 md:-left-6;
-}
-
-.carousel-arrow-right {
-  @apply -right-4 md:-right-6;
-}
 </style>

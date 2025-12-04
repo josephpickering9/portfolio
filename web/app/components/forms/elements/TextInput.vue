@@ -7,7 +7,7 @@
         :placeholder="placeholder"
         :required="required"
         :disabled="disabled"
-        class="input input-bordered w-full pr-8"
+        class="input w-full pr-8"
         :class="inputClass"
         @focus="$emit('focus')"
         @blur="$emit('blur')"

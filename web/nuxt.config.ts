@@ -39,7 +39,6 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
     '@nuxt/icon',
     '@pinia-plugin-persistedstate/nuxt',
@@ -47,6 +46,12 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@nuxt/eslint',
   ],
+
+  vite: {
+    plugins: [
+      (await import('@tailwindcss/vite')).default(),
+    ],
+  },
 
   alias: {
     cookie: 'cookie',

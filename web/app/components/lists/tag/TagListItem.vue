@@ -1,5 +1,5 @@
 <template>
-  <div v-if="tag" class="input input-bordered flex w-full items-center justify-between p-4">
+  <div v-if="tag" class="input flex w-full items-center justify-between p-4">
     <Tag :tag="tag" />
     <FormButton
       v-if="isAuthenticated"

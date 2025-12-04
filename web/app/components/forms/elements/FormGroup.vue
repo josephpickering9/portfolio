@@ -36,6 +36,11 @@ export default defineComponent({
 
 <style scoped>
 .error-msg {
-  @apply absolute -bottom-[22px] left-1 text-sm text-red-500;
+  position: absolute;
+  bottom: -22px;
+  left: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: rgb(239 68 68);
 }
 </style>
