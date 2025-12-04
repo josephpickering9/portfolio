@@ -20,7 +20,7 @@ export default defineComponent({
 
     updateMeta({ title: 'New Project', description: 'Create a new project' })
 
-    // eslint-disable-next-line no-undef
+     
     definePageMeta({ middleware: 'auth' })
   },
 })

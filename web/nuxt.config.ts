@@ -1,4 +1,6 @@
 export default defineNuxtConfig({
+  compatibilityDate: '2025-12-03',
+
   devtools: { enabled: true },
 
   future: {
@@ -43,6 +45,7 @@ export default defineNuxtConfig({
     '@pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/sitemap',
     '@vite-pwa/nuxt',
+    '@nuxt/eslint',
   ],
 
   alias: {

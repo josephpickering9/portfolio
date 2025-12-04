@@ -8,7 +8,7 @@
           class="file-input file-input-bordered w-full"
           :multiple="multiple"
           @change="inputChange"
-        />
+        >
       </div>
     </FormElementContainer>
     <div v-if="images && images.length" class="flex w-full flex-wrap items-center gap-4">
@@ -43,7 +43,7 @@ export default defineComponent({
       default: null,
     },
     modelValue: {
-      type: process.server ? Object : FileList,
+      type: import.meta.server ? Object : FileList,
       default: null,
     },
     required: {

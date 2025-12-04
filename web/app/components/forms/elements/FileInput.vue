@@ -7,13 +7,13 @@
         class="file-input file-input-bordered w-full"
         :multiple="multiple"
         @change="inputChange"
-      />
+      >
       <button v-if="previousImageUrl" type="button" @click.stop.prevent="reset">
         <Icon name="material-symbols:undo" size="2em" />
       </button>
     </div>
     <div v-else class="flex h-12 w-full items-center space-x-8">
-      <img :src="image" alt="File input image" class="m-0 h-12 w-12 rounded-full" />
+      <img :src="image" alt="File input image" class="m-0 h-12 w-12 rounded-full" >
       <button class="btn btn-error btn-xs" @click.stop.prevent="image = undefined">Remove</button>
     </div>
   </FormElementContainer>
@@ -38,7 +38,7 @@ export default defineComponent({
       default: null,
     },
     modelValue: {
-      type: process.server ? Object : FileList,
+      type: import.meta.server ? Object : FileList,
       default: null,
     },
     required: {

@@ -19,7 +19,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import type { SearchItem } from '../../../../types/SearchItem'
-import { type Company } from '../../../../api'
+import type { Company } from '../../../../api'
 import { useCompanyStore } from '../../../store/CompanyStore'
 import AutoComplete from '../elements/AutoComplete.vue'
 import CompanyItem from './CompanyItem.vue'

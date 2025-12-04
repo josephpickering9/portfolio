@@ -21,7 +21,6 @@ export default defineComponent({
   props: {
     notification: {
       type: Object as PropType<Notification>,
-      required: true,
       default: null,
     },
   },

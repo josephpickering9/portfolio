@@ -18,7 +18,7 @@
             :src="cardUrl ?? 'https://via.placeholder.com/320x200'"
             :alt="`${project.title} Card Image`"
             class="h-[230px] w-full object-cover"
-          />
+          >
         </figure>
         <div class="card-body px-6 py-6">
           <FormGroup :errors="v$.card?.$errors" name="Card">

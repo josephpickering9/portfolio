@@ -17,6 +17,7 @@
     "skipDefaultLibCheck": true
   },
   "include": [
+    ".nuxt/nuxt.d.ts",
     "app/**/*.ts",
     "app/**/*.tsx",
     "app/**/*.vue",

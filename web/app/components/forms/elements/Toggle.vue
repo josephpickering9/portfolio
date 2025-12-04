@@ -1,6 +1,6 @@
 <template>
   <FormElementContainer :label="label">
-    <input v-model="value" type="checkbox" class="toggle" :disabled="disabled" />
+    <input v-model="value" type="checkbox" class="toggle" :disabled="disabled" >
   </FormElementContainer>
 </template>
 

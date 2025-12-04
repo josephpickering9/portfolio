@@ -18,7 +18,7 @@ export default defineComponent({
 
     updateMeta({ title: 'New Tag', description: 'Create a new tag' })
 
-    // eslint-disable-next-line no-undef
+     
     definePageMeta({ middleware: 'auth' })
   },
 })

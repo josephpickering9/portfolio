@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { type Notification } from '../../types/Notification'
+import type { Notification } from '../../types/Notification'
 import { NotificationType } from '../../types/NotificationType'
 import { NotificationPosition } from '../../types/NotificationPosition'
 

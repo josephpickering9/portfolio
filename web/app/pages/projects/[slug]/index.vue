@@ -12,7 +12,7 @@
                 :src="getImageUrl(project.logoUrl)"
                 :alt="`${project.title} Logo`"
                 class="m-0 h-10 w-10 rounded-full"
-              />
+              >
               <small class="text-white">{{ project.year }}</small>
             </div>
             <img
@@ -20,7 +20,7 @@
               :src="getImageUrl(project.logoUrl)"
               :alt="`${project.title} Logo`"
               class="m-0 hidden h-10 w-10 rounded-full md:flex"
-            />
+            >
             <h1 ref="title" class="title text-gray-400">{{ project.title }}</h1>
             <small class="hidden text-white md:flex">{{ project.year }}</small>
           </div>
@@ -134,7 +134,8 @@ import ProjectList from '../../../components/lists/project/ProjectList.vue'
 import { defineNuxtComponent } from '#app'
 
 export default defineNuxtComponent({
-  name: 'Project',
+  // eslint-disable-next-line vue/match-component-file-name
+  name: 'ProjectIndex',
   components: { Skeleton, Tag, IconLink, MockupBrowser, MockupPhone, CompanyItem, Carousel, ProjectList },
   async setup() {
     const { isAuthenticated } = useAuth()
@@ -244,11 +245,11 @@ export default defineNuxtComponent({
     if (!this.slug) return
     if (this.project?.slug !== this.slug) await useProjectStore().getProjectBySlug(this.slug)
   },
-  methods: {
-    getImageUrl,
-  },
   beforeUnmount() {
     useProjectStore().project = undefined
+  },
+  methods: {
+    getImageUrl,
   },
 })
 </script>

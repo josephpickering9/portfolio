@@ -18,7 +18,7 @@
           @keydown.arrow-up.stop.prevent="onArrowUp"
           @keydown.arrow-down.stop.prevent="onArrowDown"
           @keydown.escape="close"
-        />
+        >
       </div>
       <div v-else class="flex items-center">
         <div class="input input-bordered flex w-full items-center pr-8" :class="inputClass">

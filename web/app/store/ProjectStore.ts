@@ -76,6 +76,7 @@ export const useProjectStore = defineStore('projectStore', {
         response = await ProjectService.getProjectRelated(id)
         this.relatedProjects = response
       } catch {
+        // ignore
       } finally {
         this.relatedProjectsLoading = false
       }

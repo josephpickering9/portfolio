@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do no edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 import type { Company } from './Company';
 import type { ProjectImage } from './ProjectImage';
 import type { ProjectRepository } from './ProjectRepository';

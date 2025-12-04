@@ -16,7 +16,7 @@
             :width="width"
             :height="height"
             class="m-0 rounded-box"
-          />
+          >
           <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', element)">
             <Icon :name="hoverButtonIcon" size="2em" />
           </button>
@@ -31,7 +31,7 @@
           :width="width"
           :height="height"
           class="m-0 rounded-box"
-        />
+        >
         <button v-if="showHoverButton" type="button" class="carousel-hover-button" @click="$emit('hoverButton', image)">
           <Icon :name="hoverButtonIcon" size="2em" />
         </button>

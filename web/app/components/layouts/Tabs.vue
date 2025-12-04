@@ -9,7 +9,7 @@
         :aria-label="tab"
         :checked="index === activeTab"
         @click="setActiveTab(index)"
-      />
+      >
 
       <div role="tabpanel" class="tab-content w-full overflow-x-hidden rounded-box border-gray-600 p-6">
         <slot :index="index" />

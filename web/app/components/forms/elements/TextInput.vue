@@ -12,7 +12,7 @@
         @focus="$emit('focus')"
         @blur="$emit('blur')"
         @keyup.enter="$emit('keyup.enter')"
-      />
+      >
       <button v-if="value" type="button" tabindex="-1" class="absolute right-4 text-sm" @click="clear">X</button>
     </div>
   </FormElementContainer>

@@ -27,14 +27,14 @@
                   fill="currentColor"
                   class="h-3 w-3 shrink-0"
                 >
-                  <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"></path>
+                  <path d="M20.285 2l-11.285 11.567-5.286-5.011-3.714 3.716 9 8.728 15-15.285z"/>
                 </svg>
                 <span class="flex-grow text-sm">{{ theme }}</span>
                 <span class="flex h-full shrink-0 flex-wrap gap-1">
-                  <span class="w-2 rounded-badge bg-primary"></span>
-                  <span class="w-2 rounded-badge bg-secondary"></span>
-                  <span class="w-2 rounded-badge bg-accent"></span>
-                  <span class="w-2 rounded-badge bg-neutral"></span>
+                  <span class="w-2 rounded-badge bg-primary"/>
+                  <span class="w-2 rounded-badge bg-secondary"/>
+                  <span class="w-2 rounded-badge bg-accent"/>
+                  <span class="w-2 rounded-badge bg-neutral"/>
                 </span>
               </span>
             </span>

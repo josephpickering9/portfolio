@@ -20,7 +20,7 @@ export default defineComponent({
 
     updateMeta({ title: 'Update Company', description: 'Update an existing company' })
 
-    // eslint-disable-next-line no-undef
+     
     definePageMeta({ middleware: 'auth' })
   },
 })

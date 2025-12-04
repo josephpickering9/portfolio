@@ -22,7 +22,7 @@
       <div class="dropdown dropdown-end">
         <div tabindex="0" role="button" class="avatar btn btn-circle btn-ghost">
           <div class="w-10 rounded-full">
-            <img alt="Profile" src="~/assets/img/joe.png" />
+            <img alt="Profile" src="~/assets/img/joe.png" >
           </div>
         </div>
         <ClientOnly>
@@ -140,7 +140,7 @@
         </ul>
         <div class="mt-auto flex flex-col gap-4">
           <div class="w-20 overflow-hidden rounded-full">
-            <img alt="Profile" src="~/assets/img/joe.png" />
+            <img alt="Profile" src="~/assets/img/joe.png" >
           </div>
         </div>
       </div>
@@ -164,7 +164,7 @@ import { useRuntimeConfig } from '#app'
 
 interface Data {
   showMobileMenu: boolean
-  // eslint-disable-next-line no-undef
+   
   installPrompt?: BeforeInstallPromptEvent
 }
 

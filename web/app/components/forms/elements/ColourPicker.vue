@@ -26,7 +26,7 @@ export default defineComponent({
   components: {
     FormElementContainer,
     ColorPicker: defineAsyncComponent(() => {
-      return process.client ? import('vue3-colorpicker').then((m) => m.ColorPicker) : new Promise(() => {})
+      return import.meta.client ? import('vue3-colorpicker').then((m) => m.ColorPicker) : new Promise(() => {})
     }),
   },
   props: {
