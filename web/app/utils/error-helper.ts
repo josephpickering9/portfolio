@@ -9,7 +9,8 @@ export const extractError = (error: any): string => {
     if (!error.body) return genericMessage
 
     if (error.body.errors) {
-      return (Object.values(error.body.errors) as string[][])[0][0] || genericMessage
+      const errorValues = error.body.errors ? (Object.values(error.body.errors) as string[][]) : []
+      return errorValues[0]?.[0] || genericMessage
     } else if (error.body.status === 404) {
       return 'Record could not be found'
     } else {

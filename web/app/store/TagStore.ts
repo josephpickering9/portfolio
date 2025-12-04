@@ -51,7 +51,7 @@ export const useTagStore = defineStore('tagStore', {
         this.tagError = undefined
         this.tagLoading = true
 
-        this.tag = await TagService.getTagSlug(slug)
+        this.tag = await TagService.getTag2(slug)
       } catch (error) {
         this.tagError = extractError(error)
       } finally {

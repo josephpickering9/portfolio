@@ -51,7 +51,7 @@ export const useCompanyStore = defineStore('companyStore', {
         this.companyError = undefined
         this.companyLoading = true
 
-        this.company = await CompanyService.getCompanySlug(slug)
+        this.company = await CompanyService.getCompany2(slug)
       } catch (error) {
         this.companyError = extractError(error)
       } finally {

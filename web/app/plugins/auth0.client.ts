@@ -1,5 +1,5 @@
 import { createAuth0, useAuth0 } from '@auth0/auth0-vue'
-import { OpenAPI } from '../api'
+import { OpenAPI } from '../../api'
 import { useRuntimeConfig } from '#app'
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -15,10 +15,10 @@ export default defineNuxtPlugin((nuxtApp) => {
     cacheLocation: 'localstorage',
   })
 
-  if (process.client) nuxtApp.vueApp.use(auth0)
+  if (import.meta.client) nuxtApp.vueApp.use(auth0)
 
   addRouteMiddleware('auth', async () => {
-    if (process.client) {
+    if (import.meta.client) {
       auth0.checkSession()
       if (!auth0.isAuthenticated.value) {
         auth0.loginWithRedirect({

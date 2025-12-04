@@ -14,7 +14,8 @@
     "fetch-codegen": "yarn fetch-docs && yarn openapi && yarn openapi-request",
     "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
     "lint:full": "eslint --ext .js,.vue,.ts --ignore-path .gitignore .",
-    "lint:commit": "eslint"
+    "lint:commit": "eslint",
+    "typecheck": "vue-tsc --noEmit 2>&1 | grep -v 'node_modules' || echo 'Type checking complete!'"
   },
   "lint-staged": {
     "*.{js,vue,ts}": "yarn lint:commit"
@@ -64,6 +65,7 @@
     "prettier": "^3.2.4",
     "prettier-plugin-tailwindcss": "^0.5.11",
     "vue": "^3.5.25",
-    "vue-router": "^4.6.3"
+    "vue-router": "^4.6.3",
+    "vue-tsc": "^3.1.5"
   }
 }

@@ -16,7 +16,7 @@ export const luminance = (r: number, g: number, b: number) => {
     v /= 255
     return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
   })
-  return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722
+  return (a[0] ?? 0) * 0.2126 + (a[1] ?? 0) * 0.7152 + (a[2] ?? 0) * 0.0722
 }
 
 export const setTextColourForBackground = (hexColor: string) => {
@@ -48,9 +48,11 @@ export const oklchStringToHex = (oklchString: string): string | undefined => {
   if (!match) return undefined
 
   const [, L, , C, , H] = match.map(Number)
+  if (H === undefined || isNaN(H)) return undefined
+
   const hueRadians = H * (Math.PI / 180)
 
-  const [l, a, ab] = oklchToOklab(L, C, hueRadians)
+  const [l, a, ab] = oklchToOklab(L ?? 0, C ?? 0, hueRadians)
   const [x, y, z] = oklabToXyz(l, a, ab)
   const [lr, lg, lb] = xyzToLinearRgb(x, y, z)
   const [r, g, b] = linearRgbToRgb(lr, lg, lb)
