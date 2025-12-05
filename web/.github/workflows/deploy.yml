@@ -49,6 +49,9 @@ jobs:
           node-version: '22'
           cache: 'yarn'
 
+      - name: Create .env file
+        run: printf "%s" "${{ secrets.NUXT_ENV }}" > .env
+
       - name: Compile CSS and JavaScript
         run: |
           yarn install --frozen-lockfile
