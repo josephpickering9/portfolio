@@ -2,7 +2,7 @@
   "name": "work-experience",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "nuxt build && node scripts/postbuild.js",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
