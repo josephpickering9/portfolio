@@ -45,12 +45,18 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Logo")
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Slug")
                         .IsRequired()
