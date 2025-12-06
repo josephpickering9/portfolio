@@ -3,7 +3,7 @@
     <div class="flex w-full flex-col space-y-4">
       <div class="flex items-center gap-2">
         <img v-if="company.logo" :src="logo" :alt="`${company.name} Logo`" class="m-0 h-6 w-6" >
-        <h2 v-if="isEmpty(company.website) || company.website === '#'" class="m-0">
+        <h2 v-if="isEmpty(company.website) || company.website === '#'" class="card-title m-0">
           {{ company.name }}
         </h2>
         <div v-else class="flex items-center gap-1">
@@ -13,6 +13,7 @@
           <Icon name="mdi:launch" />
         </div>
       </div>
+      <p v-if="dateRange" class="text-xs italic text-base-content/60">{{ dateRange }}</p>
       <p class="pb-2 text-sm italic">{{ company.description }}</p>
     </div>
     <FormButton
@@ -28,6 +29,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
+import { format } from 'date-fns'
 import type { Company as CompanyModel } from '@api/models/Company'
 import { getImageUrl } from '~/utils/image-helper'
 import useAuth from '~/composables/useAuth'
@@ -45,5 +47,14 @@ const logo = computed((): string => {
   if (!props.company?.logo) return 'https://via.placeholder.com/320x200'
 
   return getImageUrl(props.company.logo)
+})
+
+const dateRange = computed((): string => {
+  const start = props.company.startDate ? format(new Date(props.company.startDate), 'MMM yyyy') : ''
+  const end = props.company.endDate ? format(new Date(props.company.endDate), 'MMM yyyy') : 'Present'
+
+  if (!start) return ''
+
+  return `${start} - ${end}`
 })
 </script>

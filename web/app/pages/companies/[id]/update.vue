@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full flex-col items-center px-4">
-    <CompanyForm :id="Number($route.params.id)" />
+    <CompanyForm :id="$route.params.id" />
   </div>
 </template>
 

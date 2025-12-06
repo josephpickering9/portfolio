@@ -1,7 +1,7 @@
 <template>
   <div>
     <FormElementContainer :label="label" />
-    <div class="textarea textarea-bordered min-h-[20rem] w-full">
+    <div class="textarea textarea-bordered min-h-[20rem] w-full space-y-4">
       <div v-if="editor" class="flex flex-wrap gap-2">
         <button
           :disabled="!editor.can().chain().focus().toggleBold().run()"

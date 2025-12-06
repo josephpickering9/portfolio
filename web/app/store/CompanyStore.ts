@@ -30,7 +30,7 @@ export const useCompanyStore = defineStore('companyStore', {
         this.companiesLoading = false
       }
     },
-    async getCompany(id: number): Promise<void> {
+    async getCompany(id: string): Promise<void> {
       if (!id || this.companyLoading) return
 
       try {
@@ -76,7 +76,7 @@ export const useCompanyStore = defineStore('companyStore', {
 
       return response
     },
-    async updateCompany(id: number, company: CreateCompany): Promise<Company | undefined> {
+    async updateCompany(id: string, company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreating) return
 
       let response: Company | undefined
@@ -94,7 +94,7 @@ export const useCompanyStore = defineStore('companyStore', {
 
       return response
     },
-    async deleteCompany(id: number): Promise<void> {
+    async deleteCompany(id: string): Promise<void> {
       if (!id || this.companyCreating) return
 
       try {

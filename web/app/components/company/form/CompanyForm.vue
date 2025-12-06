@@ -1,21 +1,58 @@
 <template>
-  <div class="prose w-full max-w-xl space-y-5 rounded-md border border-gray-600 px-6 py-4">
-    <h1>{{ isUpdate ? 'Update' : 'New' }} Company</h1>
-    <TextInput v-model="name" label="Name" :disabled="loading" />
-    <TextInput v-model="description" label="Description" :disabled="loading" />
-    <FileInput label="Image" :image-url="logoUrl" :disabled="loading" @update:file="logo = $event" />
-    <TextInput v-model="website" label="Website" :disabled="loading" />
-    <div class="flex items-center justify-between space-x-2">
-      <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
-      <FormButton
-        v-if="isUpdate"
-        label="Delete"
-        type="error"
-        size="sm"
-        icon="material-symbols:delete"
-        :disabled="loading"
-        @click="remove"
-      />
+  <div class="w-full max-w-5xl space-y-6 flex flex-col">
+    <div class="flex items-center justify-between">
+      <h1>{{ isUpdate ? 'Update' : 'New' }} Company</h1>
+      <div class="flex items-center gap-2">
+         <FormButton
+          v-if="isUpdate"
+          label="Delete"
+          type="error"
+          size="sm"
+          icon="material-symbols:delete"
+          :disabled="loading"
+          @click="remove"
+        />
+        <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10 lg:col-span-2">
+        <div class="card-body gap-4">
+          <h2 class="card-title text-base font-semibold opacity-60">General Information</h2>
+          <TextInput v-model="name" label="Name" :disabled="loading" placeholder="Company Name" />
+          <TextInput v-model="website" label="Website" :disabled="loading" placeholder="https://example.com" />
+          <TextEditor 
+            v-model="description" 
+            label="Description"
+            placeholder="Brief description of the company..."
+            :disabled="loading"
+          />
+        </div>
+      </div>
+
+      <div class="space-y-6">
+        <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10">
+          <div class="card-body gap-4">
+            <h2 class="card-title text-base font-semibold opacity-60">Branding</h2>
+            <div class="flex flex-col items-center justify-center p-4">
+               <div class="mb-4 flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed border-base-content/20 bg-base-200">
+                  <img v-if="logoUrl" :src="logoUrl" alt="Preview" class="h-full w-full object-contain p-2" />
+                  <Icon v-else name="mdi:image-outline" class="h-12 w-12 opacity-20" />
+               </div>
+               <FileInput label="Upload Logo" :disabled="loading" @update:file="logo = $event" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10">
+          <div class="card-body gap-4">
+            <h2 class="card-title text-base font-semibold opacity-60">Timeline</h2>
+            <TextInput v-model="startDate" label="Start Date" type="date" :disabled="loading" />
+            <TextInput v-model="endDate" label="End Date" type="date" :disabled="loading" />
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -28,12 +65,14 @@ import { useNotificationStore } from '~/store/NotificationStore'
 import type { CreateCompany } from '@api/models/CreateCompany'
 import type { Company } from '@api/models/Company'
 import { getImageUrl } from '~/utils/image-helper'
+import { format } from 'date-fns'
 import TextInput from '~/components/ui/input/TextInput.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import FileInput from '~/components/ui/input/FileInput.vue'
+import TextEditor from '~/components/ui/input/TextEditor.vue'
 
 interface Props {
-  id?: number | null
+  id?: string | null
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -49,6 +88,8 @@ const description = ref('')
 const logo = ref<FileList | null | undefined>(undefined)
 const logoUrl = ref<string | undefined>(undefined)
 const website = ref<string | undefined>(undefined)
+const startDate = ref<string | undefined>(undefined)
+const endDate = ref<string | undefined>(undefined)
 
 const isUpdate = computed((): boolean => {
   return props.id !== null
@@ -76,6 +117,8 @@ const createCompanyValue = computed((): CreateCompany => {
     description: description.value,
     logo: logo.value ? (logo.value.item(0) as Blob) : undefined,
     website: website.value,
+    startDate: startDate.value,
+    endDate: endDate.value,
   }
 })
 
@@ -118,6 +161,8 @@ onMounted(async () => {
       description.value = company.value.description
       logoUrl.value = company.value.logo ? getImageUrl(company.value.logo) : undefined
       website.value = company.value.website ?? ''
+      startDate.value = company.value.startDate ? format(new Date(company.value.startDate), 'yyyy-MM-dd') : undefined
+      endDate.value = company.value.endDate ? format(new Date(company.value.endDate), 'yyyy-MM-dd') : undefined
     } else {
       notificationStore.displayErrorNotification(companyError.value || 'An error occurred')
     }

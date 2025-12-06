@@ -881,6 +881,16 @@
             "minLength": 1,
             "type": "string"
           },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
           "website": {
             "type": "string",
             "nullable": true
@@ -910,6 +920,16 @@
           "description": {
             "minLength": 1,
             "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           },
           "logo": {
             "type": "string",

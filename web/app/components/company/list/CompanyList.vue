@@ -26,7 +26,7 @@
       <div class="text-lg">Try searching for something else</div>
     </div>
     <div v-else class="flex flex-col items-center justify-start space-y-4">
-      <CompanyListItem v-for="(company, index) in filteredCompanies" :key="index" :company="company" />
+      <CompanyTimeline :companies="filteredCompanies" :projects="projects" />
     </div>
   </div>
 </template>
@@ -36,23 +36,29 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
 import { useRoute, useRouter } from 'vue-router'
 import { useCompanyStore } from '~/store/CompanyStore'
+import { useProjectStore } from '~/store/ProjectStore'
 import type { Company } from '@api/models/Company'
 import useAuth from '~/composables/useAuth'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
-import CompanyListItem from './CompanyListItem.vue'
+import CompanyTimeline from '~/components/company/timeline/CompanyTimeline.vue'
 
 const route = useRoute()
 const router = useRouter()
 const { isAuthenticated } = useAuth()
 const companyStore = useCompanyStore()
+const projectStore = useProjectStore()
 
 const initialLoad = ref(true)
 const search = ref('')
 
 const companies = computed((): Company[] => {
   return companyStore.companies
+})
+
+const projects = computed(() => {
+  return projectStore.projects
 })
 
 const loading = computed((): boolean => {
@@ -84,7 +90,10 @@ function updateQueryParams() {
 
 onMounted(async () => {
   setValues()
-  await companyStore.getCompanies()
+  await Promise.all([
+    companyStore.getCompanies(),
+    projectStore.getProjects(),
+  ])
 })
 
 

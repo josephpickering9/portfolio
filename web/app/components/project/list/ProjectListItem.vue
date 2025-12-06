@@ -46,4 +46,3 @@ const backgroundImage = computed((): string => {
   return getImageUrl(props.project.cardUrl)
 })
 </script>
-../../../api/models/Project../../../utils/image-helper

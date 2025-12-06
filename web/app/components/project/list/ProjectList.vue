@@ -162,7 +162,7 @@ const wrapperClass = computed(() => ({
 
 function setValues() {
   search.value = route.query['search']?.toString() || search.value
-  companyId.value = route.query['company'] ? parseInt(route.query['company'].toString()) : undefined
+  companyId.value = route.query['company']?.toString()
   tagType.value = route.query['type'] ? getEnumValue(TagType, route.query['type'].toString()) : undefined
   tagId.value = route.query['tag']?.toString()
 }
