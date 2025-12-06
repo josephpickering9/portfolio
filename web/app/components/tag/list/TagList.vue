@@ -1,33 +1,62 @@
 <template>
-  <div class="tags prose w-full max-w-5xl">
-    <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-      <h1 class="m-0">Tags</h1>
-      <div class="flex items-center gap-4">
-        <TextInput v-model="search" class="w-full md:max-w-48" size="sm" placeholder="Search" :disabled="loading" />
-        <TagTypeSelectList v-model="tagType" class="w-full md:max-w-48" size="sm" placeholder="Type" :disabled="loading" />
-        <ClientOnly>
-          <FormButton v-if="isAuthenticated" label="Add Tag" type="primary" size="sm" href="/tags/new" :disabled="loading" />
-        </ClientOnly>
-      </div>
-    </div>
-    <div v-if="loading" class="mt-12 flex flex-col items-center space-y-4">
-      <Skeleton />
-      <Skeleton />
-      <Skeleton />
-    </div>
-    <div v-else-if="Object.keys(filteredTags).length === 0" class="flex flex-col justify-start space-y-4">
-      <h2>No tags found</h2>
-      <div class="text-lg">Try searching for something else</div>
-    </div>
-    <div v-else class="flex flex-col items-center justify-start">
-      <div v-for="(typeTags, type) in filteredTags" :key="type" class="flex w-full flex-col">
-        <h2>{{ type }}</h2>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <TagListItem v-for="(tag, index) in typeTags" :key="index" :tag="tag" />
+  <ListLayout
+    title="Tags"
+    description="Browse and manage project technologies and categories."
+    :loading="loading"
+    :is-empty="Object.keys(filteredTags).length === 0"
+    empty-title="No tags found"
+  >
+    <template #actions>
+      <div class="group relative">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
         </div>
+        <TextInput
+          v-model="search"
+          class="w-full md:max-w-48" 
+          size="md"
+          placeholder="Search tags..."
+          :disabled="loading"
+        />
+      </div>
+      
+      <TagTypeSelectList
+        v-model="tagType"
+        class="w-full sm:w-48"
+        size="md"
+        placeholder="Filter by Type"
+        :disabled="loading"
+      />
+
+      <ClientOnly>
+        <FormButton
+          v-if="isAuthenticated"
+          label="Add Tag"
+          icon="heroicons:plus"
+          type="primary"
+          size="md"
+          href="/tags/new"
+          :disabled="loading"
+          class="w-full shadow-lg shadow-primary/20 sm:w-auto"
+        />
+      </ClientOnly>
+    </template>
+
+    <div v-for="(typeTags, type) in filteredTags" :key="type" class="flex w-full flex-col">
+      <div class="mb-6 flex items-center gap-4">
+        <h2 class="text-2xl font-bold text-base-content">{{ type }}</h2>
+        <div class="h-px flex-1 bg-gradient-to-r from-base-content/10 via-base-content/5 to-transparent" />
+      </div>
+      
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <TagListItem
+          v-for="(tag, index) in typeTags"
+          :key="index"
+          :tag="tag"
+        />
       </div>
     </div>
-  </div>
+  </ListLayout>
 </template>
 
 <script setup lang="ts">
@@ -39,11 +68,11 @@ import type { Tag } from '@api/models/Tag'
 import { TagType } from '@api/models/TagType'
 import useAuth from '~/composables/useAuth'
 import { getEnumValue } from '~/utils/enum-helper'
-import Skeleton from '~/components/feedback/loading/Skeleton.vue'
-import TextInput from '~/components/ui/input/TextInput.vue'
+import ListLayout from '~/components/ui/layout/ListLayout.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import TagTypeSelectList from '~/components/tag/form/TagTypeSelectList.vue'
 import TagListItem from './TagListItem.vue'
+import TextInput from '~/components/ui/input/TextInput.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -90,8 +119,8 @@ const filteredTags = computed((): Record<string, Tag[]> => {
 })
 
 function setValues() {
-  search.value = route.query.search?.toString() || search.value
-  tagType.value = (route.query.type ? getEnumValue(TagType, route.query.type.toString()) : undefined) || tagType.value
+  search.value = route.query['search']?.toString() || search.value
+  tagType.value = (route.query['type'] ? getEnumValue(TagType, route.query['type'].toString()) : undefined) || tagType.value
 }
 
 function updateQueryParams() {
@@ -109,7 +138,6 @@ onMounted(async () => {
   await tagStore.getTags()
 })
 
-// Watch methods
 watch(tags, () => {
   initialLoad.value = false
 })
@@ -126,4 +154,4 @@ watch(tagType, () => {
   updateQueryParams()
 })
 </script>
-../../../store/TagStore../../../api/models/Tag../../../api/models/TagType../../../composables/useAuth../../../utils/enum-helper
+

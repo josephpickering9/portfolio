@@ -4,7 +4,6 @@
     "checkUnknownSlotNames": true
   },
   "compilerOptions": {
-    "baseUrl": ".",
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,

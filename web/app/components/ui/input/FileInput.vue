@@ -41,7 +41,7 @@ const props = withDefaults(defineProps<Props>(), {
   multiple: false,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: FileList | null]
   'update:file': [value: FileList | null]
@@ -64,7 +64,7 @@ function reset() {
   if (file.value) file.value.value = ''
 }
 
-// Watch methods
+
 watch(() => props.imageUrl, (newValue) => {
   image.value = newValue ?? undefined
 })

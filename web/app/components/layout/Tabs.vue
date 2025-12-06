@@ -29,7 +29,7 @@ withDefaults(defineProps<Props>(), {
   activeTab: 0,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:activeTab': [value: number]
 }>()

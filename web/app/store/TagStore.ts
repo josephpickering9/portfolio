@@ -30,7 +30,7 @@ export const useTagStore = defineStore('tagStore', {
         this.tagsLoading = false
       }
     },
-    async getTag(id: number): Promise<void> {
+    async getTag(id: string): Promise<void> {
       if (!id || this.tagLoading) return
 
       try {
@@ -76,7 +76,7 @@ export const useTagStore = defineStore('tagStore', {
 
       return response
     },
-    async updateTag(id: number, tag: CreateTag): Promise<Tag | undefined> {
+    async updateTag(id: string, tag: CreateTag): Promise<Tag | undefined> {
       if (!tag || this.tagCreating) return
 
       let response: Tag | undefined
@@ -94,7 +94,7 @@ export const useTagStore = defineStore('tagStore', {
 
       return response
     },
-    async deleteTag(id: number): Promise<void> {
+    async deleteTag(id: string): Promise<void> {
       if (!id || this.tagCreating) return
 
       try {

@@ -87,7 +87,7 @@ onMounted(async () => {
   await companyStore.getCompanies()
 })
 
-// Watch methods
+
 watch(companies, () => {
   initialLoad.value = false
 })

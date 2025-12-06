@@ -25,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: () => cloneDeep(defaultProjectForm),
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: CreateProject]
 }>()
@@ -55,7 +55,7 @@ defineExpose({
   validate,
 })
 
-// Watch methods
+
 watch(() => props.modelValue, (newValue) => {
   form.value = newValue
 }, { immediate: true })

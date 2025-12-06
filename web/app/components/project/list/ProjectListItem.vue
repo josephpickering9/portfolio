@@ -14,7 +14,7 @@
         <h2 class="card-title m-0">{{ project.title }}</h2>
       </div>
       <p class="m-0 pb-2 text-sm italic">{{ project.shortDescription }}</p>
-      <div class="card-actions justify-end">
+      <div class="card-actions justify-end items-center">
         <Tag v-for="(tag, index) in project.tags.slice(0, 2)" :key="index" :tag="tag" />
         <small v-if="project.tags.length > 2">+{{ project.tags.length - 2 }}</small>
       </div>

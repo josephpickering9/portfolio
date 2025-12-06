@@ -96,7 +96,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: SearchItem | undefined]
   'update:modelSearch': [value: string]
@@ -287,7 +287,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('resize', calculateInputPosition)
 })
 
-// Watch methods
+
 watch(() => props.modelValue, (newValue) => {
   if (value.value?.value === newValue?.value) return
 

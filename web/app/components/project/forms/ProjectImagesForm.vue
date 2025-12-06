@@ -81,7 +81,7 @@ const props = withDefaults(defineProps<Props>(), {
   modelValue: () => cloneDeep(defaultProjectForm),
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: CreateProject]
 }>()
@@ -200,7 +200,7 @@ onMounted(() => {
   }
 })
 
-// Watch methods
+
 watch(project, () => {
   if (!project.value) return
 

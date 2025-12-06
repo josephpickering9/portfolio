@@ -74,7 +74,7 @@ const props = withDefaults(defineProps<Props>(), {
   showArrows: false,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'hoverButton': [value: string]
   'update:modelValue': [value: string[]]

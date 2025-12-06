@@ -124,7 +124,7 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: undefined,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
   }
 })
 
-// Watch methods
+
 watch(() => props.modelValue, (value) => {
   if (!initialLoad.value) return
 

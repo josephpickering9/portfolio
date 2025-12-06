@@ -1,6 +1,6 @@
 <template>
   <div class="flex w-full flex-col items-center px-4">
-    <TagForm :id="Number($route.params.id)" />
+    <TagForm :id="$route.params.id" />
   </div>
 </template>
 

@@ -33,14 +33,14 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
 const value = ref(props.modelValue)
 
-// Watch methods
+
 watch(() => props.modelValue, (newValue) => {
   value.value = newValue
 })

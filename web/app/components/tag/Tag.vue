@@ -1,18 +1,32 @@
 <template>
-  <div v-if="tag" class="badge flex items-center space-x-1" :class="tagClass" :style="tagStyle">
-    <Icon v-if="tag.icon" :name="tag.icon" />
-    <span class="font-bold">{{ tag.title }}</span>
-    <button v-if="clearable" class="flex items-center" @click="$emit('remove', tag)">
-      <Icon name="material-symbols:delete" />
+  <div
+    v-if="tag"
+    class="badge flex items-center gap-1 bg-base-200"
+    :class="{ 'border-primary/50 ring-1 ring-primary/20': outline }"
+  >
+    <div 
+      class="flex h-6 w-6 items-center justify-center rounded-full bg-base-100 shadow-sm"
+      :style="{ color: tag.customColour || undefined }"
+    >
+       <Icon v-if="tag.icon" :name="tag.icon" size="14" />
+       <Icon v-else name="heroicons:tag" size="14" />
+    </div>
+
+    <span class="truncate">{{ tag.title }}</span>
+
+    <button
+      v-if="clearable"
+      type="button"
+      class="ml-1 flex h-4 w-4 items-center justify-center rounded-full text-base-content/40 hover:bg-error/10 hover:text-error"
+      @click.stop="$emit('remove', tag)"
+    >
+      <Icon name="heroicons:x-mark" size="12" />
     </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, type StyleValue } from 'vue'
-import type { Tag } from '@api'
-import { TagType } from '@api'
-import { setTextColourForBackground } from '~/utils/colour-helper'
+import type { Tag } from '@api/models/Tag'
 
 interface Props {
   tag: Tag
@@ -20,35 +34,12 @@ interface Props {
   clearable?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   outline: false,
   clearable: false,
 })
 
-// Emits
-const emit = defineEmits<{
+defineEmits<{
   remove: [tag: Tag]
 }>()
-
-const tagClass = computed(() => ({
-  'badge-outline': props.outline,
-  'badge-error': props.tag.type === TagType.BACKEND,
-  'badge-success': props.tag.type === TagType.FRONTEND,
-  'badge-default': props.tag.type === TagType.OTHER,
-  'badge-primary': props.tag.type === TagType.DEV_OPS,
-  'badge-neutral': props.tag.type === TagType.DEFAULT,
-  'badge-accent': props.tag.type === TagType.CMS,
-  'badge-info': props.tag.type === TagType.MOBILE,
-  'badge-warning': props.tag.type === TagType.DATA,
-  [setTextColourForBackground(props.tag.customColour ?? '')]: props.tag.customColour,
-}))
-
-const tagStyle = computed((): StyleValue => {
-  if (!props.tag.customColour) return {}
-
-  return {
-    'background-color': props.tag.customColour,
-    'border-color': props.tag.customColour,
-  }
-})
 </script>

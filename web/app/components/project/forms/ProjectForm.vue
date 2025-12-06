@@ -165,7 +165,7 @@ onMounted(async () => {
   }
 })
 
-// Watch methods
+
 watch(activeTab, async (newValue: number, oldValue: number) => {
   if (oldValue === newValue) return
   if (validated.value) {

@@ -1,6 +1,6 @@
 <template>
   <header class="navbar bg-base-100">
-    <div class="flex-1">
+    <div class="flex-1 flex items-center gap-2">
       <NuxtLink to="/" class="btn btn-ghost text-xl">Joseph Pickering</NuxtLink>
       <ClientOnly>
         <NuxtLink
@@ -21,7 +21,7 @@
       <ThemeController />
       <UserDropdown
         :linked-in-url="linkedInUrl"
-        :is-authenticated="isAuthenticated"
+        :is-authenticated="isAuthenticated ?? false"
         :optimising="optimising"
         :optimise-error="optimiseError"
         @login="login"
@@ -40,7 +40,7 @@
     <MobileMenu
       v-if="showMobileMenu"
       :linked-in-url="linkedInUrl"
-      :is-authenticated="isAuthenticated"
+      :is-authenticated="isAuthenticated ?? false"
       :optimising="optimising"
       :optimise-error="optimiseError"
       @close="toggleMobileMenu"
@@ -123,7 +123,7 @@ onMounted(() => {
   })
 })
 
-// Watch methods
+
 watch(() => route.path, () => {
   showMobileMenu.value = false
 })

@@ -29,7 +29,7 @@ const props = withDefaults(defineProps<Props>(), {
   icon: undefined,
 })
 
-// Emits
+
 const emit = defineEmits<{
   click: []
 }>()

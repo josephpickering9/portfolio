@@ -47,7 +47,7 @@ const props = withDefaults(defineProps<Props>(), {
   multiple: false,
 })
 
-// Emits
+
 const emit = defineEmits<{
   'update:modelValue': [value: FileList | null]
   'update:file': [value: FileList | null]
@@ -68,7 +68,7 @@ function removeImage(url: string) {
   images.value = images.value.filter((image) => image !== url)
 }
 
-// Watch methods
+
 watch(() => props.imageUrls, (newValue) => {
   images.value = newValue ?? []
 })
