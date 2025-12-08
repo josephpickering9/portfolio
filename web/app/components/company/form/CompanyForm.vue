@@ -1,21 +1,11 @@
 <template>
-  <div class="w-full max-w-5xl space-y-6 flex flex-col">
-    <div class="flex items-center justify-between">
-      <h1>{{ isUpdate ? 'Update' : 'New' }} Company</h1>
-      <div class="flex items-center gap-2">
-         <FormButton
-          v-if="isUpdate"
-          label="Delete"
-          type="error"
-          size="sm"
-          icon="material-symbols:delete"
-          :disabled="loading"
-          @click="remove"
-        />
-        <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
-      </div>
-    </div>
-
+  <FormLayout
+    :title="isUpdate ? 'Update Company' : 'New Company'"
+    :loading="loading"
+    :show-delete="isUpdate"
+    @save="save"
+    @delete="remove"
+  >
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
       <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10 lg:col-span-2">
         <div class="card-body gap-4">
@@ -54,7 +44,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </FormLayout>
 </template>
 
 <script setup lang="ts">
@@ -65,11 +55,11 @@ import { useNotificationStore } from '~/store/NotificationStore'
 import type { CreateCompany } from '@api/models/CreateCompany'
 import type { Company } from '@api/models/Company'
 import { getImageUrl } from '~/utils/image-helper'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import TextInput from '~/components/ui/input/TextInput.vue'
-import FormButton from '~/components/ui/form/FormButton.vue'
 import FileInput from '~/components/ui/input/FileInput.vue'
 import TextEditor from '~/components/ui/input/TextEditor.vue'
+import FormLayout from '~/components/ui/layout/FormLayout.vue'
 
 interface Props {
   id?: string | null
@@ -104,7 +94,7 @@ const companyError = computed((): string | undefined => {
 })
 
 const loading = computed((): boolean => {
-  return companyStore.companyCreating || companyStore.companyLoading
+  return companyStore.companyCreating || companyStore.companyLoading || false
 })
 
 const error = computed((): string | undefined => {
@@ -161,8 +151,8 @@ onMounted(async () => {
       description.value = company.value.description
       logoUrl.value = company.value.logo ? getImageUrl(company.value.logo) : undefined
       website.value = company.value.website ?? ''
-      startDate.value = company.value.startDate ? format(new Date(company.value.startDate), 'yyyy-MM-dd') : undefined
-      endDate.value = company.value.endDate ? format(new Date(company.value.endDate), 'yyyy-MM-dd') : undefined
+      startDate.value = company.value.startDate ? format(parseISO(company.value.startDate), 'yyyy-MM-dd') : undefined
+      endDate.value = company.value.endDate ? format(parseISO(company.value.endDate), 'yyyy-MM-dd') : undefined
     } else {
       notificationStore.displayErrorNotification(companyError.value || 'An error occurred')
     }

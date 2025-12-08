@@ -39,7 +39,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import type { Tag as TagType } from '@api'
 import { useTagStore } from '~/store/TagStore'
 import { useProjectStore } from '~/store/ProjectStore'
-import { isEmpty } from 'lodash-es'
+import { countBy, flatMap, isEmpty, orderBy } from 'lodash-es'
 import Tag from '../Tag.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
 
@@ -57,29 +57,16 @@ const itemRefs = ref<HTMLElement[]>([])
 
 // Calculate tag counts from projects
 const tagCounts = computed((): Record<string, number> => {
-  const counts: Record<string, number> = {}
-  
-  projectStore.projects.forEach(project => {
-    project.tags.forEach(tag => {
-      counts[tag.title] = (counts[tag.title] || 0) + 1
-    })
-  })
-  
-  return counts
+  return countBy(flatMap(projectStore.projects, 'tags'), 'title')
 })
 
 const tags = computed((): TagType[] => {
   // Sort by count (descending), then by title (ascending)
-  return [...tagStore.tags].sort((a, b) => {
-    const countA = tagCounts.value[a.title] || 0
-    const countB = tagCounts.value[b.title] || 0
-    
-    if (countB !== countA) {
-      return countB - countA // Sort by count descending
-    }
-    
-    return a.title.localeCompare(b.title) // Sort by title ascending for ties
-  })
+  return orderBy(
+    tagStore.tags,
+    [(tag) => tagCounts.value[tag.title] || 0, (tag) => tag.title],
+    ['desc', 'asc']
+  )
 })
 
 const filteredTags = computed(() => {

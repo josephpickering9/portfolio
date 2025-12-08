@@ -1,10 +1,13 @@
 <template>
-  <div class="w-full max-w-5xl">
+  <FormLayout
+    :title="isUpdate ? 'Update Tag' : 'Create Tag'"
+    :loading="loading"
+    :show-delete="isUpdate"
+    save-label="Save Tag"
+    @save="save(props.id || null, createTagValue, isUpdate)"
+    @delete="remove(props.id!)"
+  >
     <div class="mb-8">
-      <h1>
-        <span v-if="initialLoad" class="skeleton block h-10 w-48 rounded-lg"/>
-        <span v-else class="text-4xl font-extrabold text-primary">{{ isUpdate ? 'Update' : 'Create' }} Tag</span>
-      </h1>
       <p v-if="initialLoad" class="skeleton mt-2 h-5 w-64 rounded"/>
       <p v-else class="text-base-content/60">
         {{ isUpdate ? 'Modify existing tag details' : 'Add a new tag to the collection' }}
@@ -58,20 +61,6 @@
           <TagTypeSelectList v-model="type" label="Type" :disabled="loading" />
           <IconAutoComplete v-model="icon" label="Icon" :disabled="loading" />
           <ColourPicker v-model="customColour" label="Custom Colour" :disabled="loading" />
-
-          <div class="flex items-center justify-between space-x-3 pt-4">
-             <FormButton
-              v-if="isUpdate"
-              label="Delete"
-              type="error"
-              size="md"
-              icon="material-symbols:delete"
-              :disabled="loading"
-              variant="ghost"
-              @click="remove"
-            />
-            <FormButton label="Save Tag" type="primary" size="md" :loading="loading" icon="heroicons:check" @click="save" />
-          </div>
         </div>
       </div>
 
@@ -91,7 +80,7 @@
         </div>
       </div>
     </div>
-  </div>
+  </FormLayout>
 </template>
 
 <script setup lang="ts">
@@ -99,9 +88,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTagStore } from '~/store/TagStore'
 import { useNotificationStore } from '~/store/NotificationStore'
+import { useEntityForm } from '~/composables/useEntityForm'
 import { TagType, type CreateTag, type Tag } from '@api'
 import TextInput from '~/components/ui/input/TextInput.vue'
-import FormButton from '~/components/ui/form/FormButton.vue'
+import FormLayout from '~/components/ui/layout/FormLayout.vue'
 import ColourPicker from '~/components/ui/input/ColourPicker.vue'
 import IconAutoComplete from '~/components/ui/input/IconAutoComplete.vue'
 import TagListItem from '~/components/tag/list/TagListItem.vue'
@@ -129,22 +119,6 @@ const isUpdate = computed((): boolean => {
   return props.id != null
 })
 
-const tag = computed((): Tag | undefined => {
-  return tagStore.tag
-})
-
-const tagError = computed((): string | undefined => {
-  return tagStore.tagError
-})
-
-const loading = computed((): boolean => {
-  return tagStore.tagCreating || tagStore.tagLoading
-})
-
-const error = computed((): string | undefined => {
-  return tagStore.tagCreateError
-})
-
 const createTagValue = computed((): CreateTag => {
   return {
     title: title.value,
@@ -165,48 +139,38 @@ const previewTag = computed((): Tag => {
   }
 })
 
-async function save() {
-  let response: Tag | undefined
+const { save, remove, fetch } = useEntityForm<Tag, CreateTag>({
+  store: tagStore,
+  notificationStore,
+  router,
+  redirectRoute: '/tags',
+  actions: {
+    get: tagStore.getTag,
+    create: tagStore.createTag,
+    update: tagStore.updateTag,
+    delete: tagStore.deleteTag,
+  },
+  state: {
+    entity: () => tagStore.tag,
+    error: () => tagStore.tagError,
+    loading: () => tagStore.tagCreating || tagStore.tagLoading,
+    createError: () => tagStore.tagCreateError,
+  },
+})
 
-  if (isUpdate.value && props.id) {
-    response = await tagStore.updateTag(props.id, createTagValue.value)
-  } else {
-    response = await tagStore.createTag(createTagValue.value)
-  }
-
-  if (!error.value && response) {
-    router.push(`/tags`)
-    notificationStore.displaySuccessNotification(`Tag ${isUpdate.value ? 'updated' : 'created'} successfully`)
-  } else {
-    notificationStore.displayErrorNotification(error.value || 'An error occurred')
-  }
-}
-
-async function remove() {
-  if (isUpdate.value && props.id) {
-    await tagStore.deleteTag(props.id)
-
-    if (!error.value) {
-      router.push(`/tags`)
-      notificationStore.displaySuccessNotification('Tag deleted successfully')
-    } else {
-      notificationStore.displayErrorNotification(error.value || 'An error occurred')
-    }
-  }
-}
+const loading = computed((): boolean => {
+  return tagStore.tagCreating || tagStore.tagLoading || false
+})
 
 onMounted(async () => {
   if (isUpdate.value && props.id) {
-    // initialLoad is already true
-    await tagStore.getTag(props.id)
+    const fetchedTag = await fetch(props.id)
 
-    if (!tagError.value && tag.value) {
-      title.value = tag.value.title
-      type.value = tag.value.type
-      icon.value = tag.value.icon ?? ''
-      customColour.value = tag.value.customColour ?? ''
-    } else {
-      notificationStore.displayErrorNotification(tagError.value || 'An error occurred')
+    if (fetchedTag) {
+      title.value = fetchedTag.title
+      type.value = fetchedTag.type
+      icon.value = fetchedTag.icon ?? ''
+      customColour.value = fetchedTag.customColour ?? ''
     }
     initialLoad.value = false
   } else {

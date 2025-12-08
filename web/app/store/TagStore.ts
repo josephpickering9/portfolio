@@ -1,112 +1,56 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { TagService } from '@api/services/TagService'
-import { extractError } from '~/utils/error-helper'
+import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 import type { Tag } from '@api/models/Tag'
 import type { CreateTag } from '@api/models/CreateTag'
 
 export const useTagStore = defineStore('tagStore', {
   state: () => ({
-    tags: [] as Tag[],
-    tagsLoading: false,
-    tagsError: undefined as string | undefined,
-    tag: undefined as Tag | undefined,
-    tagLoading: false,
-    tagError: undefined as string | undefined,
-    tagCreating: false,
-    tagCreateError: undefined as string | undefined,
+    tagsForm: asyncForm<Tag[]>(),
+    tagForm: asyncForm<Tag>(),
+    tagCreateForm: asyncForm<Tag>(),
   }),
+  getters: {
+    tags: (state) => state.tagsForm.data ?? [],
+    tagsLoading: (state) => state.tagsForm.loading,
+    tagsError: (state) => state.tagsForm.error,
+    tag: (state) => state.tagForm.data,
+    tagLoading: (state) => state.tagForm.loading,
+    tagError: (state) => state.tagForm.error,
+    tagCreating: (state) => state.tagCreateForm.loading,
+    tagCreateError: (state) => state.tagCreateForm.error,
+  },
   actions: {
     async getTags(search?: string): Promise<void> {
-      if (this.tagsLoading) return
+      if (this.tagsForm.loading) return
 
-      try {
-        this.tagsError = undefined
-        this.tagsLoading = true
-
-        this.tags = await TagService.getTag(search)
-      } catch (error) {
-        this.tagsError = extractError(error)
-      } finally {
-        this.tagsLoading = false
-      }
+      await tryCatchFinally(ref(this.tagsForm), () => TagService.getTag(search))
     },
     async getTag(id: string): Promise<void> {
-      if (!id || this.tagLoading) return
+      if (!id || this.tagForm.loading) return
 
-      try {
-        this.tagError = undefined
-        this.tagLoading = true
-
-        this.tag = await TagService.getTag1(id)
-      } catch (error) {
-        this.tagError = extractError(error)
-      } finally {
-        this.tagLoading = false
-      }
+      await tryCatchFinally(ref(this.tagForm), () => TagService.getTag1(id))
     },
     async getTagBySlug(slug: string): Promise<void> {
-      if (!slug || this.tagLoading) return
+      if (!slug || this.tagForm.loading) return
 
-      try {
-        this.tagError = undefined
-        this.tagLoading = true
-
-        this.tag = await TagService.getTag2(slug)
-      } catch (error) {
-        this.tagError = extractError(error)
-      } finally {
-        this.tagLoading = false
-      }
+      await tryCatchFinally(ref(this.tagForm), () => TagService.getTag2(slug))
     },
     async createTag(tag: CreateTag): Promise<Tag | undefined> {
-      if (!tag || this.tagCreating) return
+      if (!tag || this.tagCreateForm.loading) return
 
-      let response: Tag | undefined
-
-      try {
-        this.tagCreateError = undefined
-        this.tagCreating = true
-
-        response = await TagService.postTag(tag)
-      } catch (error) {
-        this.tagCreateError = extractError(error)
-      } finally {
-        this.tagCreating = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.tagCreateForm), () => TagService.postTag(tag))
     },
     async updateTag(id: string, tag: CreateTag): Promise<Tag | undefined> {
-      if (!tag || this.tagCreating) return
+      if (!tag || this.tagCreateForm.loading) return
 
-      let response: Tag | undefined
-
-      try {
-        this.tagCreateError = undefined
-        this.tagCreating = true
-
-        response = await TagService.putTag(id, tag)
-      } catch (error) {
-        this.tagCreateError = extractError(error)
-      } finally {
-        this.tagCreating = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.tagCreateForm), () => TagService.putTag(id, tag))
     },
     async deleteTag(id: string): Promise<void> {
-      if (!id || this.tagCreating) return
+      if (!id || this.tagCreateForm.loading) return
 
-      try {
-        this.tagCreateError = undefined
-        this.tagCreating = true
-
-        await TagService.deleteTag(id)
-      } catch (error) {
-        this.tagCreateError = extractError(error)
-      } finally {
-        this.tagCreating = false
-      }
+      await tryCatchFinally(ref(this.tagCreateForm), () => TagService.deleteTag(id))
     },
   },
 })

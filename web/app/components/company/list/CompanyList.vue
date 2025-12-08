@@ -43,7 +43,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { isEmpty } from 'lodash-es'
-import { useRoute, useRouter } from 'vue-router'
+import { useQuerySync } from '~/composables/useQuerySync'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useProjectStore } from '~/store/ProjectStore'
 import type { Company } from '@api/models/Company'
@@ -53,14 +53,14 @@ import TextInput from '~/components/ui/input/TextInput.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import CompanyTimeline from '~/components/company/timeline/CompanyTimeline.vue'
 
-const route = useRoute()
-const router = useRouter()
 const { isAuthenticated } = useAuth()
 const companyStore = useCompanyStore()
 const projectStore = useProjectStore()
 
 const initialLoad = ref(true)
 const search = ref('')
+
+useQuerySync(search, { key: 'search', initialValue: '' })
 
 const companies = computed((): Company[] => {
   return companyStore.companies
@@ -84,21 +84,7 @@ const filteredCompanies = computed((): Company[] => {
   return companiesFiltered
 })
 
-function setValues() {
-  search.value = route.query.search?.toString() || search.value
-}
-
-function updateQueryParams() {
-  router.push({
-    path: route.path,
-    query: {
-      search: !isEmpty(search.value) ? search.value : undefined,
-    },
-  })
-}
-
 onMounted(async () => {
-  setValues()
   await Promise.all([
     companyStore.getCompanies(),
     projectStore.getProjects(),
@@ -108,13 +94,5 @@ onMounted(async () => {
 
 watch(companies, () => {
   initialLoad.value = false
-})
-
-watch(() => route.query, () => {
-  setValues()
-})
-
-watch(search, () => {
-  updateQueryParams()
 })
 </script>

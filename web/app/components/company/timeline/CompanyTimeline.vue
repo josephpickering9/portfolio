@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { format } from 'date-fns'
+import { compareDesc, format, parseISO } from 'date-fns'
 import type { Company } from '@api/models/Company'
 import type { Project } from '@api/models/Project'
 import { getImageUrl } from '~/utils/image-helper'
@@ -80,7 +80,7 @@ const sortedCompanies = computed(() => {
     if (!a.startDate && !b.startDate) return 0
     if (!a.startDate) return 1
     if (!b.startDate) return -1
-    return new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    return compareDesc(parseISO(a.startDate), parseISO(b.startDate))
   })
 })
 
@@ -89,8 +89,8 @@ function getCompanyProjects(companyId: string): Project[] {
 }
 
 function getDateRange(company: Company): string {
-  const start = company.startDate ? format(new Date(company.startDate), 'MMM yyyy') : ''
-  const end = company.endDate ? format(new Date(company.endDate), 'MMM yyyy') : 'Present'
+  const start = company.startDate ? format(parseISO(company.startDate), 'MMM yyyy') : ''
+  const end = company.endDate ? format(parseISO(company.endDate), 'MMM yyyy') : 'Present'
 
   if (!start) return ''
   return `${start} - ${end}`

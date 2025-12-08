@@ -1,137 +1,64 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { ProjectService } from '@api/services/ProjectService'
-import { extractError } from '~/utils/error-helper'
+import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 import type { Project } from '@api/models/Project'
 import type { CreateProject } from '@api/models/CreateProject'
 
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({
-    projects: [] as Project[],
-    projectsLoading: false,
-    projectsError: undefined as string | undefined,
-    project: undefined as Project | undefined,
-    projectLoading: false,
-    projectError: undefined as string | undefined,
-    projectCreating: false,
-    projectCreateError: undefined as string | undefined,
-    relatedProjects: [] as Project[],
-    relatedProjectsLoading: false,
+    projectsForm: asyncForm<Project[]>(),
+    projectForm: asyncForm<Project>(),
+    projectCreateForm: asyncForm<Project>(),
+    relatedProjectsForm: asyncForm<Project[]>(),
   }),
+  getters: {
+    projects: (state) => state.projectsForm.data ?? [],
+    projectsLoading: (state) => state.projectsForm.loading,
+    projectsError: (state) => state.projectsForm.error,
+    project: (state) => state.projectForm.data,
+    projectLoading: (state) => state.projectForm.loading,
+    projectError: (state) => state.projectForm.error,
+    projectCreating: (state) => state.projectCreateForm.loading,
+    projectCreateError: (state) => state.projectCreateForm.error,
+    relatedProjects: (state) => state.relatedProjectsForm.data ?? [],
+    relatedProjectsLoading: (state) => state.relatedProjectsForm.loading,
+  },
   actions: {
     async getProjects(search?: string): Promise<Project[]> {
-      if (this.projectsLoading) return []
+      if (this.projectsForm.loading) return []
 
-      let response: Project[] = []
-
-      try {
-        this.projectsError = undefined
-        this.projectsLoading = true
-
-        response = await ProjectService.getProject(search)
-        this.projects = response
-      } catch (error) {
-        this.projectsError = extractError(error)
-      } finally {
-        this.projectsLoading = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.projectsForm), () => ProjectService.getProject(search)) || []
     },
     async getProject(id: number): Promise<void> {
-      if (!id || this.projectLoading) return
+      if (!id || this.projectForm.loading) return
 
-      try {
-        this.projectError = undefined
-        this.projectLoading = true
-
-        this.project = await ProjectService.getProject1(id)
-      } catch (error) {
-        this.projectError = extractError(error)
-      } finally {
-        this.projectLoading = false
-      }
+      await tryCatchFinally(ref(this.projectForm), () => ProjectService.getProject1(id.toString()))
     },
     async getProjectBySlug(slug: string): Promise<void> {
-      if (!slug || this.projectLoading) return
+      if (!slug || this.projectForm.loading) return
 
-      try {
-        this.projectError = undefined
-        this.projectLoading = true
-
-        this.project = await ProjectService.getProject2(slug)
-      } catch (error) {
-        this.projectError = extractError(error)
-      } finally {
-        this.projectLoading = false
-      }
+      await tryCatchFinally(ref(this.projectForm), () => ProjectService.getProject2(slug))
     },
     async getRelatedProjects(id: number): Promise<Project[]> {
-      if (!id || this.relatedProjectsLoading) return []
+      if (!id || this.relatedProjectsForm.loading) return []
 
-      let response: Project[] = []
-
-      try {
-        this.relatedProjectsLoading = true
-
-        response = await ProjectService.getProjectRelated(id)
-        this.relatedProjects = response
-      } catch {
-        // ignore
-      } finally {
-        this.relatedProjectsLoading = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.relatedProjectsForm), () => ProjectService.getProjectRelated(id.toString())) || []
     },
     async createProject(project: CreateProject): Promise<Project | undefined> {
-      if (!project || this.projectCreating) return
+      if (!project || this.projectCreateForm.loading) return
 
-      let response: Project | undefined
-
-      try {
-        this.projectCreateError = undefined
-        this.projectCreating = true
-
-        response = await ProjectService.postProject(project)
-      } catch (error) {
-        this.projectCreateError = extractError(error)
-      } finally {
-        this.projectCreating = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.projectCreateForm), () => ProjectService.postProject(project))
     },
     async updateProject(id: number, project: CreateProject): Promise<Project | undefined> {
-      if (!project || this.projectCreating) return
+      if (!project || this.projectCreateForm.loading) return
 
-      let response: Project | undefined
-
-      try {
-        this.projectCreateError = undefined
-        this.projectCreating = true
-
-        response = await ProjectService.putProject(id, project)
-      } catch (error) {
-        this.projectCreateError = extractError(error)
-      } finally {
-        this.projectCreating = false
-      }
-
-      return response
+      return await tryCatchFinally(ref(this.projectCreateForm), () => ProjectService.putProject(id.toString(), project))
     },
     async deleteProject(id: number): Promise<void> {
-      if (!id || this.projectCreating) return
+      if (!id || this.projectCreateForm.loading) return
 
-      try {
-        this.projectCreateError = undefined
-        this.projectCreating = true
-
-        await ProjectService.deleteProject(id)
-      } catch (error) {
-        this.projectCreateError = extractError(error)
-      } finally {
-        this.projectCreating = false
-      }
+      await tryCatchFinally(ref(this.projectCreateForm), () => ProjectService.deleteProject(id.toString()))
     },
   },
 })

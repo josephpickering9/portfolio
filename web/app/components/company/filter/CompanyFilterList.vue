@@ -21,6 +21,7 @@
 
 <script setup lang="ts">
 import { ref, computed, nextTick, onMounted } from 'vue'
+import { orderBy } from 'lodash-es'
 import type { Company } from '@api'
 import { useCompanyStore } from '~/store/CompanyStore'
 import CompanyItem from '../form/CompanyItem.vue'
@@ -35,13 +36,11 @@ const focusedIndex = ref(-1)
 const itemRefs = ref<HTMLElement[]>([])
 
 const companies = computed((): Company[] => {
-  const sorted = [...companyStore.companies].sort((a, b) => {
-    if (!a.startDate && !b.startDate) return 0
-    if (!a.startDate) return -1
-    if (!b.startDate) return 1
-    return b.startDate!.localeCompare(a.startDate!)
-  })
-  return sorted
+  return orderBy(
+    companyStore.companies,
+    [(c) => c.startDate || ''],
+    ['desc']
+  )
 })
 
 const filteredCompanies = computed(() => {  

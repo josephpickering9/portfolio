@@ -57,7 +57,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { isEmpty } from 'lodash-es'
+import { isEmpty, orderBy } from 'lodash-es'
 import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '~/store/ProjectStore'
 import { usePreferencesStore } from '~/store/PreferencesStore'
@@ -170,30 +170,17 @@ const filteredProjects = computed((): Project[] => {
 })
 
 const sortedProjects = computed((): Project[] => {
-  const sorted = [...filteredProjects.value]
+  if (!sortColumn.value) return [...filteredProjects.value]
 
-  if (!sortColumn.value) return sorted
-
-  sorted.sort((a, b) => {
-    let aValue: any
-    let bValue: any
-
-    if (sortColumn.value === 'project') {
-      aValue = a.title.toLowerCase()
-      bValue = b.title.toLowerCase()
-    } else if (sortColumn.value === 'dateRange') {
-      aValue = new Date(a.startDate).getTime()
-      bValue = new Date(b.startDate).getTime()
-    } else {
-      return 0
-    }
-
-    if (aValue < bValue) return sortDirection.value === 'asc' ? -1 : 1
-    if (aValue > bValue) return sortDirection.value === 'asc' ? 1 : -1
-    return 0
-  })
-
-  return sorted
+  return orderBy(
+    filteredProjects.value,
+    [(p) => {
+      if (sortColumn.value === 'project') return p.title.toLowerCase()
+      if (sortColumn.value === 'dateRange') return new Date(p.startDate).getTime()
+      return ''
+    }],
+    [sortDirection.value as 'asc' | 'desc']
+  )
 })
 
 const wrapperClass = computed(() => ({

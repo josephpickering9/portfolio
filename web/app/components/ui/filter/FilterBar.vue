@@ -86,6 +86,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { debounce } from 'lodash-es'
 import { Icon } from '#components'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useTagStore } from '~/store/TagStore'
@@ -117,7 +118,7 @@ const hoveredFilterType = ref<string | null>(null)
 const submenuPosition = ref<'left' | 'right'>('right')
 const dropdownPosition = ref<'left' | 'right'>('right')
 const container = ref<HTMLElement | null>(null)
-const hideTimeout = ref<NodeJS.Timeout | null>(null)
+
 const focusedFilterTypeIndex = ref(-1) // -1 means search is focused
 const filterTypeRefs = ref<HTMLElement[]>([])
 const searchInputRef = ref<InstanceType<typeof TextInput> | null>(null)
@@ -167,36 +168,28 @@ function close() {
   hoveredFilterType.value = null
 }
 
+const debouncedCloseSubmenu = debounce(() => {
+  hoveredFilterType.value = null
+}, 150)
+
 function handleSubmenuLeave() {
-  // Delay hiding to allow user to move mouse from button to submenu
-  hideTimeout.value = setTimeout(() => {
-    hoveredFilterType.value = null
-  }, 150)
+  debouncedCloseSubmenu()
 }
 
 function handleFilterTypeLeave() {
-  // Delay hiding to allow user to move mouse to submenu
-  hideTimeout.value = setTimeout(() => {
-    hoveredFilterType.value = null
-  }, 150)
+  debouncedCloseSubmenu()
 }
 
 function handleSubmenuEnter(filterTypeValue: string) {
-  // Clear any pending hide timeout when entering submenu
-  if (hideTimeout.value) {
-    clearTimeout(hideTimeout.value)
-    hideTimeout.value = null
-  }
+  // Cancel any pending close when entering submenu
+  debouncedCloseSubmenu.cancel()
   // Ensure the submenu stays visible
   hoveredFilterType.value = filterTypeValue
 }
 
 function handleFilterTypeHover(filterTypeValue: string, event: MouseEvent) {
-  // Clear any pending hide timeout when hovering
-  if (hideTimeout.value) {
-    clearTimeout(hideTimeout.value)
-    hideTimeout.value = null
-  }
+  // Cancel any pending close when hovering
+  debouncedCloseSubmenu.cancel()
   
   hoveredFilterType.value = filterTypeValue
   

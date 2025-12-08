@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
-import { format, intervalToDuration } from 'date-fns'
+import { format, formatDuration, intervalToDuration, parseISO } from 'date-fns'
 import type { Company as CompanyModel } from '@api/models/Company'
 import { getImageUrl } from '~/utils/image-helper'
 import useAuth from '~/composables/useAuth'
@@ -54,8 +54,8 @@ const logo = computed((): string => {
 })
 
 const dateRange = computed((): string => {
-  const start = props.company.startDate ? format(new Date(props.company.startDate), 'MMM yyyy') : ''
-  const end = props.company.endDate ? format(new Date(props.company.endDate), 'MMM yyyy') : 'Present'
+  const start = props.company.startDate ? format(parseISO(props.company.startDate), 'MMM yyyy') : ''
+  const end = props.company.endDate ? format(parseISO(props.company.endDate), 'MMM yyyy') : 'Present'
 
   if (!start) return ''
 
@@ -66,20 +66,10 @@ const duration = computed((): string => {
   if (!props.company.startDate || !props.company.endDate) return ''
 
   const interval = intervalToDuration({
-    start: new Date(props.company.startDate),
-    end: new Date(props.company.endDate),
+    start: parseISO(props.company.startDate),
+    end: parseISO(props.company.endDate),
   })
 
-  const parts: string[] = []
-  
-  if (interval.years) {
-    parts.push(`${interval.years} year${interval.years > 1 ? 's' : ''}`)
-  }
-  
-  if (interval.months) {
-    parts.push(`${interval.months} month${interval.months > 1 ? 's' : ''}`)
-  }
-
-  return parts.join(' ')
+  return formatDuration(interval, { format: ['years', 'months'] })
 })
 </script>

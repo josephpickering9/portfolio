@@ -61,8 +61,8 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { isEmpty } from 'lodash-es'
-import { useRoute, useRouter } from 'vue-router'
+import { chain, isEmpty, sortBy } from 'lodash-es'
+import { useQuerySync } from '~/composables/useQuerySync'
 import { useTagStore } from '~/store/TagStore'
 import type { Tag } from '@api/models/Tag'
 import { TagType } from '@api/models/TagType'
@@ -74,14 +74,20 @@ import TagTypeSelectList from '~/components/tag/form/TagTypeSelectList.vue'
 import TagListItem from './TagListItem.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
 
-const route = useRoute()
-const router = useRouter()
+
 const { isAuthenticated } = useAuth()
 const tagStore = useTagStore()
 
 const initialLoad = ref(true)
 const search = ref('')
 const tagType = ref<TagType | undefined>(undefined)
+
+useQuerySync(search, { key: 'search', initialValue: '' })
+useQuerySync(tagType, { 
+  key: 'type', 
+  initialValue: undefined,
+  transform: (val) => val ? getEnumValue(TagType, val) : undefined,
+})
 
 const tags = computed((): Tag[] => {
   return tagStore.tags
@@ -102,56 +108,23 @@ const filteredTags = computed((): Record<string, Tag[]> => {
     tagsFiltered = tagsFiltered.filter((tag) => tag.type === tagType.value)
   }
 
-  const groupedAndSorted = tagsFiltered.reduce((acc: any, tag: Tag) => {
-    const type = (acc[tag.type] = acc[tag.type] || [])
-    type.push(tag)
-    acc[tag.type].sort((a: Tag, b: Tag) => a.title.localeCompare(b.title))
-    return acc
-  }, {})
+  const sortedGroupedTags = chain(tagsFiltered)
+    .groupBy('type')
+    .mapValues((tags) => sortBy(tags, ['title']))
+    .toPairs()
+    .sortBy(0)
+    .fromPairs()
+    .value()
 
-  const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
-  const sortedGroupedTags = sortedGroupTitles.reduce((acc: any, title: string) => {
-    acc[title] = groupedAndSorted[title]
-    return acc
-  }, {})
-
-  return sortedGroupedTags
+  return sortedGroupedTags as Record<string, Tag[]>
 })
 
-function setValues() {
-  search.value = route.query['search']?.toString() || search.value
-  tagType.value = (route.query['type'] ? getEnumValue(TagType, route.query['type'].toString()) : undefined) || tagType.value
-}
-
-function updateQueryParams() {
-  router.push({
-    path: route.path,
-    query: {
-      search: !isEmpty(search.value) ? search.value : undefined,
-      type: tagType.value ? tagType.value : undefined,
-    },
-  })
-}
-
 onMounted(async () => {
-  setValues()
   await tagStore.getTags()
 })
 
 watch(tags, () => {
   initialLoad.value = false
-})
-
-watch(() => route.query, () => {
-  setValues()
-})
-
-watch(search, () => {
-  updateQueryParams()
-})
-
-watch(tagType, () => {
-  updateQueryParams()
 })
 </script>
 

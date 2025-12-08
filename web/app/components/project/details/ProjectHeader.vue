@@ -41,7 +41,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import type { Company, Project } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
 import useAuth from '~/composables/useAuth'
@@ -64,9 +64,9 @@ const bannerStyle = computed(() => {
 const dateRange = computed(() => {
   if (!props.project.startDate) return ''
   
-  const start = format(new Date(props.project.startDate), 'MMM yyyy')
+  const start = format(parseISO(props.project.startDate), 'MMM yyyy')
   const end = props.project.endDate 
-    ? format(new Date(props.project.endDate), 'MMM yyyy') 
+    ? format(parseISO(props.project.endDate), 'MMM yyyy') 
     : 'Present'
     
   return `${start} - ${end}`

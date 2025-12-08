@@ -6,7 +6,6 @@
     :sort-direction="sortDirection"
     @sort="$emit('sort', $event)"
   >
-    <!-- Logo Column -->
     <template #cell-logo="{ row }">
       <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-base-100 p-1 shadow-sm ring-1 ring-base-200">
         <img
@@ -19,7 +18,6 @@
       </div>
     </template>
 
-    <!-- Project Title & Company Column -->
     <template #cell-project="{ row }">
       <NuxtLink
         :to="`/projects/${row.slug}`"
@@ -32,7 +30,6 @@
       </NuxtLink>
     </template>
 
-    <!-- Date Range Column -->
     <template #cell-dateRange="{ row }">
       <div class="flex flex-col text-sm text-base-content/70">
         <span>{{ formatDate(row.startDate) }}</span>
@@ -40,14 +37,12 @@
       </div>
     </template>
 
-    <!-- Description Column -->
     <template #cell-description="{ row }">
       <p class="line-clamp-2 text-sm text-base-content/70 max-w-md">
         {{ row.shortDescription }}
       </p>
     </template>
 
-    <!-- Tags Column -->
     <template #cell-tags="{ row }">
       <div class="flex flex-wrap gap-1.5">
         <Tag
@@ -65,7 +60,6 @@
       </div>
     </template>
 
-    <!-- Actions Column -->
     <template #cell-actions="{ row }">
       <NuxtLink
         :to="`/projects/${row.slug}`"
@@ -79,7 +73,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { format } from 'date-fns'
+import { format, parseISO } from 'date-fns'
 import type { Project } from '@api/models/Project'
 import { getImageUrl } from '~/utils/image-helper'
 import Table, { type TableColumn } from '~/components/ui/table/Table.vue'
@@ -143,7 +137,7 @@ const columns = computed<TableColumn[]>(() => [
 
 function formatDate(dateString: string): string {
   try {
-    return format(new Date(dateString), 'MMM yyyy')
+    return format(parseISO(dateString), 'MMM yyyy')
   } catch {
     return dateString
   }
