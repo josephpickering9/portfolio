@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Work_Experience_Search.Services;
 
 #nullable disable
@@ -18,6 +19,8 @@ namespace Work_Experience_Search.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "8.0.22")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("ProjectTag", b =>
                 {
@@ -38,8 +41,7 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -55,12 +57,12 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateOnly?>("StartDate")
-                        .HasColumnType("date");
-
                     b.Property<string>("Slug")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("Website")
                         .HasColumnType("text");
@@ -77,8 +79,7 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("CompanyId")
                         .HasColumnType("uuid");
@@ -86,6 +87,9 @@ namespace Work_Experience_Search.Migrations
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
 
                     b.Property<string>("ShortDescription")
                         .IsRequired()
@@ -98,15 +102,15 @@ namespace Work_Experience_Search.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Website")
                         .HasColumnType("text");
-
-                    b.Property<int>("Year")
-                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -122,8 +126,7 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Image")
                         .IsRequired()
@@ -153,8 +156,7 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("Order")
                         .HasColumnType("integer");
@@ -181,8 +183,7 @@ namespace Work_Experience_Search.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasDefaultValueSql("uuid_generate_v4()");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("CustomColour")
                         .HasColumnType("text");
