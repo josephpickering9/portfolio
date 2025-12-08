@@ -151,8 +151,8 @@ onMounted(async () => {
       form.value.shortDescription = project.value.shortDescription
       form.value.description = project.value.description
       form.value.companyId = project.value.companyId ?? undefined
-      form.value.startDate = project.value.startDate.substring(0, 10)
-      form.value.endDate = project.value.endDate ? project.value.endDate.substring(0, 10) : undefined
+      form.value.startDate = project.value.startDate?.substring(0, 10)
+      form.value.endDate = project.value.endDate?.substring(0, 10)
       form.value.website = project.value.website ?? ''
       form.value.showMockup = project.value.showMockup
       form.value.tags = project.value.tags.map((tag) => tag.title) ?? []
