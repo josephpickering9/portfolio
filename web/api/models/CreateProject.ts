@@ -9,7 +9,8 @@ export type CreateProject = {
     shortDescription: string;
     description: string;
     companyId?: string | null;
-    year: number;
+    startDate: string;
+    endDate?: string | null;
     website?: string | null;
     showMockup: boolean;
     images?: Array<CreateProjectImage>;

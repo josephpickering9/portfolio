@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="flex flex-col gap-4">
     <Carousel
       v-if="desktopImages.length"
       :model-value="desktopImages"

@@ -39,13 +39,12 @@
         >
           <div
             v-if="isOpen"
-            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800 dark:ring-white/10 sm:text-sm"
+            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-base-100 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:ring-white/10 sm:text-sm"
           >
             <div
               v-for="option in options"
               :key="option.value.toString()"
-              class="relative cursor-pointer select-none px-4 py-2 hover:bg-primary-50 dark:hover:bg-primary-900/20"
-              :class="{ 'bg-primary-50 text-primary-900 dark:bg-primary-900/20 dark:text-primary-100': isSelected(option) }"
+              class="relative cursor-pointer select-none px-4 py-2 bg-base-100 hover:bg-base-200"
               @click="select(option)"
             >
               <div class="flex items-center gap-3">
@@ -78,7 +77,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import type { SelectListItem } from '@types/SelectListItem'
+import type { SelectListItem } from '~/types/SelectListItem'
 import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
 
 interface Props {

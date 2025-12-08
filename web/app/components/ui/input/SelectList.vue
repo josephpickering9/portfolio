@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { SelectListItem } from '@types/SelectListItem'
+import type { SelectListItem } from '~/types/SelectListItem'
 import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
 
 interface Props {

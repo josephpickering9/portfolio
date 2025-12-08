@@ -3,7 +3,7 @@
     <li v-for="(company, index) in sortedCompanies" :key="company.id">
       <div class="timeline-middle">
         <div class="flex h-8 w-8 items-center justify-center rounded-full bg-base-100 p-1 shadow-sm ring-1 ring-base-content/10">
-          <img v-if="company.logo" :src="getImageUrl(company.logo)" :alt="`${company.name} Logo`" class="h-full w-full object-contain" />
+          <img v-if="company.logo" :src="getImageUrl(company.logo)" :alt="`${company.name} Logo`" class="h-full w-full object-contain" >
           <Icon v-else name="mdi:domain" class="h-4 w-4 text-base-content/50" />
         </div>
       </div>
@@ -22,7 +22,7 @@
                 <span v-else>{{ company.name }}</span>
              </h3>
           </div>
-          <p class="text-sm text-base-content/80">{{ company.description }}</p>
+          <div class="text-sm" v-html="company.description" />
 
           <div v-if="getCompanyProjects(company.id).length" class="mt-2 flex flex-wrap gap-2" :class="{ 'justify-end': index % 2 === 0 }">
              <NuxtLink 
@@ -52,7 +52,7 @@
            </div>
         </div>
       </div>
-      <hr v-if="index !== sortedCompanies.length - 1" class="bg-base-content/10" />
+      <hr v-if="index !== sortedCompanies.length - 1" class="bg-base-content/10" >
     </li>
   </ul>
 </template>

@@ -13,7 +13,8 @@ export type Project = {
     description: string;
     companyId?: string | null;
     company?: Company;
-    year: number;
+    startDate: string;
+    endDate?: string | null;
     website?: string | null;
     showMockup: boolean;
     slug: string;

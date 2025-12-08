@@ -6,7 +6,6 @@
     class="card group relative flex flex-col justify-between overflow-hidden border border-base-200 bg-base-100 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md"
     :class="{ 'cursor-default hover:translate-y-0 hover:shadow-sm': preview }"
   >
-    <!-- Background Glow -->
     <div
       class="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-10"
       :style="{ backgroundColor: tag.customColour || 'currentColor' }"
@@ -43,22 +42,20 @@
 
 <script setup lang="ts">
 import { resolveComponent } from 'vue'
-import { useRouter } from 'vue-router'
 import type { Tag } from '@api/models/Tag'
 import useAuth from '~/composables/useAuth'
 import FormButton from '~/components/ui/form/FormButton.vue'
 
 interface Props {
-  tag: Tag
+  tag?: Tag
   preview?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   tag: undefined,
   preview: false,
 })
 
-const router = useRouter()
 const { isAuthenticated } = useAuth()
 const NuxtLink = resolveComponent('NuxtLink')
 </script>

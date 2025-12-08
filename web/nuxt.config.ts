@@ -32,11 +32,11 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.NUXT_PUBLIC_API_BASE ?? '',
-      base: process.env.NUXT_PUBLIC_BASE ?? '',
-      auth0Domain: process.env.NUXT_AUTH0_DOMAIN ?? '',
-      auth0ClientId: process.env.NUXT_AUTH0_CLIENT_ID,
-      linkedInUrl: process.env.NUXT_PUBLIC_LINKED_IN_URL ?? '',
+      apiBase: process.env['NUXT_PUBLIC_API_BASE'] ?? '',
+      base: process.env['NUXT_PUBLIC_BASE'] ?? '',
+      auth0Domain: process.env['NUXT_AUTH0_DOMAIN'] ?? '',
+      auth0ClientId: process.env['NUXT_AUTH0_CLIENT_ID'],
+      linkedInUrl: process.env['NUXT_PUBLIC_LINKED_IN_URL'] ?? '',
     },
   },
 
@@ -68,10 +68,16 @@ export default defineNuxtConfig({
   },
 
   pwa: {
+    devOptions: {
+      enabled: false,
+    },
+    strategies: 'generateSW',
+    registerType: 'autoUpdate',
     includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
     workbox: {
-      globPatterns: ['**/*.{js,css}'],
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,json,vue}'],
       navigateFallback: null,
+      runtimeCaching: [],
     },
     manifest: {
       name: 'Work Experience',

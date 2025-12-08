@@ -948,9 +948,9 @@
           "description",
           "shortDescription",
           "showMockup",
+          "startDate",
           "tags",
-          "title",
-          "year"
+          "title"
         ],
         "type": "object",
         "properties": {
@@ -971,9 +971,14 @@
             "format": "uuid",
             "nullable": true
           },
-          "year": {
-            "type": "integer",
-            "format": "int32"
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           },
           "website": {
             "type": "string",
@@ -1102,9 +1107,9 @@
           "shortDescription",
           "showMockup",
           "slug",
+          "startDate",
           "tags",
-          "title",
-          "year"
+          "title"
         ],
         "type": "object",
         "properties": {
@@ -1132,9 +1137,14 @@
           "company": {
             "$ref": "#/components/schemas/Company"
           },
-          "year": {
-            "type": "integer",
-            "format": "int32"
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
           },
           "website": {
             "type": "string",
@@ -1308,7 +1318,8 @@
           "Other",
           "Data",
           "CMS",
-          "Mobile"
+          "Mobile",
+          "AI"
         ],
         "type": "string"
       },

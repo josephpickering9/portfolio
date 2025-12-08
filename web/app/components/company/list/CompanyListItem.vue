@@ -13,8 +13,12 @@
           <Icon name="mdi:launch" />
         </div>
       </div>
-      <p v-if="dateRange" class="text-xs italic text-base-content/60">{{ dateRange }}</p>
-      <p class="pb-2 text-sm italic">{{ company.description }}</p>
+      <div v-if="dateRange || duration" class="flex items-center gap-2 text-xs italic text-base-content/60">
+        <p v-if="dateRange" class="m-0">{{ dateRange }}</p>
+        <span v-if="dateRange && duration" class="text-base-content/40">•</span>
+        <p v-if="duration" class="m-0">{{ duration }}</p>
+      </div>
+      <div class="pb-2 text-sm italic" v-html="company.description" />
     </div>
     <FormButton
       v-if="isAuthenticated"
@@ -29,7 +33,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
-import { format } from 'date-fns'
+import { format, intervalToDuration } from 'date-fns'
 import type { Company as CompanyModel } from '@api/models/Company'
 import { getImageUrl } from '~/utils/image-helper'
 import useAuth from '~/composables/useAuth'
@@ -56,5 +60,26 @@ const dateRange = computed((): string => {
   if (!start) return ''
 
   return `${start} - ${end}`
+})
+
+const duration = computed((): string => {
+  if (!props.company.startDate || !props.company.endDate) return ''
+
+  const interval = intervalToDuration({
+    start: new Date(props.company.startDate),
+    end: new Date(props.company.endDate),
+  })
+
+  const parts: string[] = []
+  
+  if (interval.years) {
+    parts.push(`${interval.years} year${interval.years > 1 ? 's' : ''}`)
+  }
+  
+  if (interval.months) {
+    parts.push(`${interval.months} month${interval.months > 1 ? 's' : ''}`)
+  }
+
+  return parts.join(' ')
 })
 </script>

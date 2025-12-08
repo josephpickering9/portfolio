@@ -2,21 +2,56 @@
   <NuxtLink
     v-if="project"
     :to="`/projects/${project.slug}`"
-    class="card card-bordered w-full bg-base-100 shadow-xl"
+    class="group card card-compact w-full bg-base-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
     @mousedown.stop.prevent="(event) => event.preventDefault()"
   >
-    <figure>
-      <img :src="backgroundImage" :alt="`${project.title} Background Image`" class="h-[230px] w-full object-cover" >
+    <figure class="relative overflow-hidden">
+      <img 
+        :src="backgroundImage" 
+        :alt="`${project.title} Background Image`" 
+        class="h-[200px] w-full object-cover transition-transform duration-500 group-hover:scale-105" 
+      >
+      <div class="absolute inset-0 bg-gradient-to-t from-base-100/90 via-base-100/20 to-transparent opacity-80" />
     </figure>
-    <div class="card-body px-6 pb-4 pt-6">
-      <div class="m-0 flex items-center gap-2">
-        <img v-if="project.logoUrl" :src="image" :alt="`${project.title} Logo`" class="m-0 h-6 w-6" >
-        <h2 class="card-title m-0">{{ project.title }}</h2>
+    
+    <div class="card-body relative -mt-8 justify-between">
+      <div>
+        <div class="mb-2 flex items-center gap-3">
+          <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-base-100 p-1 shadow-md ring-1 ring-base-200">
+            <img 
+              v-if="project.logoUrl" 
+              :src="image" 
+              :alt="`${project.title} Logo`" 
+              class="h-full w-full object-contain" 
+            >
+            <Icon v-else name="heroicons:cube" class="h-6 w-6 text-base-content/40" />
+          </div>
+          <div>
+            <h2 class="card-title text-lg font-bold leading-tight mt-2">{{ project.title }}</h2>
+             <span v-if="project.company" class="text-xs font-medium text-primary/80">
+              {{ project.company.name }}
+            </span>
+          </div>
+        </div>
+
+        <p class="line-clamp-2 text-sm text-base-content/70">
+          {{ project.shortDescription }}
+        </p>
       </div>
-      <p class="m-0 pb-2 text-sm italic">{{ project.shortDescription }}</p>
-      <div class="card-actions justify-end items-center">
-        <Tag v-for="(tag, index) in project.tags.slice(0, 2)" :key="index" :tag="tag" />
-        <small v-if="project.tags.length > 2">+{{ project.tags.length - 2 }}</small>
+
+      <div class="card-actions mt-4 items-center gap-2">
+        <Tag 
+          v-for="(tag, index) in project.tags.slice(0, 2)" 
+          :key="index" 
+          :tag="tag" 
+          class="bg-base-200/50"
+        />
+        <span 
+          v-if="project.tags.length > 2" 
+          class="flex h-6 items-center px-1.5 text-xs font-medium text-base-content/50"
+        >
+          +{{ project.tags.length - 2 }}
+        </span>
       </div>
     </div>
   </NuxtLink>

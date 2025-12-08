@@ -117,13 +117,13 @@ interface Props {
   label?: string | null
   modelValue: string
   placeholder?: string | null
+  disabled?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   label: undefined,
   placeholder: undefined,
 })
-
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -137,6 +137,7 @@ onMounted(() => {
   editor.value = new Editor({
     content: props.modelValue,
     extensions: [StarterKit],
+    editable: !props.disabled,
     onUpdate: ({ editor }) => {
       emit('update:modelValue', editor.getHTML())
     },

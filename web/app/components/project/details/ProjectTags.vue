@@ -1,7 +1,8 @@
 <template>
   <div v-if="Object.keys(groupedTags).length > 0" class="project-tags flex flex-wrap items-center gap-x-4 gap-y-1">
-    <div v-for="(typeTags, type) in groupedTags" :key="type">
-      <small class="m-0 italic">{{ type }}</small>
+    <div v-for="(typeTags, type) in groupedTags" :key="type" class="flex flex-col flex-wrap gap-2">
+      <small class="block font-mono text-xs font-bold uppercase tracking-wider text-base-content/50">{{ type }}</small>
+
       <div class="flex flex-wrap gap-2">
         <Tag v-for="(tag, index) in typeTags" :key="index" :tag="tag" />
       </div>

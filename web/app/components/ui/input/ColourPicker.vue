@@ -70,7 +70,7 @@
           placeholder="#000000"
           class="w-32 rounded-lg border border-base-300 bg-base-100 px-3 py-1.5 text-sm placeholder-base-content/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary text-base-content"
            @input="(e) => updateValue((e.target as HTMLInputElement).value)"
-        />
+        >
         <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
            <Icon name="heroicons:hashtag" class="h-4 w-4 text-base-content/40" />
         </div>

@@ -15,7 +15,7 @@
         <Tag :tag="tags.find((tag) => tag.title === item.title) ?? defaultTag(item.title)" />
       </template>
     </AutoComplete>
-    <div class="flex min-h-8 items-center px-4">
+    <div class="flex min-h-8 items-center">
       <div v-if="convertedTags && convertedTags.length" class="flex flex-wrap items-center gap-2">
         <Tag v-for="(tag, index) in convertedTags" :key="index" :tag="tag" clearable @remove="removeTag" />
       </div>
@@ -26,7 +26,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import type { SearchItem } from '@types/SearchItem'
+import type { SearchItem } from '~/types/SearchItem'
 import { TagType, type Tag as TagModel } from '@api'
 import { useTagStore } from '~/store/TagStore'
 import AutoComplete from '~/components/ui/input/AutoComplete.vue'

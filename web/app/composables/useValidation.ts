@@ -1,5 +1,7 @@
+import type { Validation } from "@vuelidate/core"
+
 export default function useValidation() {
-  async function validate(form) {
+  async function validate(form: Validation) {
     const isValid = await form.$validate()
     if (!isValid) scrollToFirstError()
 

@@ -1,8 +1,8 @@
 <template>
   <div class="w-full animate-fade-in-up" :class="maxWidth">
-    <div class="mb-12 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+    <div class="mb-12 flex gap-6 flex-row items-end justify-between">
       <div class="flex flex-col gap-2">
-        <h1 class="m-0 text-4xl font-extrabold text-base-content">{{ title }}</h1>
+        <h1>{{ title }}</h1>
         <p v-if="description" class="text-lg text-base-content/60">
           {{ description }}
         </p>

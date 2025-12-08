@@ -38,10 +38,10 @@
       </div>
     </div>
 
-    <button v-if="showArrows" type="button" class="absolute -left-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-left-6" @click="scrollLeft">
+    <button v-if="showArrows" type="button" class="absolute cursor-pointer -left-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-left-6 flex items-center justify-center" @click="scrollLeft">
       <Icon name="material-symbols:chevron-left" size="2em" />
     </button>
-    <button v-if="showArrows" type="button" class="absolute -right-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-right-6" @click="scrollRight">
+    <button v-if="showArrows" type="button" class="absolute cursor-pointer -right-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black bg-opacity-50 p-2 text-white md:-right-6 flex items-center justify-center" @click="scrollRight">
       <Icon name="material-symbols:chevron-right" size="2em" />
     </button>
   </div>

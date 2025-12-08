@@ -1,25 +1,30 @@
 <template>
-  <div class="prose w-full max-w-3xl space-y-5 rounded-md border border-gray-600 px-6 py-4">
-    <h1>{{ isUpdate ? 'Update' : 'New' }} Project</h1>
-    <Tabs v-model:active-tab="activeTab" :tabs="['General', 'Description', 'Images', 'Repositories']">
-      <template #default="{ index }">
-        <ProjectGeneralForm v-if="index === 0" ref="projectGeneralForm" v-model="form" />
-        <ProjectDescriptionForm v-if="index === 1" ref="projectDescriptionForm" v-model="form" />
-        <ProjectImagesForm v-if="index === 2" ref="projectImagesForm" v-model="form" />
-        <ProjectRepositoriesForm v-if="index === 3" ref="projectRepositoriesForm" v-model="form" />
-      </template>
-    </Tabs>
-    <div class="flex items-center justify-between space-x-2">
-      <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
-      <FormButton
-        v-if="isUpdate"
-        label="Delete"
-        type="error"
-        size="sm"
-        icon="material-symbols:delete"
-        :disabled="loading"
-        @click="remove"
-      />
+  <div class="flex w-full max-w-5xl flex-col gap-6">
+    <div class="flex items-center justify-between">
+      <h1 class="text-3xl font-bold">{{ isUpdate ? 'Update' : 'New' }} Project</h1>
+      <div class="flex items-center space-x-2">
+        <FormButton
+          v-if="isUpdate"
+          label="Delete"
+          type="error"
+          size="sm"
+          icon="material-symbols:delete"
+          :disabled="loading"
+          @click="remove"
+        />
+        <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
+      </div>
+    </div>
+
+    <div class="rounded-box w-full bg-base-100 p-6 shadow-xl">
+      <Tabs v-model:active-tab="activeTab" :tabs="['General', 'Description', 'Images', 'Repositories']">
+        <template #default="{ index }">
+          <ProjectGeneralForm v-if="index === 0" ref="projectGeneralForm" v-model="form" />
+          <ProjectDescriptionForm v-if="index === 1" ref="projectDescriptionForm" v-model="form" />
+          <ProjectImagesForm v-if="index === 2" ref="projectImagesForm" v-model="form" />
+          <ProjectRepositoriesForm v-if="index === 3" ref="projectRepositoriesForm" v-model="form" />
+        </template>
+      </Tabs>
     </div>
   </div>
 </template>
@@ -63,7 +68,7 @@ const projectDescriptionForm = ref<InstanceType<typeof ProjectDescriptionForm> |
 const projectImagesForm = ref<InstanceType<typeof ProjectImagesForm> | null>(null)
 const projectRepositoriesForm = ref<InstanceType<typeof ProjectRepositoriesForm> | null>(null)
 
-// Validation
+
 const v$ = useVuelidate()
 
 const isUpdate = computed((): boolean => {
@@ -146,7 +151,8 @@ onMounted(async () => {
       form.value.shortDescription = project.value.shortDescription
       form.value.description = project.value.description
       form.value.companyId = project.value.companyId ?? undefined
-      form.value.year = project.value.year
+      form.value.startDate = project.value.startDate.substring(0, 10)
+      form.value.endDate = project.value.endDate ? project.value.endDate.substring(0, 10) : undefined
       form.value.website = project.value.website ?? ''
       form.value.showMockup = project.value.showMockup
       form.value.tags = project.value.tags.map((tag) => tag.title) ?? []

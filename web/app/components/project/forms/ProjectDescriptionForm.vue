@@ -10,7 +10,7 @@
 import { ref, computed, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep } from 'lodash-es'
-import type { CreateProject, Project } from '@api'
+import type { CreateProject } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
 import useValidation from '~/composables/useValidation'
 import { defaultProjectForm } from '~/utils/default-helper'
@@ -35,26 +35,19 @@ const validation = useValidation()
 
 const form = ref<CreateProject>(props.modelValue)
 
-// Validation
 const v$ = useVuelidate()
-
-const project = computed((): Project | undefined => {
-  return projectStore.project
-})
 
 const loading = computed((): boolean => {
   return projectStore.projectCreating || projectStore.projectLoading
 })
 
 async function validate(): Promise<boolean> {
-  return await validation.validate(v$)
+  return await validation.validate(v$.value)
 }
 
-// Expose methods for parent component
 defineExpose({
   validate,
 })
-
 
 watch(() => props.modelValue, (newValue) => {
   form.value = newValue

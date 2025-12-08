@@ -18,7 +18,7 @@
 </template>
 
 <script setup lang="ts">
-import { LoadingType } from '@types/LoadingType'
+import { LoadingType } from '~/types/LoadingType'
 
 interface Props {
   type?: LoadingType

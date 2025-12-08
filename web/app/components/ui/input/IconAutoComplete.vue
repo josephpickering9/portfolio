@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { SearchItem } from '@types/SearchItem'
+import type { SearchItem } from '~/types/SearchItem'
 import { ListIcon } from '~/assets/data/icons'
 import AutoComplete from '~/components/ui/input/AutoComplete.vue'
 import IconListItem from '~/components/repository/IconListItem.vue'

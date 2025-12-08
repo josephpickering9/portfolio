@@ -2,17 +2,15 @@
   <div class="flex flex-grow justify-center overflow-hidden">
     <Skeleton v-if="loading" />
     <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
-      <!-- TODO: dark/light gradient -->
-      <ProjectHeader :project="project" />
+      <ProjectHeader :project="project" :company="company" />
 
-      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-4 overflow-hidden px-8 md:mt-0">
-        <div class="flex flex-col gap-6" :class="headerClass">
-          <ProjectTags :tags="project.tags" />
-          <ProjectLinks :project="project" :company="company" />
-        </div>
+      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-10 overflow-hidden px-6 py-8 md:mt-0 md:px-8">
+        <ProjectTags :tags="project.tags" />
 
-        <h2 class="m-0 text-xl font-normal italic">{{ project.shortDescription }}</h2>
-        <div class="project-description" v-html="project.description" />
+        <div class="divider m-0"/>
+
+        <h2 class="m-0 text-2xl font-light italic leading-relaxed text-base-content/80">{{ project.shortDescription }}</h2>
+        <div class="project-description text-lg leading-relaxed" v-html="project.description" />
 
         <ProjectGallery
           v-model:desktop-images="desktopImages"
@@ -41,7 +39,6 @@ import { getImageUrl } from '~/utils/image-helper'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 import ProjectHeader from '~/components/project/details/ProjectHeader.vue'
 import ProjectTags from '~/components/project/details/ProjectTags.vue'
-import ProjectLinks from '~/components/project/details/ProjectLinks.vue'
 import ProjectGallery from '~/components/project/details/ProjectGallery.vue'
 import ProjectMockup from '~/components/project/details/ProjectMockup.vue'
 import RelatedProjects from '~/components/project/details/RelatedProjects.vue'
@@ -89,13 +86,7 @@ const mobileImages = computed({
   }
 })
 
-const headerClass = computed(() => {
-  const length = project.value?.tags.length ?? 0
-  return {
-    'xl:flex-row xl:items-end xl:justify-between': length < 8,
-    'xl:flex-col xl:items-start xl:justify-start': length >= 800,
-  }
-})
+
 
 onMounted(async () => {
   if (!slug.value) return

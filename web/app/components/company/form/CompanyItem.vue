@@ -1,15 +1,22 @@
 <template>
-  <div v-if="company" class="flex items-center gap-2">
-    <img :src="imageUrl" :alt="`${company.name} Logo`" class="m-0 rounded-full" :class="imageClass" >
-    <span v-if="!showLink || isEmpty(company.website) || company.website === '#'" class="m-0" :class="textClass">
-      {{ company.name }}
-    </span>
-    <div v-else class="flex items-center gap-1">
-      <a :href="company.website ?? '#'" target="_blank" rel="noreferrer" class="m-0">
-        {{ company.name }}
-      </a>
-      <Icon name="mdi:launch" />
+  <div v-if="company" class="flex w-full items-center gap-3">
+    <div class="flex-shrink-0 overflow-hidden rounded-full bg-base-100 shadow-sm ring-1 ring-base-content/5" :class="imageClass">
+      <img :src="imageUrl" :alt="`${company.name} Logo`" class="h-full w-full object-cover">
     </div>
+    <div v-if="!showLink || isEmpty(company.website) || company.website === '#'" class="truncate font-medium leading-none" :class="textClass">
+      {{ company.name }}
+    </div>
+    <a 
+      v-else 
+      :href="company.website ?? '#'" 
+      target="_blank" 
+      rel="noreferrer" 
+      class="group flex items-center gap-1.5 truncate font-medium leading-none hover:text-primary"
+      :class="textClass"
+    >
+      <span class="truncate">{{ company.name }}</span>
+      <Icon name="heroicons:arrow-top-right-on-square" class="h-3.5 w-3.5 opacity-50 transition-opacity group-hover:opacity-100" />
+    </a>
   </div>
 </template>
 

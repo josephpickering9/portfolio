@@ -1,7 +1,7 @@
 /* generated using openapi-typescript-codegen -- do not edit */
 /* istanbul ignore file */
 /* tslint:disable */
-/* eslint-disable */
+ 
 export enum TagType {
     DEFAULT = 'Default',
     BACKEND = 'Backend',
@@ -11,4 +11,5 @@ export enum TagType {
     DATA = 'Data',
     CMS = 'CMS',
     MOBILE = 'Mobile',
+    AI = 'AI',
 }

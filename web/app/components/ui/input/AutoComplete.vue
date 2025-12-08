@@ -9,7 +9,7 @@
           :placeholder="placeholder"
           :required="required"
           :disabled="disabled"
-          class="input w-full pr-8"
+          class="input input-bordered w-full pr-10 focus:input-primary"
           :class="inputClass"
           @input="handleInputDebounce"
           @focus="focus"
@@ -19,43 +19,77 @@
           @keydown.arrow-down.stop.prevent="onArrowDown"
           @keydown.escape="close"
         >
-      </div>
-      <div v-else class="flex items-center">
-        <div class="input flex w-full items-center pr-8" :class="inputClass">
-          <slot name="selectedItem">
-            <span v-if="value" class="truncate">{{ value.title }}</span>
-          </slot>
-        </div>
-        <button type="button" tabindex="-1" class="absolute right-4 text-xs" @mousedown.stop.prevent="clear">X</button>
-      </div>
-      <div
-        v-show="showOptions && searchResults.length"
-        ref="results"
-        tabindex="0"
-        :class="resultsClass"
-        class="input absolute z-50 my-2 h-auto max-h-60 w-full min-w-72 overflow-hidden overflow-y-auto rounded-md p-0 shadow"
-      >
-        <ul class="m-0 w-full list-none bg-base-100 p-0">
-          <li
-            v-for="(result, index) in searchResults"
-            :key="index"
-            ref="item"
-            class="m-0 cursor-pointer select-none p-4 hover:bg-gray-700"
-            :class="{ 'bg-gray-700': highlighted === index }"
-            role="option"
-            :aria-selected="highlighted === index"
-            tabindex="0"
-            @mousedown.stop.prevent="handleSelect(result)"
-            @mouseenter="setHighlighted(index)"
-            @focus="setHighlighted(index)"
+        <div v-if="search" class="absolute right-3 flex items-center">
+           <button 
+            type="button" 
+            tabindex="-1"
+            class="flex h-5 w-5 items-center justify-center rounded-full text-base-content/40 hover:bg-base-200 hover:text-base-content" 
+            @mousedown.stop.prevent="clear"
           >
-            <slot name="item" :item="result">
-              {{ result.title }}
-            </slot>
-          </li>
-          <li v-if="!searchResults.length && showNoResults" class="px-3 py-2 text-center">No Matching Results</li>
-        </ul>
+            <Icon name="heroicons:x-mark" size="14" />
+          </button>
+        </div>
       </div>
+      
+      <div v-else class="flex items-center">
+        <div 
+          class="input input-bordered flex w-full items-center justify-between bg-base-100 pr-3" 
+          :class="inputClass"
+        >
+          <slot name="selectedItem">
+            <span v-if="value" class="truncate font-medium">{{ value.title }}</span>
+          </slot>
+           <button 
+            type="button" 
+            tabindex="-1" 
+             class="flex h-5 w-5 items-center justify-center rounded-full text-base-content/40 hover:bg-base-200 hover:text-base-content" 
+            @mousedown.stop.prevent="clear"
+          >
+            <Icon name="heroicons:x-mark" size="14" />
+          </button>
+        </div>
+      </div>
+
+      <Transition
+        enter-active-class="transition ease-out duration-200"
+        enter-from-class="transform opacity-0 scale-95"
+        enter-to-class="transform opacity-100 scale-100"
+        leave-active-class="transition ease-in duration-75"
+        leave-from-class="transform opacity-100 scale-100"
+        leave-to-class="transform opacity-0 scale-95"
+      >
+        <div
+          v-show="showOptions && searchResults.length"
+          ref="results"
+          tabindex="0"
+          :class="resultsClass"
+          class="absolute z-50 my-1 max-h-60 w-full min-w-[320px] overflow-hidden overflow-y-auto rounded-xl bg-base-100 p-1 shadow-lg ring-1 ring-base-content/10"
+        >
+          <ul class="m-0 w-full list-none p-0">
+            <li
+              v-for="(result, index) in searchResults"
+              :key="index"
+              ref="item"
+              class="group relative m-0 flex cursor-pointer select-none items-center rounded-lg px-3 py-2 transition-colors hover:bg-base-200"
+              :class="{ 'bg-base-200 text-base-content': highlighted === index, 'text-base-content/80': highlighted !== index }"
+              role="option"
+              :aria-selected="highlighted === index"
+              tabindex="0"
+              @mousedown.stop.prevent="handleSelect(result)"
+              @click.stop.prevent="handleSelect(result)"
+              @mouseenter="setHighlighted(index)"
+              @focus="setHighlighted(index)"
+            >
+              <slot name="item" :item="result">
+                {{ result.title }}
+              </slot>
+            </li>
+            <li v-if="!searchResults.length && showNoResults" class="px-3 py-2 text-center text-sm text-base-content/60">
+              No Matching Results
+            </li>
+          </ul>
+        </div>
+      </Transition>
     </div>
   </FormElementContainer>
 </template>
@@ -63,7 +97,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { debounce, type DebouncedFunc, isEmpty } from 'lodash-es'
-import type { SearchItem } from '@types/SearchItem'
+import type { SearchItem } from '~/types/SearchItem'
 import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
 
 interface Props {
@@ -200,10 +234,14 @@ function incrementHighlighted() {
     } else {
       highlighted.value = searchResults.value.length - 1
     }
-  } else if (highlighted.value > 0) {
-    highlighted.value--
   } else {
-    highlighted.value = searchResults.value.length - 1
+    if (highlighted.value > 0) {
+      highlighted.value--
+    } else {
+      if (searchResults.value.length > 0) {
+        highlighted.value = searchResults.value.length - 1
+      }
+    }
   }
 
   checkScrollPosition()

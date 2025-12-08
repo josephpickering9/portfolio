@@ -4,7 +4,8 @@ export const defaultProjectForm: CreateProject = {
   title: '',
   shortDescription: '',
   description: '',
-  year: new Date().getFullYear(),
+  startDate: '',
+  endDate: undefined,
   showMockup: false,
   tags: [],
 }

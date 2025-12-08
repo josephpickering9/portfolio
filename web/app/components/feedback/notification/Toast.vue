@@ -7,8 +7,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
-import { NotificationType } from '@types/NotificationType'
-import type { Notification } from '@types/Notification'
+import { NotificationType } from '~/types/NotificationType'
+import type { Notification } from '~/types/Notification'
 import { useNotificationStore } from '~/store/NotificationStore'
 
 interface Props {

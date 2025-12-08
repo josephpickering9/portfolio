@@ -2,10 +2,10 @@
   <div class="w-full max-w-5xl">
     <div class="mb-8">
       <h1>
-        <span v-if="initialLoad" class="skeleton block h-10 w-48 rounded-lg"></span>
+        <span v-if="initialLoad" class="skeleton block h-10 w-48 rounded-lg"/>
         <span v-else class="text-4xl font-extrabold text-primary">{{ isUpdate ? 'Update' : 'Create' }} Tag</span>
       </h1>
-      <p v-if="initialLoad" class="skeleton mt-2 h-5 w-64 rounded"></p>
+      <p v-if="initialLoad" class="skeleton mt-2 h-5 w-64 rounded"/>
       <p v-else class="text-base-content/60">
         {{ isUpdate ? 'Modify existing tag details' : 'Add a new tag to the collection' }}
       </p>
@@ -17,34 +17,34 @@
       <div class="card bg-base-100 p-8 shadow-xl">
         <div class="flex flex-col gap-6">
           <div class="space-y-4">
-            <div class="skeleton h-4 w-16 rounded"></div>
-            <div class="skeleton h-10 w-full rounded-lg"></div>
+            <div class="skeleton h-4 w-16 rounded"/>
+            <div class="skeleton h-10 w-full rounded-lg"/>
           </div>
           <div class="space-y-4">
-            <div class="skeleton h-4 w-16 rounded"></div>
-            <div class="skeleton h-10 w-full rounded-lg"></div>
+            <div class="skeleton h-4 w-16 rounded"/>
+            <div class="skeleton h-10 w-full rounded-lg"/>
           </div>
           <div class="space-y-4">
-            <div class="skeleton h-4 w-16 rounded"></div>
-            <div class="skeleton h-10 w-full rounded-lg"></div>
+            <div class="skeleton h-4 w-16 rounded"/>
+            <div class="skeleton h-10 w-full rounded-lg"/>
           </div>
           <div class="space-y-4">
-            <div class="skeleton h-4 w-28 rounded"></div>
-            <div class="skeleton h-10 w-full rounded-lg"></div>
+            <div class="skeleton h-4 w-28 rounded"/>
+            <div class="skeleton h-10 w-full rounded-lg"/>
           </div>
           <div class="flex justify-end gap-3 pt-4">
-            <div class="skeleton h-10 w-24 rounded-lg"></div>
-            <div class="skeleton h-10 w-32 rounded-lg"></div>
+            <div class="skeleton h-10 w-24 rounded-lg"/>
+            <div class="skeleton h-10 w-32 rounded-lg"/>
           </div>
         </div>
       </div>
 
       <!-- Preview Skeleton -->
       <div class="flex flex-col space-y-4">
-        <div class="skeleton h-4 w-24 rounded"></div>
+        <div class="skeleton h-4 w-24 rounded"/>
         <div class="sticky top-24 space-y-8">
-          <div class="skeleton h-48 w-full rounded-xl"></div>
-          <div class="skeleton h-24 w-full rounded-xl"></div>
+          <div class="skeleton h-48 w-full rounded-xl"/>
+          <div class="skeleton h-24 w-full rounded-xl"/>
         </div>
       </div>
     </div>

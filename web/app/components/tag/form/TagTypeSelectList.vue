@@ -14,7 +14,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { TagType, type Tag } from '@api'
 import { useTagStore } from '~/store/TagStore'
-import type { SelectListItem } from '@types/SelectListItem'
+import type { SelectListItem } from '~/types/SelectListItem'
 import { enumToSelectListItem } from '~/utils/enum-helper'
 import SelectMenu from '~/components/ui/input/SelectMenu.vue'
 

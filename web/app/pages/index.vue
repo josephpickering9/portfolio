@@ -16,7 +16,7 @@
       @blur="handleBlur"
     />
     <div v-if="isSearchActive" class="z-0 flex w-full justify-center">
-      <ProjectList :model-search="search" :tags="tags" />
+      <ProjectList :model-search="search" />
     </div>
   </div>
 </template>
@@ -25,7 +25,6 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { isEmpty } from 'lodash-es'
-import { useProjectStore } from '~/store/ProjectStore'
 import useMeta from '~/composables/useMeta'
 import { notEmpty } from '~/utils/array-helper'
 import ProjectList from '~/components/project/list/ProjectList.vue'
@@ -33,7 +32,6 @@ import TagAutoComplete from '~/components/tag/form/TagAutoComplete.vue'
 
 const route = useRoute()
 const router = useRouter()
-const projectStore = useProjectStore()
 const { updateMeta } = useMeta()
 
 updateMeta({ title: 'Work Experience', description: "Work experience portfolio for my life's work" })
@@ -46,10 +44,6 @@ const placeholder = computed((): string => {
   return isSearchActive.value ? 'Search by tag or keyword' : 'Search'
 })
 
-async function getProjects() {
-  await projectStore.getProjects()
-}
-
 function handleFocus() {
   isSearchActive.value = true
 }
@@ -61,8 +55,8 @@ function handleBlur() {
 }
 
 function setValues() {
-  search.value = route.query.search?.toString() || search.value
-  const queryTags = route.query.tags ? route.query.tags : []
+  search.value = route.query['search']?.toString() || search.value
+  const queryTags = route.query['tags'] ? route.query['tags'] : []
   tags.value = Array.isArray(queryTags)
     ? queryTags.map((tag) => tag?.toString()).filter(notEmpty)
     : [queryTags as string]

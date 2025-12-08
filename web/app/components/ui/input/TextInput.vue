@@ -2,6 +2,7 @@
   <FormElementContainer :label="label">
     <div class="relative flex items-center">
       <input
+        ref="inputRef"
         v-model="value"
         :type="type"
         :placeholder="placeholder"
@@ -51,6 +52,7 @@ const emit = defineEmits<{
 }>()
 
 const value = ref(props.modelValue)
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const inputClass = computed(() => ({
   'input-sm': props.size === 'sm',
@@ -61,6 +63,13 @@ function clear() {
   value.value = ''
 }
 
+function focus() {
+  inputRef.value?.focus()
+}
+
+function blur() {
+  inputRef.value?.blur()
+}
 
 watch(() => props.modelValue, (newValue) => {
   value.value = newValue
@@ -68,5 +77,10 @@ watch(() => props.modelValue, (newValue) => {
 
 watch(value, (newValue) => {
   emit('update:modelValue', newValue ?? '')
+})
+
+defineExpose({
+  focus,
+  blur,
 })
 </script>

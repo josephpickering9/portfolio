@@ -66,7 +66,7 @@ const value = ref<CreateProjectRepository[]>([])
 const title = ref('')
 const url = ref('')
 
-// Validation
+
 const rules = {
   title: { required },
   url: { required, url: urlValidator },
