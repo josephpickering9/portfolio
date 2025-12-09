@@ -1,9 +1,11 @@
 <template>
-  <button v-if="!href" class="btn" :class="buttonClass" @click="$emit('click')">
-    <FormButtonInner :label="label" :icon="icon" />
+  <button v-if="!href" class="btn relative" :class="buttonClass" :disabled="disabled || loading" @click="$emit('click')">
+    <span v-if="loading" class="loading loading-spinner absolute" />
+    <FormButtonInner :label="label" :icon="icon" :class="{ 'opacity-0': loading }" />
   </button>
-  <NuxtLink v-else :to="href" class="btn" :class="buttonClass">
-    <FormButtonInner :label="label" :icon="icon" />
+  <NuxtLink v-else :to="href" class="btn relative" :class="buttonClass">
+    <span v-if="loading" class="loading loading-spinner absolute" />
+    <FormButtonInner :label="label" :icon="icon" :class="{ 'opacity-0': loading }" />
   </NuxtLink>
 </template>
 
@@ -18,6 +20,7 @@ interface Props {
   size?: string | null
   href?: string | null
   icon?: string | null
+  loading?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -27,8 +30,8 @@ const props = withDefaults(defineProps<Props>(), {
   size: null,
   href: null,
   icon: undefined,
+  loading: false,
 })
-
 
 const emit = defineEmits<{
   click: []

@@ -11,6 +11,7 @@ export default withNuxt()
       '.husky/*',
       '.nuxt/*',
       '.output/*',
+      'api/*',
       'dist/*',
       'node_modules/*',
       'static/*'
@@ -28,6 +29,7 @@ export default withNuxt()
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      '@typescript-eslint/no-dynamic-delete': 'off',
 
       // Vue specific rules
       'vue/no-v-html': 'off',

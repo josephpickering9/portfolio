@@ -42,7 +42,7 @@
 
 <script setup lang="ts">
 import { resolveComponent } from 'vue'
-import type { Tag } from '@api/models/Tag'
+import type { Tag } from '@api'
 import useAuth from '~/composables/useAuth'
 import FormButton from '~/components/ui/form/FormButton.vue'
 

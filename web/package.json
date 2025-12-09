@@ -8,10 +8,7 @@
     "preview": "nuxt preview",
     "start": "nuxt start",
     "postinstall": "nuxt prepare",
-    "openapi": "openapi --input ./api/docs/swagger.json --output ./api --client axios",
-    "fetch-docs": "node ./api/docs/fetch.js",
-    "openapi-request": "node ./api/docs/openapi-request.js",
-    "fetch-codegen": "yarn fetch-docs && yarn openapi && yarn openapi-request",
+    "codegen": "yarn openapi-ts",
     "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
     "lint:full": "eslint .",
     "lint:commit": "eslint",
@@ -23,6 +20,7 @@
   "dependencies": {
     "@auth0/auth0-vue": "^2.4.0",
     "@floating-ui/dom": "^1.7.4",
+    "@hey-api/client-axios": "^0.9.1",
     "@pinia/nuxt": "^0.11.3",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.17",
@@ -47,6 +45,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@hey-api/openapi-ts": "^0.88.0",
     "@iconify-json/mdi": "^1.2.3",
     "@nuxt/eslint": "^1.11.0",
     "@nuxt/icon": "^2.1.0",
@@ -64,7 +63,6 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "nuxt": "^4.2.1",
-    "openapi-typescript-codegen": "^0.29.0",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "vue": "^3.5.25",

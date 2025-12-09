@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { format, parseISO } from 'date-fns'
-import type { Project } from '@api/models/Project'
+import type { Project } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
 import Table, { type TableColumn } from '~/components/ui/table/Table.vue'
 import Tag from '~/components/tag/Tag.vue'

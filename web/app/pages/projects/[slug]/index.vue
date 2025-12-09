@@ -118,12 +118,14 @@ onBeforeUnmount(() => {
 <style>
 .project-description p {
   margin-top: 0;
+  margin-bottom: 1rem;
 }
 
 .project-description li p,
 .project-description ul ul,
 .project-description ol ol {
   margin: 0;
+  margin-bottom: 1rem;
 }
 
 .project-description ul ul li {

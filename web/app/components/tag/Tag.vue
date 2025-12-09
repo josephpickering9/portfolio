@@ -26,7 +26,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Tag } from '@api/models/Tag'
+import type { Tag } from '@api'
 
 interface Props {
   tag: Tag

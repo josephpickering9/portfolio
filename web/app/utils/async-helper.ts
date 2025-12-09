@@ -4,7 +4,7 @@ import { extractError } from '~/utils/error-helper';
 
 export async function tryCatchFinally<T>(
     form: Ref<AsyncForm<T>>,
-    fun: () => Promise<T>
+    fun: () => Promise<T | undefined>
 ): Promise<T | undefined> {
     try {
         form.value.error = undefined;

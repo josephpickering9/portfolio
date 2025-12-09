@@ -1,5 +1,6 @@
-import { OpenAPI } from '@api/index'
+import { client } from '@api/client.gen'
 
 export default defineNuxtPlugin(() => {
-  OpenAPI.BASE = useRuntimeConfig().public.apiBase
+  const config = useRuntimeConfig()
+  client.setConfig({ baseURL: config.public.apiBase })
 })

@@ -60,8 +60,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { compareDesc, format, parseISO } from 'date-fns'
-import type { Company } from '@api/models/Company'
-import type { Project } from '@api/models/Project'
+import type { Company, Project  } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
 import useAuth from '~/composables/useAuth'
 import FormButton from '~/components/ui/form/FormButton.vue'

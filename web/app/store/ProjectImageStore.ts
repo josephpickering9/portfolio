@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { ProjectImageService } from '@api'
+import { putProjectimageOptimise } from '@api'
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 
 export const useProjectImageStore = defineStore('projectImageStore', {
@@ -15,7 +15,9 @@ export const useProjectImageStore = defineStore('projectImageStore', {
     async optimiseImages(): Promise<void> {
       if (this.optimiseForm.loading) return
 
-      await tryCatchFinally(ref(this.optimiseForm), () => ProjectImageService.putProjectimageOptimise())
+      await tryCatchFinally(ref(this.optimiseForm), async () => {
+        return (await putProjectimageOptimise()).data
+      })
     },
   },
 })

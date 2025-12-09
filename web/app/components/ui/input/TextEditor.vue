@@ -129,8 +129,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const editor = ref<Editor | null>(null)
-const initialLoad = ref(true)
+const editor = ref<Editor | undefined>(undefined)
 
 onMounted(() => {
   // @ts-ignore
@@ -147,18 +146,14 @@ onMounted(() => {
 onBeforeUnmount(() => {
   if (editor.value) {
     editor.value.destroy()
-    editor.value = null
-    initialLoad.value = true
+    editor.value = undefined
   }
 })
 
 
 watch(() => props.modelValue, (value) => {
-  if (!initialLoad.value) return
-
   if (editor.value && !editor.value.isFocused) {
     editor.value.commands.setContent(value)
-    initialLoad.value = false
   }
 })
 </script>
@@ -181,6 +176,10 @@ watch(() => props.modelValue, (value) => {
   h5,
   h6 {
     line-height: 1.1;
+  }
+
+  p {
+    margin: 1em 0;
   }
 
   code {

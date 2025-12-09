@@ -1,5 +1,5 @@
 import { createAuth0, useAuth0 } from '@auth0/auth0-vue'
-import { OpenAPI } from '@api/index'
+import { client } from '@api/client.gen'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const config = useRuntimeConfig()
@@ -30,7 +30,13 @@ export default defineNuxtPlugin((nuxtApp) => {
           const { getAccessTokenSilently } = useAuth0()
 
           const token = await getAccessTokenSilently()
-          if (token) OpenAPI.TOKEN = token
+          if (token) {
+            client.setConfig({
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            })
+          }
         } catch (e) {
           // eslint-disable-next-line no-console
           console.log('token error', e)

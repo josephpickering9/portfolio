@@ -1,10 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { CompanyService } from '@api/services/CompanyService'
+import { getCompany, getCompanyById, getCompanyBySlug, postCompany, putCompanyById, deleteCompanyById } from '@api'
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
-import type { Company } from '@api/models/Company'
-import type { CreateCompany } from '@api/models/CreateCompany'
-
+import type { Company, CreateCompany } from '@api'
 
 export const useCompanyStore = defineStore('companyStore', {
   state: () => ({
@@ -26,32 +24,44 @@ export const useCompanyStore = defineStore('companyStore', {
     async getCompanies(search?: string): Promise<void> {
       if (this.companiesForm.loading) return
 
-      await tryCatchFinally(ref(this.companiesForm), () => CompanyService.getCompany(search))
+      await tryCatchFinally(ref(this.companiesForm), async () => {
+        return (await getCompany({ query: { search } })).data
+      })
     },
     async getCompany(id: string): Promise<void> {
       if (!id || this.companyForm.loading) return
 
-      await tryCatchFinally(ref(this.companyForm), () => CompanyService.getCompany1(id))
+      await tryCatchFinally(ref(this.companyForm), async () => {
+        return (await getCompanyById({ path: { id } })).data
+      })
     },
     async getCompanyBySlug(slug: string): Promise<void> {
       if (!slug || this.companyForm.loading) return
 
-      await tryCatchFinally(ref(this.companyForm), () => CompanyService.getCompany2(slug))
+      await tryCatchFinally(ref(this.companyForm), async () => {
+        return (await getCompanyBySlug({ path: { slug } })).data
+      })
     },
     async createCompany(company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreateForm.loading) return
 
-      return await tryCatchFinally(ref(this.companyCreateForm), () => CompanyService.postCompany(company))
+      return await tryCatchFinally(ref(this.companyCreateForm), async () => {
+        return (await postCompany({ body: { createCompany: company } })).data
+      })
     },
     async updateCompany(id: string, company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreateForm.loading) return
 
-      return await tryCatchFinally(ref(this.companyCreateForm), () => CompanyService.putCompany(id, company))
+      return await tryCatchFinally(ref(this.companyCreateForm), async () => {
+        return (await putCompanyById({ path: { id }, body: { createCompany: company } })).data
+      })
     },
     async deleteCompany(id: string): Promise<void> {
       if (!id || this.companyCreateForm.loading) return
 
-      await tryCatchFinally(ref(this.companyCreateForm), () => CompanyService.deleteCompany(id))
+      await tryCatchFinally(ref(this.companyCreateForm), async () => {
+        return (await deleteCompanyById({ path: { id } })).data
+      })
     },
   },
 })

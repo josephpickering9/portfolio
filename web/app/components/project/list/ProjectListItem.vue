@@ -59,7 +59,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Project } from '@api/models/Project'
+import type { Project } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
 import Tag from '~/components/tag/Tag.vue'
 
