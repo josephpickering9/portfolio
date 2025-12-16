@@ -2,63 +2,63 @@
   <NuxtLink
     v-if="project"
     :to="`/projects/${project.slug}`"
-    class="group card card-compact w-full bg-base-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+    class="group card bg-base-100 hover:bg-base-200/50 shadow-lg hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-primary/30 flex flex-col h-full overflow-hidden hover:-translate-y-1"
     @mousedown.stop.prevent="(event) => event.preventDefault()"
   >
-    <figure class="relative overflow-hidden">
-      <img 
-        :src="backgroundImage" 
-        :alt="`${project.title} Background Image`" 
-        class="h-[200px] w-full object-cover transition-transform duration-500 group-hover:scale-105" 
-      >
-      <div class="absolute inset-0 bg-gradient-to-t from-base-100/90 via-base-100/20 to-transparent opacity-80" />
+    <figure class="relative h-48 w-full overflow-hidden bg-base-200">
+      <NuxtImg 
+        v-if="project.cardUrl" 
+        :src="getImageUrl(project.cardUrl)" 
+        :alt="project.title"
+        placeholder
+        format="webp"
+        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+      />
+      <div v-else class="w-full h-full flex items-center justify-center bg-base-300 text-base-content/20">
+         <Icon name="heroicons:photo" class="w-16 h-16" />
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-base-100 to-transparent opacity-60" />
+      
+      <div v-if="project.logoUrl" class="absolute bottom-2 right-2 p-1 bg-base-100/90 rounded-lg shadow-sm backdrop-blur-sm">
+         <NuxtImg 
+          :src="getImageUrl(project.logoUrl)" 
+          :alt="`${project.title} Logo`" 
+          placeholder
+          format="webp"
+          class="h-8 w-8 object-contain" 
+         />
+      </div>
     </figure>
     
-    <div class="card-body relative -mt-8 justify-between">
-      <div>
-        <div class="mb-2 flex items-center gap-3">
-          <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-base-100 p-1 shadow-md ring-1 ring-base-200">
-            <img 
-              v-if="project.logoUrl" 
-              :src="image" 
-              :alt="`${project.title} Logo`" 
-              class="h-full w-full object-contain" 
-            >
-            <Icon v-else name="heroicons:cube" class="h-6 w-6 text-base-content/40" />
-          </div>
-          <div>
-            <h2 class="card-title text-lg font-bold leading-tight mt-2">{{ project.title }}</h2>
-             <span v-if="project.company" class="text-xs font-medium text-primary/80">
-              {{ project.company.name }}
-            </span>
-          </div>
-        </div>
-
-        <p class="line-clamp-2 text-sm text-base-content/70">
-          {{ project.shortDescription }}
-        </p>
+    <div class="card-body p-6 flex-grow">
+      <div class="flex flex-wrap gap-2 mb-3">
+         <Tag 
+          v-for="(tag, index) in project.tags?.slice(0, 3)" 
+          :key="tag.id || index" 
+          :tag="tag" 
+          class="badge badge-sm badge-outline border-primary/50 text-primary/80"
+        />
+        <span v-if="project.tags?.length > 3" class="text-xs text-base-content/50 self-center">+{{ project.tags.length - 3 }}</span>
       </div>
 
-      <div class="card-actions mt-4 items-center gap-2">
-        <Tag 
-          v-for="(tag, index) in project.tags.slice(0, 2)" 
-          :key="index" 
-          :tag="tag" 
-          class="bg-base-200/50"
-        />
-        <span 
-          v-if="project.tags.length > 2" 
-          class="flex h-6 items-center px-1.5 text-xs font-medium text-base-content/50"
-        >
-          +{{ project.tags.length - 2 }}
-        </span>
+      <h3 class="card-title text-xl font-bold group-hover:text-primary transition-colors">
+        {{ project.title }}
+      </h3>
+      
+      <p class="text-base-content/70 text-sm line-clamp-3 mt-2">
+        {{ project.shortDescription }}
+      </p>
+
+      <div class="card-actions justify-end mt-4 pt-4 border-t border-base-200">
+         <span class="text-xs uppercase font-bold tracking-wider text-base-content/50 group-hover:text-primary transition-colors flex items-center gap-1">
+            View Details <Icon name="heroicons:arrow-right" class="w-3 h-3 transition-transform group-hover:translate-x-1" />
+         </span>
       </div>
     </div>
   </NuxtLink>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import type { Project } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
 import Tag from '~/components/tag/Tag.vue'
@@ -68,16 +68,4 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-
-const image = computed((): string => {
-  if (!props.project?.logoUrl) return 'https://via.placeholder.com/320x200'
-
-  return getImageUrl(props.project.logoUrl)
-})
-
-const backgroundImage = computed((): string => {
-  if (!props.project?.cardUrl) return 'https://via.placeholder.com/320x200'
-
-  return getImageUrl(props.project.cardUrl)
-})
 </script>

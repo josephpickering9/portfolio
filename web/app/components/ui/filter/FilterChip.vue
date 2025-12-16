@@ -1,7 +1,7 @@
 <template>
   <div class="badge badge-lg gap-1.5 pr-1 border transition-all hover:scale-[1.02]" :class="badgeColorClass">
     <Icon v-if="filter.icon" :name="filter.icon" size="1.1em" class="opacity-90" />
-    <img v-if="filter.logo" :src="getImageUrl(filter.logo)" class="opacity-90 h-4 w-4" >
+    <NuxtImg v-if="filter.logo" :src="getImageUrl(filter.logo)" placeholder format="webp" class="opacity-90 h-4 w-4" />
     <span class="opacity-90 font-normal">{{ displayValue }}</span>
     <button
       type="button"

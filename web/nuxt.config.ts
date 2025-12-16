@@ -47,6 +47,7 @@ export default defineNuxtConfig({
     '@nuxtjs/sitemap',
     '@vite-pwa/nuxt',
     '@nuxt/eslint',
+    '@nuxt/image',
   ],
 
   vite: {
@@ -65,6 +66,10 @@ export default defineNuxtConfig({
   sitemap: {
     sources: ['/api/sitemap'],
     exclude: ['/auth/*', '*/new'],
+  },
+
+  image: {
+    dir: "assets/img",
   },
 
   pwa: {

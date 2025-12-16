@@ -1,7 +1,7 @@
 <template>
   <div v-if="company" class="flex w-full items-center gap-3">
     <div class="flex-shrink-0 overflow-hidden rounded-full bg-base-100 shadow-sm ring-1 ring-base-content/5" :class="imageClass">
-      <img :src="imageUrl" :alt="`${company.name} Logo`" class="h-full w-full object-cover">
+      <NuxtImg :src="imageUrl" :alt="`${company.name} Logo`" placeholder format="webp" class="h-full w-full object-cover" />
     </div>
     <div v-if="!showLink || isEmpty(company.website) || company.website === '#'" class="truncate font-medium leading-none" :class="textClass">
       {{ company.name }}

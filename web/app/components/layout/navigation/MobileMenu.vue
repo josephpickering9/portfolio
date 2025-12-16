@@ -3,9 +3,30 @@
     <div class="flex flex-1 flex-col items-center px-4">
       <ul class="menu flex w-full flex-col items-center justify-start p-4 pt-0 text-xl">
         <li><ThemeController /></li>
-        <li><NuxtLink to="/projects" @click="$emit('close')">Projects</NuxtLink></li>
-        <li><NuxtLink to="/companies" @click="$emit('close')">Companies</NuxtLink></li>
-        <li><NuxtLink to="/tags" @click="$emit('close')">Tags</NuxtLink></li>
+        <li>
+          <NuxtLink to="/search" @click="$emit('close')">
+            <Icon name="mdi:robot-happy-outline" size="1.5em" />
+            AI Search
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/projects" @click="$emit('close')">
+            <Icon name="mdi:view-dashboard-outline" size="1.5em" />
+            Projects
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/companies" @click="$emit('close')">
+            <Icon name="mdi:domain" size="1.5em" />
+            Companies
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/tags" @click="$emit('close')">
+            <Icon name="mdi:tag-multiple-outline" size="1.5em" />
+            Tags
+          </NuxtLink>
+        </li>
         <li class="w-full"><div class="divider" /></li>
         <li>
           <a
@@ -55,7 +76,7 @@
       </ul>
       <div class="mt-auto flex flex-col gap-4">
         <div class="w-20 overflow-hidden rounded-full">
-          <img alt="Profile" src="~/assets/img/joe.png" >
+          <NuxtImg alt="Profile" src="/images/joe.png" placeholder format="webp" />
         </div>
       </div>
     </div>

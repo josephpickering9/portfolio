@@ -10,13 +10,13 @@
     >
       <template #item="{ element, index }">
         <div :key="index" class="carousel-item relative w-4/5 sm:w-auto">
-          <img
+          <NuxtImg
             :src="getImageUrl(element)"
-            :alt="`Carousel Image ${index + 1}`"
-            :width="width"
-            :height="height"
-            class="m-0 rounded-box"
-          >
+            :alt="`Slide ${index + 1}`"
+            placeholder
+            format="webp"
+            class="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+          />
           <button v-if="showHoverButton" type="button" class="absolute left-0 top-0 flex h-full w-full items-center justify-center bg-black bg-opacity-20 opacity-0 transition-opacity duration-300 hover:opacity-100" @click="$emit('hoverButton', element)">
             <Icon :name="hoverButtonIcon" size="2em" />
           </button>
@@ -25,13 +25,15 @@
     </Draggable>
     <div v-else ref="carousel" class="carousel carousel-center w-full space-x-4">
       <div v-for="(image, index) in images" :key="index" class="carousel-item relative w-4/5 sm:w-auto">
-        <img
+        <NuxtImg
           :src="getImageUrl(image)"
-          :alt="`Carousel Image ${index + 1}`"
+          :alt="`Thumbnail ${index + 1}`"
+          placeholder
+          format="webp"
+          class="h-full w-full object-cover"
           :width="width"
           :height="height"
-          class="m-0 rounded-box"
-        >
+        />
         <button v-if="showHoverButton" type="button" class="absolute left-0 top-0 flex h-full w-full items-center justify-center bg-black bg-opacity-20 opacity-0 transition-opacity duration-300 hover:opacity-100" @click="$emit('hoverButton', image)">
           <Icon :name="hoverButtonIcon" size="2em" />
         </button>

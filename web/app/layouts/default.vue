@@ -3,7 +3,7 @@
     <HeaderBar />
     <main class="flex flex-grow overflow-hidden overflow-y-auto">
       <div class="container mx-auto flex flex-grow flex-col overflow-hidden">
-        <div class="relative flex w-full flex-grow py-4">
+        <div class="relative flex w-full flex-grow">
           <slot />
         </div>
       </div>

@@ -9,12 +9,14 @@
     <div class="flex flex-col gap-4 px-6 md:px-0">
       <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center justify-between">
         <div class="flex items-center gap-4">
-          <img
+          <NuxtImg
             v-if="project.logoUrl"
             :src="getImageUrl(project.logoUrl)"
             :alt="`${project.title} Logo`"
+            placeholder
+            format="webp"
             class="h-16 w-16 rounded-full shadow-sm ring-1 ring-base-content/10"
-          >
+          />
           <div class="flex flex-col gap-2">
             <h1 class="text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">{{ project.title }}</h1>
             <p class="text-lg font-medium text-base-content/60">{{ dateRange }}</p>

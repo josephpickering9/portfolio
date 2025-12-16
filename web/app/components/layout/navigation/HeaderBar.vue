@@ -1,7 +1,7 @@
 <template>
   <header class="navbar bg-base-100">
     <div class="flex-1 flex items-center gap-2">
-      <NuxtLink to="/" class="btn btn-ghost text-xl">Joseph Pickering</NuxtLink>
+      <NuxtLink to="/" class="btn btn-ghost text-xl">Portfolio</NuxtLink>
       <ClientOnly>
         <NuxtLink
           v-if="isAuthenticated"
@@ -14,9 +14,30 @@
     </div>
     <div class="hidden flex-none gap-2 md:flex md:items-center">
       <ul class="menu menu-horizontal px-1">
-        <li><NuxtLink to="/projects">Projects</NuxtLink></li>
-        <li><NuxtLink to="/companies">Companies</NuxtLink></li>
-        <li><NuxtLink to="/tags">Tags</NuxtLink></li>
+        <li>
+          <NuxtLink to="/search">
+            <Icon name="mdi:robot-happy-outline" size="1.2em" />
+            AI Search
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/projects">
+            <Icon name="heroicons:rectangle-stack" size="1.2em" />
+            Projects
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/companies">
+            <Icon name="heroicons:building-office" size="1.2em" />
+            Companies
+          </NuxtLink>
+        </li>
+        <li>
+          <NuxtLink to="/tags">
+            <Icon name="heroicons:tag" size="1.2em" />
+            Tags
+          </NuxtLink>
+        </li>
       </ul>
       <ThemeController />
       <UserDropdown

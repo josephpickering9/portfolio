@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { postVertexProjectsByIdDescriptionSuggest, type ProjectDescriptionSuggestionResponse } from "~~/api"
+import { postVertexProjectsByIdDescriptionSuggest, postVertexQuery, type ProjectDescriptionSuggestionResponse } from "~~/api"
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 
 export const useAiStore = defineStore('aiStore', {
     state: () => ({
         aiForm: asyncForm<ProjectDescriptionSuggestionResponse>(),
+        queryForm: asyncForm<unknown>(),
     }),
     actions: {
         async getSuggestedDescription(
@@ -23,6 +24,15 @@ export const useAiStore = defineStore('aiStore', {
                         additionalContext,
                         additionalData,
                         targetWordCount,
+                    }
+                })).data
+            })
+        },
+        async query(query: string) {
+            await tryCatchFinally(ref(this.queryForm), async () => {
+                return (await postVertexQuery({
+                    body: {
+                        query
                     }
                 })).data
             })

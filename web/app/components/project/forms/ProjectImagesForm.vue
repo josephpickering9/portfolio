@@ -19,7 +19,7 @@
         <div v-if="index === 1" class="flex flex-col gap-4">
           <div class="flex items-center gap-6">
             <div class="relative flex h-24 w-24 flex-shrink-0 items-center justify-center overflow-hidden rounded-full bg-base-200 shadow-sm ring-1 ring-base-content/10">
-              <img v-if="logoUrl" :src="logoUrl" alt="Logo Preview" class="h-full w-full object-cover">
+              <NuxtImg v-if="logoUrl" :src="logoUrl" alt="Logo Preview" placeholder format="webp" class="h-full w-full object-cover" />
               <Icon v-else name="material-symbols:image" size="2em" class="text-base-content/30" />
             </div>
             <div class="flex-grow">
@@ -33,7 +33,7 @@
         <div v-if="index === 2" class="flex flex-col gap-4">
           <div class="card card-compact card-bordered w-full bg-base-100 shadow-sm transition-all hover:shadow-md">
             <figure class="m-0 aspect-video w-full bg-base-200">
-              <img v-if="cardUrl" :src="cardUrl" alt="Card Preview" class="h-full w-full object-cover">
+              <NuxtImg v-if="cardUrl" :src="cardUrl" alt="Card Preview" placeholder format="webp" class="h-full w-full object-cover" />
               <div v-else class="flex h-full items-center justify-center text-base-content/30">
                 <Icon name="material-symbols:image" size="3em" />
               </div>

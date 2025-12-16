@@ -5,7 +5,7 @@
     :class="{ 'border-primary/50 ring-1 ring-primary/20': outline }"
   >
     <div 
-      class="flex h-6 w-6 items-center justify-center rounded-full bg-base-100 shadow-sm"
+      class="flex items-center justify-center rounded-full bg-base-100 shadow-sm"
       :style="{ color: tag.customColour || undefined }"
     >
        <Icon v-if="tag.icon" :name="tag.icon" size="14" />

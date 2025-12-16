@@ -2,56 +2,57 @@
   <div class="dropdown dropdown-end">
     <div tabindex="0" role="button" class="avatar btn btn-circle btn-ghost">
       <div class="w-10 rounded-full">
-        <img alt="Profile" src="~/assets/img/joe.png" >
+        <NuxtImg alt="Profile" src="/joe.png" placeholder format="webp" />
       </div>
     </div>
     <ClientOnly>
-      <ul
-        tabindex="0"
-        class="menu dropdown-content menu-sm z-[1] w-52 gap-1 rounded-box border border-gray-600 bg-base-100 p-2 shadow"
-      >
-        <li>
-          <a
-            :href="linkedInUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="btn btn-sm justify-start bg-[#2682BE] text-black"
-          >
-            <Icon name="mdi:linkedin" size="1.5em" />
-            LinkedIn
-          </a>
-        </li>
-        <li>
-          <a
-            href="/Joseph Pickering CV.pdf"
-            download="Joseph-Pickering-CV"
-            class="btn btn-sm justify-start bg-[#F84C4D] text-black"
-          >
-            <Icon name="mdi:file-pdf" size="1.5em" />
-            Download CV
-          </a>
-        </li>
-        <li>
-          <button type="button" class="btn btn-success btn-sm justify-start" @click="$emit('installPwa')">
-            <Icon name="ic:round-install-desktop" size="1.5em" />
-            Install PWA
-          </button>
-        </li>
+      <ul tabindex="0" class="menu dropdown-content menu-sm z-[1] mt-3 w-52 rounded-box bg-base-100 p-2 shadow-2xl ring-1 ring-base-content/10">
         <li v-if="isAuthenticated">
-          <button type="button" class="btn btn-secondary btn-sm justify-start" @click="$emit('optimiseImages')">
-            <Spinner v-if="optimising" />
-            <span v-else>
-              <Icon name="mdi:file-image-box" size="1.5em" />
-              Optimise Images
-            </span>
-          </button>
+          <div class="flex flex-col items-start gap-1 p-2">
+            <span class="font-bold">Signed in as</span>
+            <span class="text-xs text-base-content/70 truncate w-full">{{ user?.email }}</span>
+          </div>
         </li>
-        <li class="w-full"><div class="divider m-0 flex items-center" /></li>
+        <li v-if="isAuthenticated" class="mt-1 border-t border-base-200"/>
+        
         <li v-if="!isAuthenticated">
-          <FormButton type="primary" size="sm" label="Login" @click="$emit('login')" />
+          <a @click="$emit('login')">
+            <Icon name="mdi:login" size="1.2em" />
+            Login
+          </a>
         </li>
         <li v-else>
-          <FormButton type="accent" label="Logout" size="sm" @click="$emit('logout')" />
+          <a @click="$emit('logout')">
+            <Icon name="mdi:logout" size="1.2em" />
+            Logout
+          </a>
+        </li>
+        
+        <li class="mt-1 border-t border-base-200"/>
+        
+        <li>
+          <a :href="linkedInUrl" target="_blank" class="justify-between">
+            <div class="flex items-center gap-2">
+              <Icon name="mdi:linkedin" size="1.2em" />
+              LinkedIn
+            </div>
+            <Icon name="mdi:external-link" size="0.8em" class="opacity-50" />
+          </a>
+        </li>
+        <li>
+          <a @click="$emit('installPwa')">
+            <Icon name="ic:round-install-desktop" size="1.2em" />
+            Install App
+          </a>
+        </li>
+        <li v-if="isAuthenticated">
+          <a class="justify-between" @click="$emit('optimiseImages')">
+             <div class="flex items-center gap-2">
+               <Icon name="mdi:file-image-box" size="1.2em" />
+               Optimise Images
+             </div>
+             <Spinner v-if="optimising" size="xs" />
+          </a>
         </li>
       </ul>
     </ClientOnly>
@@ -59,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-import FormButton from '~/components/ui/form/FormButton.vue'
 import Spinner from '~/components/feedback/loading/Spinner.vue'
 
 defineProps<{
@@ -67,6 +67,7 @@ defineProps<{
   isAuthenticated: boolean
   optimising: boolean
   optimiseError?: string
+  user?: { email: string }
 }>()
 
 defineEmits<{

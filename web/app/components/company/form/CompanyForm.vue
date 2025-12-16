@@ -27,7 +27,7 @@
             <h2 class="card-title text-base font-semibold opacity-60">Branding</h2>
             <div class="flex flex-col items-center justify-center p-4">
                <div class="mb-4 flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed border-base-content/20 bg-base-200">
-                  <img v-if="logoUrl" :src="logoUrl" alt="Preview" class="h-full w-full object-contain p-2" >
+                  <NuxtImg v-if="logoUrl" :src="logoUrl" alt="Preview" placeholder format="webp" class="h-full w-full object-contain p-2" />
                   <Icon v-else name="mdi:image-outline" class="h-12 w-12 opacity-20" />
                </div>
                <FileInput label="Upload Logo" :disabled="loading" @update:file="logo = $event" />

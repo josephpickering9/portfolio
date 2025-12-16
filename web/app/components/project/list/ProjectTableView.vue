@@ -8,12 +8,14 @@
   >
     <template #cell-logo="{ row }">
       <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-base-100 p-1 shadow-sm ring-1 ring-base-200">
-        <img
-          v-if="row.logoUrl"
-          :src="getImageUrl(row.logoUrl)"
-          :alt="`${row.title} Logo`"
-          class="h-full w-full object-contain"
-        >
+        <NuxtImg
+          v-if="row.ProjectImages?.[0]?.imageUrl"
+          :src="getImageUrl(row.ProjectImages?.[0]?.imageUrl)"
+          :alt="row.title"
+          placeholder
+          format="webp"
+          class="h-12 w-12 rounded bg-base-200 object-cover"
+        />
         <Icon v-else name="heroicons:cube" class="h-6 w-6 text-base-content/40" />
       </div>
     </template>

@@ -16,7 +16,7 @@ import Notifications from '~/components/feedback/notification/Notifications.vue'
 import { useHead } from '#imports'
 
 useHead({
-  title: 'Joseph Pickering',
+  title: 'Portfolio | Joseph Pickering',
 })
 
 const themeStore = useThemeStore()
