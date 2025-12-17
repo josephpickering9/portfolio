@@ -152,6 +152,15 @@ body {
   max-width: auto !important;
 }
 
+.prose p {
+  margin-bottom: 1rem;
+}
+
+.prose ul li,
+.prose ol li {
+  margin-bottom: 1rem;
+}
+
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out forwards;
 }

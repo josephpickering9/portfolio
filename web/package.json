@@ -17,6 +17,9 @@
   "lint-staged": {
     "*.{js,vue,ts}": "yarn lint:commit"
   },
+  "resolutions": {
+    "vue": "3.5.25"
+  },
   "dependencies": {
     "@auth0/auth0-vue": "^2.4.0",
     "@floating-ui/dom": "^1.7.4",
@@ -35,6 +38,7 @@
     "daisyui": "^5.5.8",
     "date-fns": "^4.1.0",
     "lodash-es": "^4.17.21",
+    "marked": "^17.0.1",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",
     "tailwindcss": "^4.1.17",

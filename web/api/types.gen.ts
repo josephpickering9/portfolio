@@ -144,8 +144,28 @@ export enum TagType {
     AI = 'AI'
 }
 
+export type VertexCitation = {
+    id?: string | null;
+    featureType?: VertexFeatureType;
+    title?: string | null;
+    project?: Project;
+    company?: Company;
+    tag?: Tag;
+};
+
+export enum VertexFeatureType {
+    PROJECT = 'Project',
+    COMPANY = 'Company',
+    TAG = 'Tag'
+}
+
 export type VertexQueryRequest = {
     query?: string;
+};
+
+export type VertexQueryResult = {
+    answer?: string;
+    citations?: Array<VertexCitation>;
 };
 
 export type ProjectWritable = {
@@ -167,6 +187,20 @@ export type ProjectWritable = {
     logo?: ProjectImage;
     card?: ProjectImage;
     banner?: ProjectImage;
+};
+
+export type VertexCitationWritable = {
+    id?: string | null;
+    featureType?: VertexFeatureType;
+    title?: string | null;
+    project?: ProjectWritable;
+    company?: Company;
+    tag?: Tag;
+};
+
+export type VertexQueryResultWritable = {
+    answer?: string;
+    citations?: Array<VertexCitationWritable>;
 };
 
 export type GetCompanyData = {
@@ -562,8 +596,10 @@ export type PostVertexQueryResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: VertexQueryResult;
 };
+
+export type PostVertexQueryResponse = PostVertexQueryResponses[keyof PostVertexQueryResponses];
 
 export type PostVertexProjectsByIdDescriptionSuggestData = {
     body?: SuggestProjectDescriptionRequest;

@@ -155,6 +155,7 @@ export const getTagBySlug = <ThrowOnError extends boolean = false>(options: Opti
 export const postVertexIngest = <ThrowOnError extends boolean = false>(options?: Options<PostVertexIngestData, ThrowOnError>) => (options?.client ?? client).post<PostVertexIngestResponses, unknown, ThrowOnError>({ url: '/vertex/ingest', ...options });
 
 export const postVertexQuery = <ThrowOnError extends boolean = false>(options?: Options<PostVertexQueryData, ThrowOnError>) => (options?.client ?? client).post<PostVertexQueryResponses, unknown, ThrowOnError>({
+    responseType: 'json',
     url: '/vertex/query',
     ...options,
     headers: {
