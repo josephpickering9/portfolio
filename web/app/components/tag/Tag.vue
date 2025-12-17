@@ -5,14 +5,14 @@
     :class="{ 'border-primary/50 ring-1 ring-primary/20': outline }"
   >
     <div 
-      class="flex items-center justify-center rounded-full bg-base-100 shadow-sm"
+      class="flex items-center justify-center rounded-full bg-base-100 shadow-sm py-0.5"
       :style="{ color: tag.customColour || undefined }"
     >
        <Icon v-if="tag.icon" :name="tag.icon" size="14" />
        <Icon v-else name="heroicons:tag" size="14" />
     </div>
 
-    <span class="truncate">{{ tag.title }}</span>
+    <span class="truncate font-semibold text-base-content">{{ tag.title }}</span>
 
     <button
       v-if="clearable"

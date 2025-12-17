@@ -4,7 +4,7 @@
     :class="[hasSearched ? 'opacity-0 h-0 overflow-hidden mt-0' : 'opacity-100']"
   >
     <p v-if="!loading" class="text-sm text-center text-base-content/40 font-medium uppercase tracking-wider mb-4">Try asking</p>
-    <div class="flex flex-wrap justify-center gap-3">
+    <div class="flex flex-wrap justify-center gap-2 md:gap-3">
       <button 
         v-for="(prompt, index) in prompts" 
         :key="prompt.text"

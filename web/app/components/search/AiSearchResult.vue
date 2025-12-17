@@ -14,8 +14,8 @@
     <div v-else-if="result" class="grid gap-6">
       <div class="card bg-base-100 shadow-xl border border-base-content/5 overflow-hidden">
         <div class="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary bg-size-200 animate-gradient"/>
-        <div class="card-body p-6 md:p-10">
-          <div class="flex items-start gap-6">
+        <div class="card-body p-5 md:p-10">
+          <div class="flex items-start gap-4 md:gap-6">
             <div class="flex-shrink-0">
               <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                 <Icon name="heroicons:chat-bubble-bottom-center-text" class="!w-6 !h-6 !text-primary" />

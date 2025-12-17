@@ -1,8 +1,8 @@
 <template>
   <div 
-    class="w-full transition-all duration-700 ease-in-out flex flex-col gap-8"
+    class="w-full transition-all duration-700 ease-in-out flex flex-col gap-4 md:gap-8"
     :class="[
-      hasSearched || searchResult ? 'max-w-4xl py-8' : 'max-w-2xl translate-y-[-10vh]'
+      hasSearched || searchResult ? 'max-w-4xl py-6 md:py-8' : 'max-w-2xl translate-y-[-10vh]'
     ]"
   >
     <AiSearchHeader :has-searched="hasSearched || !!searchResult" />
@@ -10,14 +10,14 @@
     <div class="w-full relative z-20">
       <AiSearchInput 
         v-model="searchQuery"
-        :loading="aiStore.queryForm.loading"
+        :loading="aiStore.queryForm.loading ?? false"
         :has-searched="hasSearched || !!searchResult"
         @search="performSearch"
       />
 
       <AiSuggestedPrompts 
         :prompts="displayedPrompts"
-        :loading="aiStore.queryForm.loading"
+        :loading="aiStore.queryForm.loading ?? false"
         :has-searched="hasSearched || !!searchResult"
         @select="usePrompt"
       />
@@ -29,7 +29,7 @@
       :result="searchResult"
       :error="aiStore.queryForm.error"
       :citations="aiStore.citedProjects"
-      :citations-loading="aiStore.citedProjectsLoading"
+      :citations-loading="aiStore.citedProjectsLoading ?? false"
       @reset="resetSearch"
       @dismiss-error="aiStore.queryForm.error = undefined"
     />

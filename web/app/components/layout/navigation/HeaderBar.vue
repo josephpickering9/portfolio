@@ -1,7 +1,7 @@
 <template>
   <header class="navbar bg-base-100">
     <div class="flex-1 flex items-center gap-2">
-      <NuxtLink to="/" class="btn btn-ghost text-xl">Portfolio</NuxtLink>
+      <NuxtLink to="/" class="btn btn-ghost text-xl px-1">Joseph Pickering</NuxtLink>
       <ClientOnly>
         <NuxtLink
           v-if="isAuthenticated"

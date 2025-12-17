@@ -1,86 +1,93 @@
 <template>
-  <div class="mobile-menu fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100 md:hidden">
-    <div class="flex flex-1 flex-col items-center px-4">
-      <ul class="menu flex w-full flex-col items-center justify-start p-4 pt-0 text-xl">
-        <li><ThemeController /></li>
-        <li>
-          <NuxtLink to="/search" @click="$emit('close')">
-            <Icon name="mdi:robot-happy-outline" size="1.5em" />
+  <div class="mobile-menu fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100/95 backdrop-blur-md md:hidden animate-slide-in-right">
+    <div class="flex flex-1 flex-col items-center px-6 py-8">
+      <ul class="menu flex w-full flex-col items-stretch justify-start gap-2 p-0 text-lg">
+        <li class="animate-fade-in-up" style="animation-delay: 100ms">
+          <ThemeController class="w-full justify-between" />
+        </li>
+        
+        <div class="divider my-4 animate-fade-in-up" style="animation-delay: 150ms" />
+
+        <li class="animate-fade-in-up" style="animation-delay: 200ms">
+          <NuxtLink to="/search" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+            <Icon name="mdi:robot-happy-outline" size="1.5em" class="text-primary" />
             AI Search
           </NuxtLink>
         </li>
-        <li>
-          <NuxtLink to="/projects" @click="$emit('close')">
-            <Icon name="mdi:view-dashboard-outline" size="1.5em" />
+        <li class="animate-fade-in-up" style="animation-delay: 250ms">
+          <NuxtLink to="/projects" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+            <Icon name="mdi:view-dashboard-outline" size="1.5em" class="text-secondary" />
             Projects
           </NuxtLink>
         </li>
-        <li>
-          <NuxtLink to="/companies" @click="$emit('close')">
-            <Icon name="mdi:domain" size="1.5em" />
+        <li class="animate-fade-in-up" style="animation-delay: 300ms">
+          <NuxtLink to="/companies" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+            <Icon name="mdi:domain" size="1.5em" class="text-accent" />
             Companies
           </NuxtLink>
         </li>
-        <li>
-          <NuxtLink to="/tags" @click="$emit('close')">
-            <Icon name="mdi:tag-multiple-outline" size="1.5em" />
+        <li class="animate-fade-in-up" style="animation-delay: 350ms">
+          <NuxtLink to="/tags" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+            <Icon name="mdi:tag-multiple-outline" size="1.5em" class="text-info" />
             Tags
           </NuxtLink>
         </li>
-        <li class="w-full"><div class="divider" /></li>
-        <li>
+
+        <div class="divider my-4 animate-fade-in-up" style="animation-delay: 400ms" />
+
+        <li class="animate-fade-in-up" style="animation-delay: 450ms">
           <a
             :href="linkedInUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="btn btn-wide bg-[#2682BE] text-lg text-black"
+            class="btn btn-outline border-base-content/10 hover:bg-[#0077b5] hover:border-[#0077b5] hover:text-white justify-start gap-4 normal-case text-base font-normal"
           >
-            <Icon name="mdi:linkedin" size="1.5em" />
+            <Icon name="mdi:linkedin" size="1.5em" class="text-[#0077b5] group-hover:text-white" />
             <span>LinkedIn</span>
+            <Icon name="heroicons:arrow-top-right-on-square" class="ml-auto w-4 h-4 opacity-50" />
           </a>
         </li>
-        <li>
+        <li class="animate-fade-in-up" style="animation-delay: 500ms">
           <a
             href="/Joseph Pickering CV.pdf"
             download="Joseph-Pickering-CV"
-            class="btn btn-wide mt-4 bg-[#F84C4D] text-lg text-black"
+            class="btn btn-outline border-base-content/10 hover:bg-[#FF5722] hover:border-[#FF5722] hover:text-white justify-start gap-4 normal-case text-base font-normal mt-2"
           >
-            <Icon name="mdi:file-pdf" size="1.5em" />
+            <Icon name="mdi:file-pdf" size="1.5em" class="text-[#FF5722] group-hover:text-white" />
             Download CV
+            <Icon name="heroicons:arrow-down-tray" class="ml-auto w-4 h-4 opacity-50" />
           </a>
         </li>
-        <li>
-          <button type="button" class="btn btn-success btn-wide mt-4 text-lg" @click="$emit('installPwa')">
-            <Icon name="ic:round-install-desktop" size="1.5em" />
+        
+        <li class="animate-fade-in-up" style="animation-delay: 550ms">
+          <button type="button" class="btn btn-ghost bg-base-200 hover:bg-success hover:text-white justify-start gap-4 normal-case text-base font-normal mt-2" @click="$emit('installPwa')">
+            <Icon name="ic:round-install-desktop" size="1.5em" class="text-success group-hover:text-white" />
             Install PWA
           </button>
         </li>
+
         <ClientOnly>
-          <li v-if="isAuthenticated">
-            <button type="button" class="btn btn-secondary btn-wide mt-4 text-lg" @click="$emit('optimiseImages')">
+          <div class="divider my-4 animate-fade-in-up" style="animation-delay: 600ms" />
+          
+          <li v-if="isAuthenticated" class="animate-fade-in-up" style="animation-delay: 650ms">
+            <button type="button" class="btn btn-ghost bg-base-200 justify-start gap-4 normal-case text-base font-normal" @click="$emit('optimiseImages')">
               <Spinner v-if="optimising" />
-              <span v-else>
+              <template v-else>
                 <Icon name="mdi:file-image-box" size="1.5em" />
                 Optimise Images
-              </span>
+              </template>
             </button>
           </li>
-          <li class="w-full"><div class="divider" /></li>
-          <li v-if="!isAuthenticated">
-            <FormButton type="primary" size="sm" label="Login" @click="$emit('login')" />
+          
+          <li v-if="!isAuthenticated" class="animate-fade-in-up" style="animation-delay: 650ms">
+            <FormButton type="primary" class="w-full" label="Login" @click="$emit('login')" />
           </li>
-          <li v-else>
-            <FormButton type="accent" label="Logout" size="sm" @click="$emit('logout')" />
+          <li v-else class="animate-fade-in-up" style="animation-delay: 700ms">
+            <FormButton type="error" outline class="w-full mt-2" label="Logout" @click="$emit('logout')" />
           </li>
         </ClientOnly>
       </ul>
-      <div class="mt-auto flex flex-col gap-4">
-        <div class="w-20 overflow-hidden rounded-full">
-          <NuxtImg alt="Profile" src="/images/joe.png" placeholder format="webp" />
-        </div>
-      </div>
     </div>
-    <FooterBar />
   </div>
 </template>
 
@@ -88,7 +95,6 @@
 import ThemeController from '~/components/layout/ThemeController.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import Spinner from '~/components/feedback/loading/Spinner.vue'
-import FooterBar from '~/components/layout/navigation/FooterBar.vue'
 
 defineProps<{
   linkedInUrl: string
@@ -104,7 +110,25 @@ defineEmits<{
 
 <style scoped>
 .mobile-menu {
-  height: calc(100% - 64px);
-  transition: top 0.3s;
+  height: calc(100vh - 64px);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in-up {
+  opacity: 0; /* Important for staggered delay to work without flashing */
+  animation: fadeInUp 0.4s ease-out forwards;
 }
 </style>

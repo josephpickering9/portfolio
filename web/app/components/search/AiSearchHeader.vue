@@ -1,12 +1,12 @@
 <template>
   <div 
-    class="text-center space-y-4 transition-all duration-500 delay-100"
+    class="text-center space-y-2 md:space-y-4 transition-all duration-500 delay-100"
     :class="[hasSearched ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto']"
   >
     <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl mb-4 animate-float">
       <Icon name="heroicons:sparkles" class="w-12 h-12 text-primary" />
     </div>
-    <h1 class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+    <h1 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
       Ask my AI Assistant
     </h1>
     <p class="text-lg text-base-content/60 max-w-md mx-auto">

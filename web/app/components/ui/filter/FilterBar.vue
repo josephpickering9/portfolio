@@ -18,8 +18,47 @@
         <span>{{ filters.length > 0 ? 'Add Filter' : 'Filter' }}</span>
       </button>
 
-      <div v-if="isOpen" class="dropdown-content z-[1] mt-2 w-56 rounded-box bg-base-100 p-2 shadow-xl ring-1 ring-base-content/10" :class="dropdownPosition === 'left' ? 'dropdown-left' : 'dropdown-right'" @click.stop @keydown="handleMainMenuKeydown">
-        <div class="flex flex-col gap-1">
+      <div 
+        v-if="isOpen" 
+        class="dropdown-content z-[1] mt-2 w-[90vw] md:w-72 rounded-box bg-base-100 p-2 shadow-xl ring-1 ring-base-content/10 overflow-hidden" 
+        :class="dropdownPosition === 'left' ? 'dropdown-left' : 'dropdown-right'" 
+        @click.stop 
+        @keydown="handleMainMenuKeydown"
+      >
+        
+        <!-- Submenu View -->
+        <div v-if="activeSubmenu" class="flex flex-col animate-slide-in-right h-full min-h-[300px] max-h-[60vh] md:max-h-[400px]">
+          <button 
+            class="btn btn-sm btn-ghost gap-2 justify-start mb-2 px-1 text-base-content/60 hover:text-base-content"
+            @click="closeSubmenu"
+          >
+            <Icon name="heroicons:chevron-left" size="1em" />
+            Back
+          </button>
+          
+          <div class="flex-1 overflow-y-auto">
+            <CompanyFilterList
+              v-if="activeSubmenu === FilterType.COMPANY"
+              @select="handleCompanySelect"
+              @close="handleSubmenuClose"
+            />
+
+            <TagTypeFilterList
+              v-else-if="activeSubmenu === FilterType.TAG_TYPE"
+              @select="handleTagTypeSelect"
+              @close="handleSubmenuClose"
+            />
+
+            <TagFilterList
+              v-else-if="activeSubmenu === FilterType.TAG"
+              @select="handleTagSelect"
+              @close="handleSubmenuClose"
+            />
+          </div>
+        </div>
+
+        <!-- Main Menu View -->
+        <div v-else class="flex flex-col gap-1">
           <div class="px-2 py-1">
             <TextInput
               ref="searchInputRef"
@@ -36,47 +75,18 @@
             v-for="(filterType, index) in availableFilterTypes"
             :key="filterType.value"
             class="relative"
-            @mouseenter="handleFilterTypeHover(filterType.value, $event)"
-            @mouseleave="handleFilterTypeLeave"
           >
             <button
               ref="filterTypeRefs"
               type="button"
-              class="btn btn-sm btn-ghost focus-visible:outline-none w-full justify-start gap-2 font-normal"
+              class="btn btn-sm btn-ghost focus-visible:outline-none w-full justify-start gap-3 font-normal py-3 h-auto"
               :class="{ 'ring-2 ring-primary': focusedFilterTypeIndex === index }"
               @click="openSubmenu(filterType.value)"
             >
-              <Icon :name="filterType.icon" size="1.2em" />
+              <Icon :name="filterType.icon" size="1.2em" class="text-base-content/70" />
               <span class="flex-1 text-left">{{ filterType.label }}</span>
               <Icon name="heroicons:chevron-right" size="1em" class="opacity-50" />
             </button>
-
-            <div
-              v-if="hoveredFilterType === filterType.value"
-              ref="submenuContainer"
-              class="absolute top-0 w-64 rounded-box bg-base-100 p-3 shadow-xl ring-1 ring-base-content/10 z-10"
-              :class="submenuPosition === 'left' ? 'right-full mr-1' : 'left-full ml-1'"
-              @mouseenter="handleSubmenuEnter(filterType.value)"
-              @mouseleave="handleSubmenuLeave"
-            >
-              <CompanyFilterList
-                v-if="filterType.value === FilterType.COMPANY"
-                @select="handleCompanySelect"
-                @close="handleSubmenuClose"
-              />
-
-              <TagTypeFilterList
-                v-else-if="filterType.value === FilterType.TAG_TYPE"
-                @select="handleTagTypeSelect"
-                @close="handleSubmenuClose"
-              />
-
-              <TagFilterList
-                v-else-if="filterType.value === FilterType.TAG"
-                @select="handleTagSelect"
-                @close="handleSubmenuClose"
-              />
-            </div>
           </div>
         </div>
       </div>
@@ -86,7 +96,6 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { debounce } from 'lodash-es'
 import { Icon } from '#components'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useTagStore } from '~/store/TagStore'
@@ -114,8 +123,7 @@ const tagStore = useTagStore()
 
 const isOpen = ref(false)
 const searchValue = ref<string>('')
-const hoveredFilterType = ref<string | null>(null)
-const submenuPosition = ref<'left' | 'right'>('right')
+const activeSubmenu = ref<string | null>(null)
 const dropdownPosition = ref<'left' | 'right'>('right')
 const container = ref<HTMLElement | null>(null)
 
@@ -151,7 +159,7 @@ function calculateDropdownPosition() {
 function toggle() {
   isOpen.value = !isOpen.value
   if (!isOpen.value) {
-    hoveredFilterType.value = null
+    activeSubmenu.value = null
   } else {
     // Calculate dropdown position when opening
     calculateDropdownPosition()
@@ -165,65 +173,33 @@ function toggle() {
 
 function close() {
   isOpen.value = false
-  hoveredFilterType.value = null
-}
-
-const debouncedCloseSubmenu = debounce(() => {
-  hoveredFilterType.value = null
-}, 150)
-
-function handleSubmenuLeave() {
-  debouncedCloseSubmenu()
-}
-
-function handleFilterTypeLeave() {
-  debouncedCloseSubmenu()
-}
-
-function handleSubmenuEnter(filterTypeValue: string) {
-  // Cancel any pending close when entering submenu
-  debouncedCloseSubmenu.cancel()
-  // Ensure the submenu stays visible
-  hoveredFilterType.value = filterTypeValue
-}
-
-function handleFilterTypeHover(filterTypeValue: string, event: MouseEvent) {
-  // Cancel any pending close when hovering
-  debouncedCloseSubmenu.cancel()
-  
-  hoveredFilterType.value = filterTypeValue
-  
-  // Calculate if submenu would overflow on the right
-  const target = event.currentTarget as HTMLElement
-  if (target) {
-    const rect = target.getBoundingClientRect()
-    const submenuWidth = 350
-    const buffer = 16
-    const viewportWidth = window.innerWidth
-    
-    // Check if there's enough space on the right
-    const spaceOnRight = viewportWidth - rect.right
-    const wouldOverflow = spaceOnRight < (submenuWidth + buffer)
-    
-    submenuPosition.value = wouldOverflow ? 'left' : 'right'
-  }
+  activeSubmenu.value = null
 }
 
 function openSubmenu(filterTypeValue: string) {
-  hoveredFilterType.value = filterTypeValue
+  activeSubmenu.value = filterTypeValue
+}
+
+function closeSubmenu() {
+  activeSubmenu.value = null
+  nextTick(() => {
+    searchInputRef.value?.focus()
+  })
 }
 
 function handleSubmenuClose() {
-  hoveredFilterType.value = null
-  
-  nextTick(() => {
-    if (focusedFilterTypeIndex.value >= 0) {
-      const focusedElement = filterTypeRefs.value[focusedFilterTypeIndex.value]
-      if (focusedElement) {
-        focusedElement.focus()
-      }
-    }
-  })
+  // close() // Optional: Close entire menu on selection? Or just go back?
+  // Usually for filters, you might want to select multiple or just one.
+  // The existing code closed the whole menu, let's keep that behavior for 'apply' actions
+  // But if it's just 'close' event from component (like a cancel), maybe just go back.
+  // Checking usage: The sub-components emit 'close' usually when selection is done or cancel.
+  // Let's assume selection methods handle the 'updating filters' and closing.
+  // This handler might be for explicit close buttons inside components if they exist.
+  // Since we have a drill-down 'Back' button, maybe we don't strictly need this unless subcomponents emit it.
+  // But we bound it in template: @close="handleSubmenuClose"
+  // So let's make it close everything to be safe, or just close active submenu.
+  // Original behavior: close()
+  close()
 }
 
 function handleSearchKeydown(event: KeyboardEvent) {
@@ -395,6 +371,15 @@ onUnmounted(() => {
 }
 .dropdown-right {
   left: 0;
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.2s ease-out forwards;
 }
 </style>
 

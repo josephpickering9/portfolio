@@ -1,5 +1,5 @@
 <template>
-  <div class="flex mx-auto flex-col items-center justify-center min-h-[85vh] transition-all duration-500 ease-in-out">
+  <div class="flex mx-auto flex-col items-center justify-center min-h-[85vh] transition-all duration-500 ease-in-out px-4">
     <AiSearch />
   </div>
 </template>
