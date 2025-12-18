@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { chain, isEmpty, sortBy } from 'lodash-es'
+import { isEmpty, sortBy, groupBy, mapValues, toPairs, fromPairs } from 'lodash-es'
 import { useQuerySync } from '~/composables/useQuerySync'
 import { useTagStore } from '~/store/TagStore'
 import type { Tag } from '@api'
@@ -108,13 +108,10 @@ const filteredTags = computed((): Record<string, Tag[]> => {
     tagsFiltered = tagsFiltered.filter((tag) => tag.type === tagType.value)
   }
 
-  const sortedGroupedTags = chain(tagsFiltered)
-    .groupBy('type')
-    .mapValues((tags) => sortBy(tags, ['title']))
-    .toPairs()
-    .sortBy(0)
-    .fromPairs()
-    .value()
+  const grouped = groupBy(tagsFiltered, 'type')
+  const sortedValues = mapValues(grouped, (tags) => sortBy(tags, ['title']))
+  const sortedPairs = sortBy(toPairs(sortedValues), 0)
+  const sortedGroupedTags = fromPairs(sortedPairs)
 
   return sortedGroupedTags as Record<string, Tag[]>
 })
