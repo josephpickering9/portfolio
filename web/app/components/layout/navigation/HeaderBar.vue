@@ -33,9 +33,9 @@
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink to="/tags">
-            <Icon name="heroicons:tag" size="1.2em" />
-            Tags
+          <NuxtLink to="/technologies">
+            <Icon name="heroicons:code-bracket" size="1.2em" />
+            Technologies
           </NuxtLink>
         </li>
       </ul>

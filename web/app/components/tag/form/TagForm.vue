@@ -74,7 +74,7 @@
             <Icon name="heroicons:information-circle" class="mr-2 h-5 w-5" />
             <div>
               <h3 class="font-bold">Pro Tip</h3>
-              <div class="text-xs">Tags are used to categorize projects. Selecting the correct type ensures it appears in the right section.</div>
+              <div class="text-xs">Technologies are used to categorize projects. Selecting the correct type ensures it appears in the right section.</div>
             </div>
           </div>
         </div>
@@ -143,7 +143,7 @@ const { save, remove, fetch } = useEntityForm<Tag, CreateTag>({
   store: tagStore,
   notificationStore,
   router,
-  redirectRoute: '/tags',
+  redirectRoute: '/technologies',
   actions: {
     get: tagStore.getTag,
     create: tagStore.createTag,

@@ -3,13 +3,13 @@ import { ref } from 'vue'
 import {
     postVertexProjectsByIdDescriptionSuggest,
     postVertexQuery,
+    getProjectById,
     type PostVertexQueryResponse,
     type ProjectDescriptionSuggestionResponse,
     type VertexCitation,
     type Project
 } from "~~/api"
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
-import { useProjectStore } from './ProjectStore'
 
 export const useAiStore = defineStore('aiStore', {
     state: () => ({
@@ -57,12 +57,20 @@ export const useAiStore = defineStore('aiStore', {
             }
 
             await tryCatchFinally(ref(this.citedProjectsForm), async () => {
-                const projectStore = useProjectStore()
                 const projectCitations = citations.filter(c => c.featureType === 'Project' && c.id)
-                // Use Promise.all to fetch all projects in parallel using the project store
-                const promises = projectCitations.map(c => projectStore.getProject(c.id!))
+
+                const promises = projectCitations.map(async c => {
+                    if (c.project) return c.project
+
+                    try {
+                        return (await getProjectById({ path: { id: c.id! } })).data
+                    } catch {
+                        return undefined
+                    }
+                })
+
                 const results = await Promise.all(promises)
-                return results.filter((r): r is Project => !!r)
+                return results.filter(notEmpty)
             })
         }
     }

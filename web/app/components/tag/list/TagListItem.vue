@@ -26,7 +26,7 @@
           <span class="text-xs text-base-content/60">{{ tag.type }}</span>
         </div>
       </div>
-      <NuxtLink :to="`/tags/${tag.id}/update`">
+      <NuxtLink :to="`/technologies/${tag.id}/update`">
         <FormButton
           v-if="isAuthenticated && !preview"
           size="xs"

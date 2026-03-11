@@ -4,7 +4,7 @@
       <TextInput
         ref="searchInputRef"
         v-model="searchQuery"
-        placeholder="Search tags..."
+        placeholder="Search technologies..."
         size="sm"
         @keydown="handleSearchKeydown"
       />
@@ -29,7 +29,7 @@
       </span>
     </button>
     <div v-if="filteredTags.length === 0" class="text-sm text-center py-4 opacity-50">
-      No tags found
+      No technologies found
     </div>
   </div>
 </template>

@@ -1,8 +1,8 @@
 <template>
   <div 
-    class="w-full transition-all duration-700 ease-in-out flex flex-col gap-4 md:gap-8"
+    class="w-full max-w-4xl transition-all duration-700 ease-in-out flex flex-col gap-4 md:gap-8"
     :class="[
-      hasSearched || searchResult ? 'max-w-4xl py-6 md:py-8' : 'max-w-2xl translate-y-[-10vh]'
+      hasSearched || searchResult ? 'py-6 md:py-8' : 'translate-y-[-10vh]'
     ]"
   >
     <AiSearchHeader :has-searched="hasSearched || !!searchResult" />
@@ -84,15 +84,8 @@ async function performSearch() {
   
   if (result) {
     const finalResult = result.answer || ''
-    
-    if (result.citations?.length) {
-        aiStore.getCitedProjects(result.citations)
-    } else {
-        aiStore.getCitedProjects([]) // Clear any previous citations if no new ones
-    }
-    
+    aiStore.getCitedProjects(result.citations ?? [])
     searchResult.value = finalResult
-    // Typing logic moved to AiSearchResult
   }
 }
 
@@ -104,7 +97,7 @@ function usePrompt(prompt: string) {
 function resetSearch() {
   searchQuery.value = ''
   searchResult.value = null
-  aiStore.getCitedProjects([]) // Clear store state
+  aiStore.getCitedProjects([])
   hasSearched.value = false
   displayedPrompts.value = sampleSize(allPrompts, 3)
 }

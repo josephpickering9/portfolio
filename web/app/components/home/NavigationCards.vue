@@ -27,12 +27,12 @@
         <p class="text-base-content/70">See companies I've worked with</p>
       </div>
     </NuxtLink>
-    <NuxtLink to="/tags" class="group card bg-base-100 hover:bg-base-200/50 shadow-md hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-accent/50 hover:-translate-y-1">
+    <NuxtLink to="/technologies" class="group card bg-base-100 hover:bg-base-200/50 shadow-md hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-accent/50 hover:-translate-y-1">
       <div class="card-body items-center text-center p-8">
         <div class="p-4 rounded-full bg-accent/10 group-hover:bg-accent/20 transition-colors duration-300 mb-4">
-          <Icon name="heroicons:tag" class="!w-10 !h-10 !text-accent" />
+          <Icon name="heroicons:code-bracket" class="!w-10 !h-10 !text-accent" />
         </div>
-        <h2 class="card-title text-2xl mb-2">Tags</h2>
+        <h2 class="card-title text-2xl mb-2">Technologies</h2>
         <p class="text-base-content/70">Browse by technologies</p>
       </div>
     </NuxtLink>

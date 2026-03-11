@@ -10,5 +10,5 @@ import TagList from '~/components/tag/list/TagList.vue'
 
 const { updateMeta } = useMeta()
 
-updateMeta({ title: 'Tags', description: 'View all of the tags associated with projects' })
+updateMeta({ title: 'Technologies', description: 'View all of the technologies associated with projects' })
 </script>

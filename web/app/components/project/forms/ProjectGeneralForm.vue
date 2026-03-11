@@ -26,8 +26,8 @@
         <TextInput v-model="form.website" label="Website" :disabled="loading" />
       </FormGroup>
     </div>
-    <FormGroup :errors="v$['form']?.tags?.$errors" name="Tags">
-      <TagAutoComplete v-model="form.tags" label="Tags" placeholder="Search by tag name" />
+    <FormGroup :errors="v$['form']?.tags?.$errors" name="Technologies">
+      <TagAutoComplete v-model="form.tags" label="Technologies" placeholder="Search by tag name" />
     </FormGroup>
   </div>
 </template>

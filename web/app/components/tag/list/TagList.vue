@@ -1,10 +1,10 @@
 <template>
   <ListLayout
-    title="Tags"
+    title="Technologies"
     description="Browse and manage project technologies and categories."
     :loading="loading"
     :is-empty="Object.keys(filteredTags).length === 0"
-    empty-title="No tags found"
+    empty-title="No technologies found"
   >
     <template #actions>
       <div class="group relative">
@@ -15,7 +15,7 @@
           v-model="search"
           class="w-full md:max-w-48" 
           size="md"
-          placeholder="Search tags..."
+          placeholder="Search technologies..."
           :disabled="loading"
         />
       </div>
@@ -31,11 +31,11 @@
       <ClientOnly>
         <FormButton
           v-if="isAuthenticated"
-          label="Add Tag"
+          label="Add Technology"
           icon="heroicons:plus"
           type="primary"
           size="md"
-          href="/tags/new"
+          href="/technologies/new"
           :disabled="loading"
           class="w-full shadow-lg shadow-primary/20 sm:w-auto"
         />
@@ -73,7 +73,6 @@ import FormButton from '~/components/ui/form/FormButton.vue'
 import TagTypeSelectList from '~/components/tag/form/TagTypeSelectList.vue'
 import TagListItem from './TagListItem.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
-
 
 const { isAuthenticated } = useAuth()
 const tagStore = useTagStore()

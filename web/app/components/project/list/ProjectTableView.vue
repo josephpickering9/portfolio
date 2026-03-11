@@ -124,7 +124,7 @@ const columns = computed<TableColumn[]>(() => [
   },
   {
     key: 'tags',
-    label: 'Tags',
+    label: 'Technologies',
     sortable: false,
     thClass: 'hidden xl:table-cell',
     tdClass: 'hidden xl:table-cell',
