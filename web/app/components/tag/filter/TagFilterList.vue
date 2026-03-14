@@ -1,24 +1,24 @@
 <template>
-  <div class="flex flex-col max-h-64 gap-1 overflow-y-auto p-1">
+  <div class="flex flex-col gap-1 overflow-y-auto p-1" :class="mobile ? '' : 'max-h-64'">
     <div class="px-2 pt-1 pb-2">
       <TextInput
         ref="searchInputRef"
         v-model="searchQuery"
         placeholder="Search technologies..."
-        size="sm"
+        :size="mobile ? 'md' : 'sm'"
         @keydown="handleSearchKeydown"
       />
     </div>
 
-    <div class="divider my-0" />  
+    <div class="divider my-0" />
 
     <button
       v-for="(tag, index) in filteredTags"
       :key="tag.id"
       ref="itemRefs"
       type="button"
-      class="btn btn-sm btn-ghost focus-visible:outline-none justify-between hover:bg-base-200 h-auto py-2"
-      :class="{ 'ring-2 ring-primary': focusedIndex === index }"
+      class="btn btn-ghost focus-visible:outline-none justify-between hover:bg-base-200 h-auto"
+      :class="[mobile ? 'py-3 text-base' : 'btn-sm py-2', { 'ring-2 ring-primary': focusedIndex === index }]"
       @click="selectTag(tag.id)"
       @mouseenter="focusedIndex = index"
       @keydown="handleItemKeydown"
@@ -42,6 +42,12 @@ import { useProjectStore } from '~/store/ProjectStore'
 import { countBy, flatMap, isEmpty, orderBy } from 'lodash-es'
 import Tag from '../Tag.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
+
+interface Props {
+  mobile?: boolean
+}
+
+defineProps<Props>()
 
 const emit = defineEmits<{
   'select': [tagTitle: string]

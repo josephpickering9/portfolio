@@ -1,15 +1,19 @@
 <template>
-  <div class="w-full animate-fade-in-up" :class="maxWidth">
-    <div class="mb-12 flex gap-6 flex-row items-end justify-between">
-      <div class="flex flex-col gap-2">
-        <h1>{{ title }}</h1>
-        <p v-if="description" class="text-lg text-base-content/60">
-          {{ description }}
-        </p>
+  <div class="w-full animate-fade-in-up mx-auto" :class="maxWidth">
+    <div class="mb-8">
+      <div class="flex gap-3 mb-4 items-center justify-between">
+        <div class="flex flex-col gap-1">
+          <h1>{{ title }}</h1>
+          <p v-if="description" class="text-lg text-base-content/60">
+            {{ description }}
+          </p>
+        </div>
+        <div v-if="$slots['actions']" class="flex items-center gap-2 sm:flex-1 sm:justify-end sm:pt-1">
+          <slot name="actions" />
+        </div>
       </div>
-
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <slot name="actions" />
+      <div v-if="$slots['filters']" class="flex flex-wrap items-center gap-3">
+        <slot name="filters" />
       </div>
     </div>
 

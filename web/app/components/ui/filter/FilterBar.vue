@@ -1,13 +1,15 @@
 <template>
-  <div class="flex flex-wrap items-center gap-2">
-    <FilterChip
-      v-for="(filter, index) in filters"
-      :key="`${filter.type}-${index}`"
-      :filter="filter"
-      @remove="removeFilter(index)"
-    />
+  <div class="flex items-center gap-2 flex-1">
+    <div class="flex flex-wrap items-center gap-2 flex-1">
+      <FilterChip
+        v-for="(filter, index) in filters"
+        :key="`${filter.type}-${index}`"
+        :filter="filter"
+        @remove="removeFilter(index)"
+      />
+    </div>
 
-    <div ref="container" class="dropdown" :class="{ 'dropdown-open': isOpen }">
+    <div v-if="!isMobile" ref="container" class="dropdown flex-shrink-0" :class="{ 'dropdown-open': isOpen }">
       <button
         type="button"
         class="btn btn-sm gap-2"
@@ -15,40 +17,36 @@
         @click="toggle"
       >
         <Icon name="heroicons:funnel" size="1.2em" />
-        <span>{{ filters.length > 0 ? 'Add Filter' : 'Filter' }}</span>
+        <span>Filter</span>
       </button>
 
-      <div 
-        v-if="isOpen" 
-        class="dropdown-content z-[1] mt-2 w-[90vw] md:w-72 rounded-box bg-base-100 p-2 shadow-xl ring-1 ring-base-content/10 overflow-hidden" 
-        :class="dropdownPosition === 'left' ? 'dropdown-left' : 'dropdown-right'" 
-        @click.stop 
+      <div
+        v-if="isOpen"
+        class="dropdown-content z-[1] mt-2 w-72 rounded-box bg-base-100 p-2 shadow-xl ring-1 ring-base-content/10 overflow-hidden"
+        :class="dropdownPosition === 'left' ? 'dropdown-left' : 'dropdown-right'"
+        @click.stop
         @keydown="handleMainMenuKeydown"
       >
-        
-        <!-- Submenu View -->
-        <div v-if="activeSubmenu" class="flex flex-col animate-slide-in-right h-full min-h-[300px] max-h-[60vh] md:max-h-[400px]">
-          <button 
+        <div v-if="activeSubmenu" class="flex flex-col animate-slide-in-right h-full min-h-[300px] max-h-[400px]">
+          <button
             class="btn btn-sm btn-ghost gap-2 justify-start mb-2 px-1 text-base-content/60 hover:text-base-content"
             @click="closeSubmenu"
           >
             <Icon name="heroicons:chevron-left" size="1em" />
             Back
           </button>
-          
+
           <div class="flex-1 overflow-y-auto">
             <CompanyFilterList
               v-if="activeSubmenu === FilterType.COMPANY"
               @select="handleCompanySelect"
               @close="handleSubmenuClose"
             />
-
             <TagTypeFilterList
               v-else-if="activeSubmenu === FilterType.TAG_TYPE"
               @select="handleTagTypeSelect"
               @close="handleSubmenuClose"
             />
-
             <TagFilterList
               v-else-if="activeSubmenu === FilterType.TAG"
               @select="handleTagSelect"
@@ -57,7 +55,6 @@
           </div>
         </div>
 
-        <!-- Main Menu View -->
         <div v-else class="flex flex-col gap-1">
           <div class="px-2 py-1">
             <TextInput
@@ -91,6 +88,109 @@
         </div>
       </div>
     </div>
+
+    <button
+      v-else
+      type="button"
+      class="btn btn-sm gap-2 flex-shrink-0"
+      :class="filters.length > 0 ? 'btn-ghost' : 'btn-outline'"
+      @click="toggle"
+    >
+      <Icon name="heroicons:funnel" size="1.2em" />
+      <span>Filter</span>
+    </button>
+
+    <Teleport to="body">
+      <Transition name="sheet-backdrop">
+        <div
+          v-if="isMobile && isOpen"
+          class="fixed inset-0 z-50"
+        >
+          <Transition name="sheet-panel">
+            <div
+              v-if="isOpen"
+              class="absolute inset-0 bg-base-100 flex flex-col"
+            >
+              <div
+                class="flex items-center justify-between px-4 flex-shrink-0"
+                style="padding-top: max(env(safe-area-inset-top, 0px), 16px); padding-bottom: 12px;"
+              >
+                <span class="font-semibold text-base">
+                  {{ activeSubmenu ? submenuTitle : 'Filter' }}
+                </span>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-ghost btn-circle"
+                  @click="close"
+                >
+                  <Icon name="heroicons:x-mark" size="1.2em" />
+                </button>
+              </div>
+
+              <div class="divider my-0 flex-shrink-0" />
+
+              <div v-if="activeSubmenu" class="flex flex-col flex-1 overflow-hidden animate-slide-in-right" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+                <div class="px-3 pt-2 flex-shrink-0">
+                  <button
+                    class="btn btn-sm btn-ghost gap-2 justify-start text-base-content/60 hover:text-base-content w-full justify-start"
+                    @click="closeSubmenu"
+                  >
+                    <Icon name="heroicons:chevron-left" size="1em" />
+                    Back
+                  </button>
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-2 pb-2">
+                  <CompanyFilterList
+                    v-if="activeSubmenu === FilterType.COMPANY"
+                    mobile
+                    @select="handleCompanySelect"
+                    @close="handleSubmenuClose"
+                  />
+                  <TagTypeFilterList
+                    v-else-if="activeSubmenu === FilterType.TAG_TYPE"
+                    mobile
+                    @select="handleTagTypeSelect"
+                    @close="handleSubmenuClose"
+                  />
+                  <TagFilterList
+                    v-else-if="activeSubmenu === FilterType.TAG"
+                    mobile
+                    @select="handleTagSelect"
+                    @close="handleSubmenuClose"
+                  />
+                </div>
+              </div>
+
+              <div v-else class="flex flex-col flex-1 overflow-hidden" style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+                <div class="px-4 pb-3 pt-1 flex-shrink-0">
+                  <TextInput
+                    ref="mobileSearchInputRef"
+                    v-model="searchValue"
+                    placeholder="Search projects..."
+                    size="md"
+                  />
+                </div>
+
+                <div class="flex-1 overflow-y-auto px-2 pb-2">
+                  <button
+                    v-for="filterType in availableFilterTypes"
+                    :key="filterType.value"
+                    type="button"
+                    class="btn btn-ghost w-full justify-start gap-4 font-normal h-auto py-4 text-base"
+                    @click="openSubmenu(filterType.value)"
+                  >
+                    <Icon :name="filterType.icon" size="1.4em" class="text-base-content/70" />
+                    <span class="flex-1 text-left">{{ filterType.label }}</span>
+                    <Icon name="heroicons:chevron-right" size="1.1em" class="opacity-40" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Transition>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -126,21 +226,31 @@ const searchValue = ref<string>('')
 const activeSubmenu = ref<string | null>(null)
 const dropdownPosition = ref<'left' | 'right'>('right')
 const container = ref<HTMLElement | null>(null)
+const isMobile = ref(false)
 
-const focusedFilterTypeIndex = ref(-1) // -1 means search is focused
+const focusedFilterTypeIndex = ref(-1)
 const filterTypeRefs = ref<HTMLElement[]>([])
 const searchInputRef = ref<InstanceType<typeof TextInput> | null>(null)
+const mobileSearchInputRef = ref<InstanceType<typeof TextInput> | null>(null)
 
 const filterTypes = [
   { value: FilterType.SEARCH, label: 'Search', icon: 'heroicons:magnifying-glass' },
   { value: FilterType.COMPANY, label: 'Company', icon: 'heroicons:building-office' },
-  { value: FilterType.TAG_TYPE, label: 'Tag Type', icon: 'heroicons:squares-2x2' },
-  { value: FilterType.TAG, label: 'Tag', icon: 'heroicons:hashtag' },
+  { value: FilterType.TAG_TYPE, label: 'Technology Type', icon: 'heroicons:squares-2x2' },
+  { value: FilterType.TAG, label: 'Technology', icon: 'heroicons:code-bracket' },
 ]
 
 const availableFilterTypes = computed(() => filterTypes.filter(ft => ft.value !== FilterType.SEARCH))
 
+const submenuTitle = computed(() => {
+  return filterTypes.find(ft => ft.value === activeSubmenu.value)?.label ?? ''
+})
+
 const companies = computed(() => companyStore.companies)
+
+function checkMobile() {
+  isMobile.value = window.innerWidth < 768
+}
 
 function calculateDropdownPosition() {
   if (container.value) {
@@ -148,10 +258,10 @@ function calculateDropdownPosition() {
     const dropdownWidth = 280
     const buffer = 16
     const viewportWidth = window.innerWidth
-    
+
     const spaceOnRight = viewportWidth - rect.right
     const wouldOverflow = spaceOnRight < (dropdownWidth + buffer)
-    
+
     dropdownPosition.value = wouldOverflow ? 'left' : 'right'
   }
 }
@@ -161,13 +271,17 @@ function toggle() {
   if (!isOpen.value) {
     activeSubmenu.value = null
   } else {
-    // Calculate dropdown position when opening
-    calculateDropdownPosition()
-    // Auto-focus search input when opening
-    focusedFilterTypeIndex.value = -1
-    nextTick(() => {
-      searchInputRef.value?.focus()
-    })
+    if (!isMobile.value) {
+      calculateDropdownPosition()
+      focusedFilterTypeIndex.value = -1
+      nextTick(() => {
+        searchInputRef.value?.focus()
+      })
+    } else {
+      nextTick(() => {
+        mobileSearchInputRef.value?.focus()
+      })
+    }
   }
 }
 
@@ -183,22 +297,15 @@ function openSubmenu(filterTypeValue: string) {
 function closeSubmenu() {
   activeSubmenu.value = null
   nextTick(() => {
-    searchInputRef.value?.focus()
+    if (isMobile.value) {
+      mobileSearchInputRef.value?.focus()
+    } else {
+      searchInputRef.value?.focus()
+    }
   })
 }
 
 function handleSubmenuClose() {
-  // close() // Optional: Close entire menu on selection? Or just go back?
-  // Usually for filters, you might want to select multiple or just one.
-  // The existing code closed the whole menu, let's keep that behavior for 'apply' actions
-  // But if it's just 'close' event from component (like a cancel), maybe just go back.
-  // Checking usage: The sub-components emit 'close' usually when selection is done or cancel.
-  // Let's assume selection methods handle the 'updating filters' and closing.
-  // This handler might be for explicit close buttons inside components if they exist.
-  // Since we have a drill-down 'Back' button, maybe we don't strictly need this unless subcomponents emit it.
-  // But we bound it in template: @close="handleSubmenuClose"
-  // So let's make it close everything to be safe, or just close active submenu.
-  // Original behavior: close()
   close()
 }
 
@@ -216,7 +323,6 @@ function handleMainMenuKeydown(event: KeyboardEvent) {
     case 'ArrowDown':
       event.preventDefault()
       if (focusedFilterTypeIndex.value === -1) {
-        // From search to first filter type
         focusedFilterTypeIndex.value = 0
         scrollToFocusedFilterType()
       } else if (focusedFilterTypeIndex.value < availableFilterTypes.value.length - 1) {
@@ -227,7 +333,6 @@ function handleMainMenuKeydown(event: KeyboardEvent) {
     case 'ArrowUp':
       event.preventDefault()
       if (focusedFilterTypeIndex.value === 0) {
-        // From first filter type back to search
         focusedFilterTypeIndex.value = -1
         nextTick(() => {
           searchInputRef.value?.focus()
@@ -293,7 +398,7 @@ function handleTagTypeSelect(tagType: TagTypeValue) {
 
 function handleTagSelect(tagId: string) {
   const tag = tagStore.tags.find(t => t.id === tagId)
-  
+
   const newFilter: Filter = {
     type: FilterType.TAG,
     value: tagId,
@@ -309,9 +414,9 @@ function handleTagSelect(tagId: string) {
 function removeFilter(index: number) {
   const updatedFilters = [...props.filters]
   const removedFilter = updatedFilters.splice(index, 1)[0]
-  
+
   if (removedFilter?.type === FilterType.SEARCH) searchValue.value = ''
-  
+
   emit('update:filters', updatedFilters)
 }
 
@@ -324,7 +429,7 @@ function applySearchFilter() {
 
   const updatedFilters = [...props.filters]
   const searchFilterIndex = updatedFilters.findIndex(f => f.type === FilterType.SEARCH)
-  
+
   const searchFilter: Filter = {
     type: FilterType.SEARCH,
     value: searchValue.value.trim(),
@@ -338,10 +443,14 @@ function applySearchFilter() {
 }
 
 function handleClickOutside(event: MouseEvent) {
-  if (container.value && !container.value.contains(event.target as Node)) {
+  if (!isMobile.value && container.value && !container.value.contains(event.target as Node)) {
     close()
   }
 }
+
+watch([isOpen, isMobile], ([open, mobile]) => {
+  document.body.style.overflow = (open && mobile) ? 'hidden' : ''
+})
 
 watch(() => props.filters, (newFilters) => {
   const searchFilter = newFilters.find(f => f.type === FilterType.SEARCH)
@@ -357,11 +466,15 @@ watch(() => searchValue.value, () => {
 })
 
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
   document.addEventListener('click', handleClickOutside)
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
   document.removeEventListener('click', handleClickOutside)
+  document.body.style.overflow = ''
 })
 </script>
 
@@ -381,5 +494,22 @@ onUnmounted(() => {
 .animate-slide-in-right {
   animation: slideInRight 0.2s ease-out forwards;
 }
-</style>
 
+.sheet-backdrop-enter-active,
+.sheet-backdrop-leave-active {
+  transition: opacity 0.2s ease;
+}
+.sheet-backdrop-enter-from,
+.sheet-backdrop-leave-to {
+  opacity: 0;
+}
+
+.sheet-panel-enter-active,
+.sheet-panel-leave-active {
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.sheet-panel-enter-from,
+.sheet-panel-leave-to {
+  transform: translateX(100%);
+}
+</style>

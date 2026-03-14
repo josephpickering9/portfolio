@@ -7,39 +7,41 @@
     empty-title="No technologies found"
   >
     <template #actions>
-      <div class="group relative">
-        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
-        </div>
-        <TextInput
-          v-model="search"
-          class="w-full md:max-w-48" 
-          size="md"
-          placeholder="Search technologies..."
-          :disabled="loading"
-        />
-      </div>
-      
-      <TagTypeSelectList
-        v-model="tagType"
-        class="w-full sm:w-48"
-        size="md"
-        placeholder="Filter by Type"
-        :disabled="loading"
-      />
-
       <ClientOnly>
         <FormButton
           v-if="isAuthenticated"
           label="Add Technology"
           icon="heroicons:plus"
           type="primary"
-          size="md"
+          size="sm"
           href="/technologies/new"
           :disabled="loading"
-          class="w-full shadow-lg shadow-primary/20 sm:w-auto"
+          class="shadow-lg shadow-primary/20"
         />
       </ClientOnly>
+    </template>
+
+    <template #filters>
+      <div class="group relative">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
+        </div>
+        <TextInput
+          v-model="search"
+          class="w-full md:max-w-64"
+          size="sm"
+          placeholder="Search technologies..."
+          :disabled="loading"
+        />
+      </div>
+
+      <TagTypeSelectList
+        v-model="tagType"
+        class="w-full sm:w-48"
+        size="sm"
+        placeholder="Filter by Type"
+        :disabled="loading"
+      />
     </template>
 
     <div v-for="(typeTags, type) in filteredTags" :key="type" class="flex w-full flex-col">

@@ -9,31 +9,33 @@
     max-width="max-w-7xl"
   >
     <template #actions>
-      <div class="group relative">
-        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
-        </div>
-        <TextInput
-          v-model="search"
-          class="w-full md:max-w-48"
-          size="md"
-          placeholder="Search companies..."
-          :disabled="loading"
-        />
-      </div>
-
       <ClientOnly>
         <FormButton
           v-if="isAuthenticated"
           label="Add Company"
           icon="heroicons:plus"
           type="primary"
-          size="md"
+          size="sm"
           href="/companies/new"
           :disabled="loading"
-          class="w-full shadow-lg shadow-primary/20 sm:w-auto"
+          class="shadow-lg shadow-primary/20"
         />
       </ClientOnly>
+    </template>
+
+    <template #filters>
+      <div class="group relative">
+        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
+        </div>
+        <TextInput
+          v-model="search"
+          class="w-full md:max-w-64"
+          size="sm"
+          placeholder="Search companies..."
+          :disabled="loading"
+        />
+      </div>
     </template>
 
     <CompanyTimeline :companies="filteredCompanies" :projects="projects" />

@@ -18,7 +18,7 @@
         <span v-if="dateRange && duration" class="text-base-content/40">•</span>
         <p v-if="duration" class="m-0">{{ duration }}</p>
       </div>
-      <div class="pb-2 text-sm italic" v-html="company.description" />
+      <div class="prose prose-sm max-w-none pb-2 italic" v-html="company.description" />
     </div>
     <FormButton
       v-if="isAuthenticated"
@@ -33,9 +33,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { isEmpty } from 'lodash-es'
-import { format, formatDuration, intervalToDuration, parseISO } from 'date-fns'
 import type { Company as CompanyModel } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
+import { getDateRange, getDuration } from '~/utils/date-helper'
 import useAuth from '~/composables/useAuth'
 import FormButton from '~/components/ui/form/FormButton.vue'
 
@@ -53,23 +53,6 @@ const logo = computed((): string => {
   return getImageUrl(props.company.logo)
 })
 
-const dateRange = computed((): string => {
-  const start = props.company.startDate ? format(parseISO(props.company.startDate), 'MMM yyyy') : ''
-  const end = props.company.endDate ? format(parseISO(props.company.endDate), 'MMM yyyy') : 'Present'
-
-  if (!start) return ''
-
-  return `${start} - ${end}`
-})
-
-const duration = computed((): string => {
-  if (!props.company.startDate || !props.company.endDate) return ''
-
-  const interval = intervalToDuration({
-    start: parseISO(props.company.startDate),
-    end: parseISO(props.company.endDate),
-  })
-
-  return formatDuration(interval, { format: ['years', 'months'] })
-})
+const dateRange = computed(() => getDateRange(props.company))
+const duration = computed(() => getDuration(props.company))
 </script>

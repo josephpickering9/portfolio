@@ -1,35 +1,35 @@
 <template>
-  <div class="mobile-menu fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100/95 backdrop-blur-md md:hidden animate-slide-in-right">
-    <div class="flex flex-1 flex-col items-center px-6 py-8">
+  <div class="mobile-menu fixed left-0 top-16 z-50 flex w-full flex-col overflow-y-auto bg-base-100/95 backdrop-blur-md lg:hidden animate-slide-in-right">
+    <div class="flex flex-1 flex-col items-center p-4">
       <ul class="menu flex w-full flex-col items-stretch justify-start gap-2 p-0 text-lg">
         <li class="animate-fade-in-up" style="animation-delay: 100ms">
-          <ThemeController class="w-full justify-between" />
+          <ThemeController variant="menu-item" />
         </li>
         
         <div class="divider my-4 animate-fade-in-up" style="animation-delay: 150ms" />
 
         <li class="animate-fade-in-up" style="animation-delay: 200ms">
-          <NuxtLink to="/search" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+          <NuxtLink to="/search" class="active:bg-primary/10 active:text-primary flex items-center gap-4" @click="$emit('close')">
             <Icon name="mdi:robot-happy-outline" size="1.5em" class="text-primary" />
-            AI Search
+            <span>AI Search</span>
           </NuxtLink>
         </li>
         <li class="animate-fade-in-up" style="animation-delay: 250ms">
-          <NuxtLink to="/projects" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+          <NuxtLink to="/projects" class="active:bg-primary/10 active:text-primary flex items-center gap-4" @click="$emit('close')">
             <Icon name="mdi:view-dashboard-outline" size="1.5em" class="text-secondary" />
-            Projects
+            <span>Projects</span>
           </NuxtLink>
         </li>
         <li class="animate-fade-in-up" style="animation-delay: 300ms">
-          <NuxtLink to="/companies" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+          <NuxtLink to="/companies" class="active:bg-primary/10 active:text-primary flex items-center gap-4" @click="$emit('close')">
             <Icon name="mdi:domain" size="1.5em" class="text-accent" />
-            Companies
+            <span>Companies</span>
           </NuxtLink>
         </li>
         <li class="animate-fade-in-up" style="animation-delay: 350ms">
-          <NuxtLink to="/technologies" class="active:bg-primary/10 active:text-primary" @click="$emit('close')">
+          <NuxtLink to="/technologies" class="active:bg-primary/10 active:text-primary flex items-center gap-4" @click="$emit('close')">
             <Icon name="heroicons:code-bracket" size="1.5em" class="text-info" />
-            Technologies
+            <span>Technologies</span>
           </NuxtLink>
         </li>
 

@@ -12,7 +12,7 @@
         </NuxtLink>
       </ClientOnly>
     </div>
-    <div class="hidden flex-none gap-2 md:flex md:items-center">
+    <div class="hidden flex-none gap-2 lg:flex lg:items-center">
       <ul class="menu menu-horizontal px-1">
         <li>
           <NuxtLink to="/search">
@@ -51,8 +51,8 @@
         @optimise-images="optimiseImages"
       />
     </div>
-    <div class="flex-none md:hidden">
-      <button class="btn-square" @click="toggleMobileMenu">
+    <div class="flex-none lg:hidden">
+      <button class="btn-square flex" @click="toggleMobileMenu">
         <Icon v-if="!showMobileMenu" name="mdi:hamburger-menu" size="2em" />
         <Icon v-else name="mdi:close" size="2em" />
       </button>
@@ -84,7 +84,6 @@ import ThemeController from '~/components/layout/ThemeController.vue'
 import UserDropdown from '~/components/layout/navigation/UserDropdown.vue'
 import MobileMenu from '~/components/layout/navigation/MobileMenu.vue'
 
-// Interfaces
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[]
   readonly userChoice: Promise<{

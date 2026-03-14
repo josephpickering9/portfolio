@@ -158,7 +158,7 @@ body {
 
 .prose ul li,
 .prose ol li {
-  margin-bottom: 1rem;
+  margin-bottom: 0.35rem;
 }
 
 .animate-fade-in-up {

@@ -5,8 +5,8 @@
       :key="tagType.value"
       ref="itemRefs"
       type="button"
-      class="btn btn-sm btn-ghost focus-visible:outline-none justify-start gap-2 hover:bg-base-200 h-auto py-2"
-      :class="{ 'ring-2 ring-primary': focusedIndex === index }"
+      class="btn btn-ghost focus-visible:outline-none justify-start gap-2 hover:bg-base-200 h-auto"
+      :class="[mobile ? 'py-3 text-base' : 'btn-sm py-2', { 'ring-2 ring-primary': focusedIndex === index }]"
       @click="selectTagType(tagType)"
       @mouseenter="focusedIndex = index"
     >
@@ -21,6 +21,12 @@ import { ref, onMounted, nextTick } from 'vue'
 import { Icon } from '#components'
 import type { TagTypeValue } from '~/types/TagTypeValue';
 import { tagTypes } from '~/data/TagTypes';
+
+interface Props {
+  mobile?: boolean
+}
+
+defineProps<Props>()
 
 const emit = defineEmits<{
   'select': [tagType: TagTypeValue]

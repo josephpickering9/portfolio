@@ -1,9 +1,9 @@
 <template>
   <FormLayout
-    :title="isUpdate ? 'Update Tag' : 'Create Tag'"
+    :title="isUpdate ? 'Update Technology' : 'Create Technology'"
     :loading="loading"
     :show-delete="isUpdate"
-    save-label="Save Tag"
+    save-label="Save Technology"
     @save="save(props.id || null, createTagValue, isUpdate)"
     @delete="remove(props.id!)"
   >
@@ -14,9 +14,7 @@
       </p>
     </div>
 
-    <!-- Skeleton Loading State -->
     <div v-if="initialLoad" class="grid gap-8 lg:grid-cols-2">
-      <!-- Form Skeleton -->
       <div class="card bg-base-100 p-8 shadow-xl">
         <div class="flex flex-col gap-6">
           <div class="space-y-4">
@@ -131,7 +129,7 @@ const createTagValue = computed((): CreateTag => {
 const previewTag = computed((): Tag => {
   return {
     id: 'preview',
-    title: title.value || 'New Tag',
+    title: title.value || 'New Technology',
     type: type.value,
     icon: icon.value,
     customColour: customColour.value,

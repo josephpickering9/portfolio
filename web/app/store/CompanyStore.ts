@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { getCompany, getCompanyById, getCompanyBySlug, postCompany, putCompanyById, deleteCompanyById } from '@api'
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 import type { Company, CreateCompany } from '@api'
+import { serializeToFormData } from '~/utils/form-data'
 
 export const useCompanyStore = defineStore('companyStore', {
   state: () => ({
@@ -46,14 +47,14 @@ export const useCompanyStore = defineStore('companyStore', {
       if (!company || this.companyCreateForm.loading) return
 
       return await tryCatchFinally(ref(this.companyCreateForm), async () => {
-        return (await postCompany({ body: { createCompany: company } })).data
+        return (await postCompany({ body: company as any, bodySerializer: serializeToFormData })).data
       })
     },
     async updateCompany(id: string, company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreateForm.loading) return
 
       return await tryCatchFinally(ref(this.companyCreateForm), async () => {
-        return (await putCompanyById({ path: { id }, body: { createCompany: company } })).data
+        return (await putCompanyById({ path: { id }, body: company as any, bodySerializer: serializeToFormData })).data
       })
     },
     async deleteCompany(id: string): Promise<void> {
