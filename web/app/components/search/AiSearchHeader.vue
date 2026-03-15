@@ -6,7 +6,7 @@
     <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl mb-4 animate-float">
       <Icon name="heroicons:sparkles" class="w-12 h-12 text-primary" />
     </div>
-    <h1 class="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+    <h1 class="text-3xl md:text-5xl font-bold text-primary">
       Ask my AI Assistant
     </h1>
     <p class="text-lg text-base-content/60 max-w-md mx-auto">

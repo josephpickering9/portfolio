@@ -16,11 +16,13 @@
         @click="$emit('select', prompt.text)"
       >
         <span class="icon-wrap">
-          <Icon
-            :name="prompt.icon"
-            class="w-4 h-4 transition-colors duration-300"
-            :style="prompt.color ? { color: prompt.color } : { color: 'oklch(var(--bc) / 0.5)' }"
-          />
+          <span class="inline-flex transition-transform duration-300 group-hover:scale-[1.25] group-hover:-rotate-6">
+            <Icon
+              :name="prompt.icon"
+              class="w-4 h-4 transition-colors duration-300"
+              :style="prompt.color ? { color: prompt.color } : { color: 'oklch(var(--bc) / 0.5)' }"
+            />
+          </span>
         </span>
         <span class="text-sm text-base-content/70 group-hover:text-base-content transition-colors duration-300">{{ prompt.text }}</span>
       </button>

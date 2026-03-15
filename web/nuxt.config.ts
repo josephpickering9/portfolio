@@ -75,7 +75,9 @@ export default defineNuxtConfig({
   },
 
   image: {
-    dir: "assets/img",
+    dir: 'assets/img',
+    quality: 85,
+    format: ['webp'],
   },
 
   pwa: {

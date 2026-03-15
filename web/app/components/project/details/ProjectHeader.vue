@@ -1,10 +1,14 @@
 <template>
   <div class="flex flex-col gap-8">
-    <div 
-      v-if="project.bannerUrl"
-      class="h-64 w-full rounded-xl bg-cover bg-center md:h-96 shadow-sm"
-      :style="bannerStyle"
-    />
+    <div v-if="project.bannerUrl" class="h-64 md:h-96 w-full overflow-hidden rounded-xl shadow-sm">
+      <NuxtImg
+        :src="getImageUrl(project.bannerUrl)"
+        :alt="`${project.title} banner`"
+        format="webp"
+        loading="eager"
+        class="h-full w-full object-cover object-center"
+      />
+    </div>
 
     <div class="flex flex-col gap-4 px-6 md:px-0">
       <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center justify-between">
@@ -55,13 +59,6 @@ const props = defineProps<{
 }>()
 
 const { isAuthenticated } = useAuth()
-
-const bannerStyle = computed(() => {
-  if (!props.project.bannerUrl) return {}
-  return {
-    backgroundImage: `url(${getImageUrl(props.project.bannerUrl)})`,
-  }
-})
 
 const dateRange = computed(() => {
   if (!props.project.startDate) return ''

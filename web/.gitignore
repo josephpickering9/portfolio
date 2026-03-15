@@ -24,3 +24,7 @@ logs
 !.env.example
 
 .vscode
+
+.claude
+.agents
+skills-lock.json

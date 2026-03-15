@@ -6,7 +6,8 @@
         <NuxtLink
           v-if="isAuthenticated"
           to="/projects/new"
-          class="flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-gray-300"
+          class="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-base-content/30"
+          aria-label="Create new project"
         >
           <Icon name="mdi:plus" />
         </NuxtLink>
@@ -52,7 +53,13 @@
       />
     </div>
     <div class="flex-none lg:hidden">
-      <button class="btn-square flex" @click="toggleMobileMenu">
+      <button
+        class="btn btn-square btn-ghost"
+        :aria-label="showMobileMenu ? 'Close navigation menu' : 'Open navigation menu'"
+        :aria-expanded="showMobileMenu"
+        aria-controls="mobile-menu"
+        @click="toggleMobileMenu"
+      >
         <Icon v-if="!showMobileMenu" name="mdi:hamburger-menu" size="2em" />
         <Icon v-else name="mdi:close" size="2em" />
       </button>
@@ -107,7 +114,7 @@ const linkedInUrl = computed((): string => {
 })
 
 const optimising = computed((): boolean => {
-  return projectImageStore.optimising
+  return projectImageStore.optimising ?? false
 })
 
 const optimiseError = computed((): string | undefined => {

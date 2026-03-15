@@ -1,6 +1,6 @@
 <template>
   <ul class="timeline timeline-vertical timeline-snap-icon max-md:timeline-compact">
-    <li v-for="(company, index) in sortedCompanies" :key="company.id">
+    <li v-for="(company, index) in sortedCompanies" :key="company.id" v-reveal="{ delay: index * 70 }" class="reveal">
       <div class="timeline-middle">
         <div class="flex h-8 w-8 items-center justify-center rounded-full bg-base-100 p-1 shadow-sm ring-1 ring-base-content/10">
           <NuxtImg v-if="company.logo" :src="getImageUrl(company.logo)" :alt="`${company.name} Logo`" placeholder format="webp" class="h-full w-full object-contain" />

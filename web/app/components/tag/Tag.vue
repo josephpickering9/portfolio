@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="tag"
-    class="badge flex items-center gap-1 bg-base-200"
+    class="badge flex items-center gap-1 bg-base-200 transition-transform duration-150 hover:scale-105"
     :class="{ 'border-primary/50 ring-1 ring-primary/20': outline }"
   >
     <div 

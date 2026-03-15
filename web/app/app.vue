@@ -26,11 +26,22 @@ const theme = computed(() => themeStore.selectedTheme)
 <style>
 .page-enter-active,
 .page-leave-active {
-  transition: all 0.4s;
+  transition: opacity 0.4s ease-out, filter 0.4s ease-out;
 }
 .page-enter-from,
 .page-leave-to {
   opacity: 0;
   filter: blur(1rem);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-active,
+  .page-leave-active {
+    transition: opacity 0.01ms;
+  }
+  .page-enter-from,
+  .page-leave-to {
+    filter: none;
+  }
 }
 </style>

@@ -3,7 +3,6 @@
     v-if="project"
     :to="`/projects/${project.slug}`"
     class="group card bg-base-100 hover:bg-base-200/50 shadow-lg hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-primary/30 flex flex-col h-full overflow-hidden hover:-translate-y-1"
-    @mousedown.stop.prevent="(event) => event.preventDefault()"
   >
     <figure class="relative h-48 w-full overflow-hidden bg-base-200">
       <NuxtImg 

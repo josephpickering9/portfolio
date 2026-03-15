@@ -161,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import Draggable from 'vuedraggable'
 import { getImageUrl } from '~/utils/image-helper'
 
@@ -258,8 +258,9 @@ function setupObserver() {
   itemRefs.value.forEach(el => { if (el) observer!.observe(el) })
 }
 
-onMounted(() => {
-  setTimeout(setupObserver, 100)
+onMounted(async () => {
+  await nextTick()
+  setupObserver()
   window.addEventListener('keydown', handleKeydown)
 })
 
@@ -311,7 +312,7 @@ function handleKeydown(e: KeyboardEvent) {
 .slide-next-leave-active,
 .slide-prev-enter-active,
 .slide-prev-leave-active {
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .slide-next-enter-from {
