@@ -60,6 +60,17 @@ export default defineNuxtConfig({
     plugins: [
       (await import('@tailwindcss/vite')).default(),
     ],
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+        '@auth0/auth0-vue',
+        'date-fns',
+        'axios',
+        'lodash-es',
+        'marked',
+      ],
+    },
   },
 
   alias: {
