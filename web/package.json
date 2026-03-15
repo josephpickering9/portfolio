@@ -19,7 +19,20 @@
     "*.{js,vue,ts}": "yarn lint:commit"
   },
   "resolutions": {
-    "vue": "3.5.30"
+    "vue": "3.5.30",
+    "rollup": "^4.59.0",
+    "h3": "^1.15.5",
+    "tar": "^7.5.11",
+    "node-forge": "^1.3.2",
+    "ejs": "^3.1.10",
+    "serialize-javascript": "^7.0.3",
+    "braces": "^3.0.3",
+    "svgo": "^4.0.1",
+    "minimatch": "^10.2.3",
+    "lodash": "^4.17.23",
+    "markdown-it": "^14.1.1",
+    "js-yaml": "^4.1.1",
+    "diff": "^4.0.4"
   },
   "dependencies": {
     "@auth0/auth0-vue": "^2.5.0",
