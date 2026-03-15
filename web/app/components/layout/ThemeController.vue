@@ -92,7 +92,7 @@
     </div>
     <div
       tabindex="0"
-      class="dropdown-content z-50 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-y-auto rounded-box border border-white/5 bg-base-200 text-base-content shadow-2xl outline outline-1 outline-black/5"
+      class="dropdown-content z-50 h-[30.5rem] max-h-[calc(100vh-8.6rem)] w-56 overflow-x-hidden overflow-y-auto rounded-box border border-white/5 bg-base-200 text-base-content shadow-2xl outline outline-1 outline-black/5"
     >
       <ul class="menu w-56">
         <li class="menu-title text-xs">Theme</li>

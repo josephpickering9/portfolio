@@ -122,7 +122,7 @@
         <button
           v-if="images.length > 1"
           type="button"
-          class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110"
+          class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110 flex items-center justify-center cursor-pointer"
           @click="lightboxPrev"
         >
           <Icon name="material-symbols:chevron-left" size="2em" />
@@ -130,7 +130,7 @@
         <button
           v-if="images.length > 1"
           type="button"
-          class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110"
+          class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110 flex items-center justify-center cursor-pointer"
           @click="lightboxNext"
         >
           <Icon name="material-symbols:chevron-right" size="2em" />

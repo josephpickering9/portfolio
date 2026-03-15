@@ -15,19 +15,19 @@
       </p>
        <p class="text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto">
           I'm a passionate developer building cleaner, faster, and more intuitive applications. 
-          My journey spans from <span class="font-semibold text-primary">Vue &amp; React</span> to <span class="font-semibold text-secondary">.NET &amp; Kotlin</span>. 
+          My journey spans from <span class="font-semibold text-primary">Vue, React &amp; TypeScript</span> to <span class="font-semibold text-secondary">.NET, C# &amp; Kotlin</span>. 
           I love solving complex problems and turning ideas into reality.
       </p>
     </div>
 
     <div class="flex justify-center gap-4 pt-4">
       <Tooltip text="LinkedIn" position="bottom">
-        <a :href="linkedInUrl" target="_blank" class="btn btn-circle btn-lg btn-ghost hover:text-[#0077b5] hover:bg-[#0077b5]/10 transition-colors">
+        <a :href="linkedInUrl" target="_blank" aria-label="LinkedIn profile" class="btn btn-circle btn-lg btn-ghost hover:text-[#0077b5] hover:bg-[#0077b5]/10 transition-colors">
           <Icon name="mdi:linkedin" class="!w-6 !h-6" />
         </a>
       </Tooltip>
       <Tooltip text="GitHub" position="bottom">
-        <a href="https://github.com/josephpickering9" target="_blank" class="btn btn-circle btn-lg btn-ghost hover:text-base-content hover:bg-base-content/10 transition-colors">
+        <a href="https://github.com/josephpickering9" target="_blank" aria-label="GitHub profile" class="btn btn-circle btn-lg btn-ghost hover:text-base-content hover:bg-base-content/10 transition-colors">
           <Icon name="mdi:github" class="!w-6 !h-6" />
         </a>
       </Tooltip>
@@ -37,7 +37,7 @@
         </a>
       </Tooltip>
       <Tooltip text="Email Me" position="bottom">
-        <a href="mailto:josephpickering9@gmail.com" class="btn btn-circle btn-lg btn-ghost hover:text-primary hover:bg-primary/10 transition-colors">
+        <a href="mailto:josephpickering9@gmail.com" aria-label="Send email" class="btn btn-circle btn-lg btn-ghost hover:text-primary hover:bg-primary/10 transition-colors">
           <Icon name="heroicons:envelope" class="!w-6 !h-6" />
         </a>
       </Tooltip>

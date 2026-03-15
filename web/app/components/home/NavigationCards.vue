@@ -6,7 +6,7 @@
           <Icon name="mdi:robot-happy-outline" class="!w-10 !h-10 !text-info" />
         </div>
         <h2 class="card-title text-2xl mb-2">AI Search</h2>
-        <p class="text-base-content/70">Ask usage questions</p>
+        <p class="text-base-content/70">Ask questions about my work experience, projects and skills</p>
       </div>
     </NuxtLink>
     <NuxtLink to="/projects" class="group card bg-base-100 hover:bg-base-200/50 shadow-md hover:shadow-2xl transition-all duration-300 border border-base-200 hover:border-primary/50 hover:-translate-y-1">
