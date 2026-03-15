@@ -29,11 +29,11 @@
       :sort-direction="sortDirection"
       @sort="handleSort"
     />
-    
-    <TransitionGroup 
+
+    <TransitionGroup
       v-else
-      name="list" 
-      tag="div" 
+      name="list"
+      tag="div"
       class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
     >
       <ProjectListItem v-for="project in filteredProjects" :key="project.id" :project="project" />
@@ -41,15 +41,15 @@
   </ListLayout>
 
   <div v-else class="projects w-full space-y-8" :class="wrapperClass">
-     <div v-if="loading" class="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div v-if="loading" class="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <Skeleton :type="loadingTypeCard" />
       <Skeleton :type="loadingTypeCard" />
       <Skeleton :type="loadingTypeCard" />
-     </div>
-     <div v-else-if="filteredProjects.length === 0" class="flex flex-col justify-start space-y-4">
-       <h2>No projects found</h2>
-     </div>
-     <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    </div>
+    <div v-else-if="filteredProjects.length === 0" class="flex flex-col justify-start space-y-4">
+      <h2>No projects found</h2>
+    </div>
+    <div v-else class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <ProjectListItem v-for="project in filteredProjects" :key="project.id" :project="project" />
     </div>
   </div>
@@ -57,14 +57,13 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { isEmpty, orderBy } from 'lodash-es'
-import { useRoute, useRouter } from 'vue-router'
 import { useProjectStore } from '~/store/ProjectStore'
 import { usePreferencesStore } from '~/store/PreferencesStore'
-import type { Project, Company, Tag  } from '@api'
+import type { Project } from '@api'
 import { LoadingType } from '~/types/LoadingType'
 import { ViewMode } from '~/types/ViewMode'
 import useAuth from '~/composables/useAuth'
+import { useProjectFilters } from '~/composables/useProjectFilters'
 import ListLayout from '~/components/ui/layout/ListLayout.vue'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
@@ -72,13 +71,8 @@ import FilterBar from '~/components/ui/filter/FilterBar.vue'
 import ViewToggle from '~/components/ui/button/ViewToggle.vue'
 import ProjectListItem from './ProjectListItem.vue'
 import ProjectTableView from './ProjectTableView.vue'
-import type { Filter } from '~/types/Filter'
-import { useCompanyStore } from '~/store/CompanyStore'
-import { FilterType } from '~/types/FilterType'
-import { useTagStore } from '~/store/TagStore'
-import { tagTypes } from '~/data/TagTypes'
 
-interface Props { 
+interface Props {
   showHeader?: boolean
   maxWidth?: string
   modelSearch?: string
@@ -92,244 +86,33 @@ const props = withDefaults(defineProps<Props>(), {
   setProjects: () => [],
 })
 
-const route = useRoute()
-const router = useRouter()
-const { isAuthenticated } = useAuth()
 const projectStore = useProjectStore()
-const companyStore = useCompanyStore()
-const tagStore = useTagStore()
+const preferencesStore = usePreferencesStore()
+const { isAuthenticated } = useAuth()
 const initialLoad = ref(props.setProjects.length === 0)
-const filters = ref<Filter[]>([])
 const loadingTypeCard = ref(LoadingType.CARD)
 
-const preferencesStore = usePreferencesStore()
 const viewMode = computed({
   get: () => preferencesStore.projectsViewMode,
   set: (value: ViewMode) => preferencesStore.setProjectsViewMode(value),
 })
 
-const sortColumn = ref<string | null>('dateRange')
-const sortDirection = ref<'asc' | 'desc'>('desc')
-
-const projects = computed((): Project[] => {
-  return projectStore.projects
-})
-
-const loading = computed((): boolean => {
-  return projectStore.projectsLoading || initialLoad.value
-})
-
-const companies = computed((): Company[] => companyStore.companies)
-const tags = computed((): Tag[] => tagStore.tags)
-
-const filteredProjects = computed((): Project[] => {
-  let projectsFiltered: Project[] = props.setProjects.length ? [...props.setProjects] : [...projects.value]
-
-  filters.value.forEach(filter => {
-    if (filter.type === FilterType.SEARCH && !isEmpty(filter.value)) {
-      projectsFiltered = projectsFiltered.filter((project) => {
-        return (
-          project.title.toLowerCase().includes(filter.value.toLowerCase()) ||
-          project.shortDescription.toLowerCase().includes(filter.value.toLowerCase()) ||
-          project.description.toLowerCase().includes(filter.value.toLowerCase())
-        )
-      })
-    } else if (filter.type === FilterType.COMPANY) {
-      projectsFiltered = projectsFiltered.filter((project) => project.companyId === filter.value)
-    } else if (filter.type === FilterType.TAG_TYPE) {
-      projectsFiltered = projectsFiltered.filter((project) => {
-        return project.tags.some((tag) => tag.type === filter.value)
-      })
-    } else if (filter.type === FilterType.TAG) {
-      projectsFiltered = projectsFiltered.filter((project) => {
-        return project.tags.some((tag) => tag.id === filter.value)
-      })
-    }
-  })
-
-  if (!isEmpty(props.modelSearch) && (props.modelSearch?.length ?? 0) > 3) {
-    projectsFiltered = projectsFiltered.filter((project) => {
-      if (!props.modelSearch) return true
-
-      return (
-        project.title.toLowerCase().includes(props.modelSearch.toLowerCase()) ||
-        project.shortDescription.toLowerCase().includes(props.modelSearch.toLowerCase()) ||
-        project.description.toLowerCase().includes(props.modelSearch.toLowerCase())
-      )
-    })
-  }
-
-  if (tags.value.length > 0) {
-    projectsFiltered = projectsFiltered.filter((project) => {
-      return project.tags.some((tag) => tags.value.map((tag) => tag.title).includes(tag.title))
-    })
-  }
-
-  return projectsFiltered
-})
-
-const sortedProjects = computed((): Project[] => {
-  if (!sortColumn.value) return [...filteredProjects.value]
-
-  return orderBy(
-    filteredProjects.value,
-    [(p) => {
-      if (sortColumn.value === 'project') return p.title.toLowerCase()
-      if (sortColumn.value === 'dateRange') return new Date(p.startDate).getTime()
-      return ''
-    }],
-    [sortDirection.value as 'asc' | 'desc']
-  )
-})
-
-const wrapperClass = computed(() => ({
-  [props.maxWidth]: true,
-}))
-
-function loadFiltersFromQuery() {
-  const newFilters: Filter[] = []
-
-  const search = route.query['search']?.toString()
-  if (search) {
-    newFilters.push({
-      type: FilterType.SEARCH,
-      value: search,
-      label: 'Search',
-    })
-  }
-
-  const company = route.query['company']?.toString()
-  if (company) {
-    const companyObj = companies.value.find(c => c.id === company)
-    newFilters.push({
-      type: FilterType.COMPANY,
-      value: company,
-      label: 'Company',
-      displayValue: companyObj?.name,
-      logo: companyObj?.logo,
-    })
-  }
-
-  const tagType = route.query['type']?.toString()
-  if (tagType) {
-    const tagTypeValue = tagTypes.find(t => t.value === tagType)
-    if (tagTypeValue) {
-      newFilters.push({
-        type: FilterType.TAG_TYPE,
-        value: tagTypeValue.value,
-        label: 'Tag Type',
-        displayValue: tagTypeValue.label,
-        icon: tagTypeValue.icon,
-      })
-    }
-  }
-
-  const tag = route.query['tag']?.toString()
-  if (tag) {
-    const tagObj = tags.value.find(t => t.id === tag)
-    newFilters.push({
-      type: FilterType.TAG,
-      value: tag,
-      label: 'Tag',
-      displayValue: tagObj?.title,
-      icon: tagObj?.icon,
-    })
-  }
-
-  filters.value = newFilters
-}
-
-function updateQueryParams() {
-  const query: Record<string, string | undefined> = {}
-
-  filters.value.forEach(filter => {
-    if (filter.type === FilterType.SEARCH) {
-      query['search'] = filter.value
-    } else if (filter.type === FilterType.COMPANY) {
-      query['company'] = filter.value
-    } else if (filter.type === FilterType.TAG_TYPE) {
-      query['type'] = filter.displayValue || filter.value
-    } else if (filter.type === FilterType.TAG) {
-      query['tag'] = filter.value
-    }
-  })
-
-  router.push({
-    path: route.path,
-    query,
-  })
-}
-
-function handleSort(column: string) {
-  if (sortColumn.value === column) {
-    sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc'
-  } else {
-    sortColumn.value = column
-    sortDirection.value = 'asc'
-  }
-}
-
-onMounted(async () => {
-  loadFiltersFromQuery()
-  if (companies.value.length === 0) await companyStore.getCompanies()
-  if (tags.value.length === 0) await tagStore.getTags()
-  if (props.setProjects.length === 0) await projectStore.getProjects()
-})
-
-watch(
-  () => projects.value,
-  () => {
-    initialLoad.value = false
-  }
+const { filters, sortColumn, sortDirection, filteredProjects, sortedProjects, handleSort } = useProjectFilters(
+  () => projectStore.projects,
+  () => props.setProjects,
+  () => props.modelSearch,
 )
 
-watch(companies, () => {  
-  const updatedFilters = filters.value.map(filter => {
-    if (filter.type === FilterType.COMPANY && !filter.displayValue) {
-      const companyObj = companies.value.find(p => p.id === filter.value)
-      if (companyObj) {
-        return {
-          ...filter,
-          displayValue: companyObj.name,
-          logo: companyObj.logo,
-        }
-      }
-    }
-    return filter
-  })
-  
-  filters.value = updatedFilters
-})
+const loading = computed(() => projectStore.projectsLoading || initialLoad.value)
 
-watch(tags, () => {  
-  const updatedFilters = filters.value.map(filter => {
-    if (filter.type === FilterType.TAG && !filter.displayValue) {
-      const tagObj = tags.value.find(p => p.id === filter.value)
-      if (tagObj) {
-        return {
-          ...filter,
-          displayValue: tagObj.title,
-          icon: tagObj.icon,
-        }
-      }
-    }
-    return filter
-  })
-  
-  filters.value = updatedFilters
-})
+const wrapperClass = computed(() => ({ [props.maxWidth]: true }))
 
-watch(() => props.setProjects, () => {
-  initialLoad.value = false
-})
+watch(() => projectStore.projects, () => { initialLoad.value = false })
+watch(() => props.setProjects, () => { initialLoad.value = false })
 
-watch(() => route.query, () => {
-  loadFiltersFromQuery()
+onMounted(async () => {
+  if (props.setProjects.length === 0) await projectStore.getProjects()
 })
-
-watch(filters, () => {
-  updateQueryParams()
-}, { deep: true })
 </script>
 
 <style scoped>

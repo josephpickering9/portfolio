@@ -21,15 +21,15 @@ const props = defineProps<{
 
 const groupedTags = computed(() => {
   const tags = props.tags
-  const groupedAndSorted = tags.reduce((acc: any, tag: TagModel) => {
-    const type = (acc[tag.type] = acc[tag.type] || [])
-    type.push(tag)
+  const groupedAndSorted = tags.reduce((acc: Record<string, TagModel[]>, tag: TagModel) => {
+    acc[tag.type] = acc[tag.type] ?? []
+    acc[tag.type].push(tag)
     acc[tag.type].sort((a: TagModel, b: TagModel) => a.title.localeCompare(b.title))
     return acc
   }, {})
   const sortedGroupTitles = Object.keys(groupedAndSorted).sort((a, b) => a.localeCompare(b))
-  return sortedGroupTitles.reduce((acc: any, title: string) => {
-    acc[title] = groupedAndSorted[title]
+  return sortedGroupTitles.reduce((acc: Record<string, TagModel[]>, title: string) => {
+    acc[title] = groupedAndSorted[title] ?? []
     return acc
   }, {})
 })

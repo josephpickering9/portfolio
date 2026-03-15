@@ -89,7 +89,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { marked } from 'marked'
 import ProjectListItem from '~/components/project/list/ProjectListItem.vue'
-import type { Project } from '~~/api'
+import type { Project } from '@api'
 
 const props = defineProps<{
   loading: boolean

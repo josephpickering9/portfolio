@@ -3,7 +3,6 @@ import type { useRouter } from 'vue-router'
 import type { useNotificationStore } from '~/store/NotificationStore'
 
 interface EntityFormOptions<T, CreateT, UpdateT = CreateT> {
-    store: any
     notificationStore: ReturnType<typeof useNotificationStore>
     router: ReturnType<typeof useRouter>
     redirectRoute: string

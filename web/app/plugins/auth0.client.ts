@@ -37,10 +37,7 @@ export default defineNuxtPlugin((nuxtApp) => {
               },
             })
           }
-        } catch (e) {
-          // eslint-disable-next-line no-console
-          console.log('token error', e)
-
+        } catch {
           auth0.loginWithRedirect({
             appState: {
               target: useRoute().path,

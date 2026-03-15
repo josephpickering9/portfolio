@@ -1,9 +1,3 @@
-import { useAuth0 } from '@auth0/auth0-vue'
-
-export default defineNuxtRouteMiddleware((to, from) => {
+export default defineNuxtRouteMiddleware(() => {
   if (import.meta.server) return
-
-  const { isAuthenticated } = useAuth0()
-
-  // if (!isAuthenticated.value && to.path !== '/') return navigateTo('/')
 })

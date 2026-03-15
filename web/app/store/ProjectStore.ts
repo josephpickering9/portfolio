@@ -58,7 +58,7 @@ export const useProjectStore = defineStore('projectStore', {
 
       return await tryCatchFinally(ref(this.projectCreateForm), async () => {
         return (await postProject({
-          body: project as any,
+          body: { createProject: project },
           bodySerializer: serializeToFormData,
         })).data
       })
@@ -69,7 +69,7 @@ export const useProjectStore = defineStore('projectStore', {
       return await tryCatchFinally(ref(this.projectCreateForm), async () => {
         return (await putProjectById({
           path: { id },
-          body: project as any,
+          body: { createProject: project },
           bodySerializer: serializeToFormData,
         })).data
       })

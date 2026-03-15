@@ -8,7 +8,7 @@ import {
     type ProjectDescriptionSuggestionResponse,
     type VertexCitation,
     type Project
-} from "~~/api"
+} from '@api'
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 
 export const useAiStore = defineStore('aiStore', {

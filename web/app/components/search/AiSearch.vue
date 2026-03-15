@@ -38,7 +38,7 @@
 import { ref, onMounted } from 'vue'
 import { sampleSize } from 'lodash-es'
 import { useAiStore } from '~/store/AiStore'
-import type { PostVertexQueryResponse } from '~~/api'
+import type { PostVertexQueryResponse } from '@api'
 import AiSearchHeader from './AiSearchHeader.vue'
 import AiSearchInput from './AiSearchInput.vue'
 import AiSuggestedPrompts from './AiSuggestedPrompts.vue'

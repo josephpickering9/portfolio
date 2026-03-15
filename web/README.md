@@ -1,111 +1,128 @@
 # Work Experience (Frontend)
 
-Welcome to the Work Experience (Frontend) project, a Nuxt 3 application designed to showcase a portfolio of my life's work across various technologies. Initially created as a personal tool to quickly find projects built with different technologies, it has evolved into a comprehensive display of my professional journey.
+A Nuxt 3 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it has evolved into a full portfolio with AI-powered search, company timelines, and a CMS for managing content.
 
-Linked to the [Work Experience API](https://github.com/josephpickering9/work_experience_api) project.
+Linked to the [Work Experience API](https://github.com/josephpickering9/work_experience_api).
 
-## Live Demo
-
-Visit [experience.josephpickering.co.uk](https://experience.josephpickering.co.uk) to see the project in action.
+**Live:** [experience.josephpickering.co.uk](https://experience.josephpickering.co.uk)
 
 ## Table of Contents
 
-- [Overview](#overview)
-  - [Features](#features)
-- [Installation](#installation)
-- [Linting](#linting)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Authentication](#authentication)
 - [OpenAPI Codegen](#openapi-codegen)
+- [Linting](#linting)
 - [Deployment](#deployment)
 
-## Overview
+## Features
 
-This project leverages the power of Nuxt 3, Tailwind CSS, and daisyUI library to provide a server-side rendered application with a focus on aesthetics and responsiveness. It's designed to improve SEO and meta information management, ensuring that my work is not only showcased but also easily discoverable.
+- **Server-Side Rendering** via Nuxt 3 for fast load times and SEO
+- **AI Search** powered by Vertex AI — query projects in natural language
+- **Company Timelines** — visual history of roles and projects per company
+- **CMS** — authenticated users can create, update, and delete projects, companies, and technologies
+- **Filtering & Sorting** — filter projects by company, technology type, or tag with URL-persisted state
+- **Progressive Web App** — installable with offline support via `@vite-pwa/nuxt`
+- **Auth0 Authentication** — secure login with token-based API access
+- **OpenAPI TypeScript Generation** — types and API client auto-generated from the backend Swagger spec
+- **Theme Switching** — multiple daisyUI themes with persisted preference
 
-### Features
+## Tech Stack
 
-- **Server-Side Rendering (SSR):** Ensures faster load times and better SEO performance.
-- **Tailwind CSS & daisyUI:** Utilised for rapid UI development with a focus on design and customisation.
-- **SEO & Meta Tag Management:** Enhances visibility and searchability on the web.
-- **Deployment:** Automated deployment on a Digital Ocean droplet via GitHub Actions for continuous integration and delivery.
-- **Linting with Husky:** Enforces code quality and style consistency.
-- **OpenAPI TypeScript Generation:** Utilises [`openapi-typescript-codegen`](https://github.com/ferdikoomen/openapi-typescript-codegen) to automatically generate TypeScript definitions from Swagger documentation.
-- **Integration with Work Experience (API):** This frontend is connected to a dedicated API service, providing dynamic data and interaction capabilities.
-- **Progressive Web Application:** Enhanced with progressive web application capacilities, utilising the [`@vite-pwa/nuxt`](https://nuxt.com/modules/vite-pwa-nuxt) package
-- **Authentication:** Integrated with Auth0 for secure and scalable user authentication.
+| Layer | Technology |
+|---|---|
+| Framework | Nuxt 3, Vue 3 |
+| Styling | Tailwind CSS, daisyUI |
+| State | Pinia (with persisted state) |
+| Auth | Auth0 |
+| API Client | `@hey-api/client-axios` (OpenAPI generated) |
+| Forms | Vuelidate |
+| Rich Text | Tiptap |
+| Drag & Drop | vuedraggable |
+
+## Project Structure
+
+```
+app/
+├── components/     # UI components organised by feature (project/, company/, tag/, ui/, search/)
+├── composables/    # Shared logic (useAuth, useEntityForm, useProjectFilters, useValidation)
+├── pages/          # File-based routing
+├── store/          # Pinia stores — all API calls go through here
+├── types/          # TypeScript type definitions
+├── utils/          # Pure utility functions (async-helper, form-data, image-helper, etc.)
+└── data/           # Static data (tag types)
+
+api/                # Auto-generated OpenAPI client (do not edit manually)
+```
 
 ## Getting Started
 
-### Prerequisites
-
-Before running this project, you should have the following installed:
-
-- Node.js (LTS version recommended)
-- Yarn package manager
-- Access to a Postgres database for the backend API
-- An Auth0 account for handling authentication
-
-## Installation
-
-1. **Clone the repository:**
-
-   ```bash
-   git clone https://github.com/josephpickering9/work_experience.git
-   cd work_experience
-   ```
-
-2. **Install Dependencies:**
-
-   ```bash
-   yarn install
-   ```
-
-3. **Initial Configuration:**
-
-   After installation, you may need to configure environment variables or other settings specific to your development environment. Create a .env file (using .env.example) at the root of your project and fill it with necessary configurations, such as API endpoints or keys.
-
-4. **Running the project:**
-
-   With dependencies installed, linting configured, and TypeScript types generated, you're now ready to run the project locally:
-
-   ```bash
-   yarn dev
-   ```
-
-## Linting
-
-To maintain high code quality and consistency across the project, linting is enforced using Husky. This setup ensures that all commits meet our code standards before they can be pushed to the repository.
+**Prerequisites:** Node.js (LTS), Yarn, a running instance of the [Work Experience API](https://github.com/josephpickering9/work_experience_api), and an Auth0 application.
 
 ```bash
-# lint on updated files
-$ yarn lint
+# Clone and install
+git clone https://github.com/josephpickering9/work_experience.git
+cd work_experience
+yarn install
 
-# lint on all files
-$ yarn lint:full
+# Configure environment
+cp .env.example .env
+# Fill in the values — see Environment Variables below
 
-# lint & fix errors
-$ yarn lint --fix
+# Generate API types from the running backend
+yarn fetch-codegen
+
+# Start dev server
+yarn dev
 ```
+
+## Environment Variables
+
+| Variable | Description |
+|---|---|
+| `NUXT_PUBLIC_API_BASE` | Base URL of the Work Experience API (e.g. `http://localhost:3000`) |
+| `NUXT_PUBLIC_BASE` | Base URL of this frontend (used for PWA and redirects) |
+| `NUXT_AUTH0_CLIENT_ID` | Auth0 application client ID |
+| `NUXT_AUTH0_CLIENT_SECRET` | Auth0 application client secret |
+| `NUXT_AUTH0_DOMAIN` | Auth0 domain (e.g. `your-tenant.auth0.com`) |
+| `NUXT_PUBLIC_LINKED_IN_URL` | LinkedIn profile URL displayed in the header |
+
+## Authentication
+
+This project uses Auth0. To set up:
+
+1. Create an application (Single Page Application) in the [Auth0 dashboard](https://manage.auth0.com).
+2. Create an API in Auth0 and set its identifier as the `audience` — this should match `NUXT_PUBLIC_API_BASE`.
+3. Add your local and production URLs to the **Allowed Callback URLs**, **Allowed Logout URLs**, and **Allowed Web Origins** in the Auth0 application settings.
+4. Populate `NUXT_AUTH0_CLIENT_ID`, `NUXT_AUTH0_CLIENT_SECRET`, and `NUXT_AUTH0_DOMAIN` in `.env`.
+
+Authentication is enforced per-page via `definePageMeta({ middleware: 'auth' })`. The plugin at `app/plugins/auth0.client.ts` attaches the bearer token to all API requests.
 
 ## OpenAPI Codegen
 
-This project uses the openapi-typescript-codegen package to automatically generate TypeScript interfaces and types from the Swagger documentation provided by the Work Experience (API) project. This process ensures type safety and accelerates development by providing auto-completion and validation based on the API's schema.
+API types and the HTTP client are auto-generated from the backend's Swagger spec. The generated files live in `api/` and should not be edited manually.
 
 ```bash
-# generate files
-$ yarn codegen
+# Generate from a locally running API
+yarn codegen
 
-# fetch latest swagger.json and generate files
-$ yarn fetch-codegen
+# Fetch the latest swagger.json from the API and regenerate
+yarn fetch-codegen
 ```
 
-## Authentication with Auth0
+## Linting
 
-This project uses Auth0 for secure and scalable user authentication. To integrate Auth0:
+ESLint and Prettier are enforced via Husky pre-commit hooks.
 
-- Create an Auth0 application and API in your Auth0 dashboard.
-- Configure the necessary Auth0 settings in your .env file, including NUXT_AUTH0_DOMAIN, NUXT_AUTH0_CLIENT_ID, and NUXT_AUTH0_CLIENT_SECRET.
-- Ensure the Work Experience API
+```bash
+yarn lint          # Lint staged files
+yarn lint:full     # Lint all files
+yarn lint --fix    # Lint and auto-fix
+```
 
 ## Deployment
 
-The project is configured for deployment on a Digital Ocean droplet via GitHub Actions. To deploy your changes, simply push to the `develop` branch, and the CI/CD pipeline will handle the rest.
+The project deploys automatically to a Digital Ocean droplet via GitHub Actions on push to the `develop` branch. The server runs the app with PM2 (`ecosystem.config.js`).

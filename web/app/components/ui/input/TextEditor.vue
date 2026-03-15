@@ -132,7 +132,6 @@ const emit = defineEmits<{
 const editor = ref<Editor | undefined>(undefined)
 
 onMounted(() => {
-  // @ts-ignore
   editor.value = new Editor({
     content: props.modelValue,
     extensions: [StarterKit],

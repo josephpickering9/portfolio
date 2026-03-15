@@ -22,24 +22,24 @@ export const useCompanyStore = defineStore('companyStore', {
     companyCreateError: (state) => state.companyCreateForm.error,
   },
   actions: {
-    async getCompanies(search?: string): Promise<void> {
-      if (this.companiesForm.loading) return
+    async getCompanies(search?: string): Promise<Company[]> {
+      if (this.companiesForm.loading) return []
 
-      await tryCatchFinally(ref(this.companiesForm), async () => {
+      return await tryCatchFinally(ref(this.companiesForm), async () => {
         return (await getCompany({ query: { search } })).data
-      })
+      }) ?? []
     },
-    async getCompany(id: string): Promise<void> {
+    async getCompany(id: string): Promise<Company | undefined> {
       if (!id || this.companyForm.loading) return
 
-      await tryCatchFinally(ref(this.companyForm), async () => {
+      return await tryCatchFinally(ref(this.companyForm), async () => {
         return (await getCompanyById({ path: { id } })).data
       })
     },
-    async getCompanyBySlug(slug: string): Promise<void> {
+    async getCompanyBySlug(slug: string): Promise<Company | undefined> {
       if (!slug || this.companyForm.loading) return
 
-      await tryCatchFinally(ref(this.companyForm), async () => {
+      return await tryCatchFinally(ref(this.companyForm), async () => {
         return (await getCompanyBySlug({ path: { slug } })).data
       })
     },
@@ -47,14 +47,14 @@ export const useCompanyStore = defineStore('companyStore', {
       if (!company || this.companyCreateForm.loading) return
 
       return await tryCatchFinally(ref(this.companyCreateForm), async () => {
-        return (await postCompany({ body: company as any, bodySerializer: serializeToFormData })).data
+        return (await postCompany({ body: { createCompany: company }, bodySerializer: serializeToFormData })).data
       })
     },
     async updateCompany(id: string, company: CreateCompany): Promise<Company | undefined> {
       if (!company || this.companyCreateForm.loading) return
 
       return await tryCatchFinally(ref(this.companyCreateForm), async () => {
-        return (await putCompanyById({ path: { id }, body: company as any, bodySerializer: serializeToFormData })).data
+        return (await putCompanyById({ path: { id }, body: { createCompany: company }, bodySerializer: serializeToFormData })).data
       })
     },
     async deleteCompany(id: string): Promise<void> {

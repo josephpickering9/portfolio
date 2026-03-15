@@ -21,24 +21,24 @@ export const useTagStore = defineStore('tagStore', {
     tagCreateError: (state) => state.tagCreateForm.error,
   },
   actions: {
-    async getTags(search?: string): Promise<void> {
-      if (this.tagsForm.loading) return
+    async getTags(search?: string): Promise<Tag[]> {
+      if (this.tagsForm.loading) return []
 
-      await tryCatchFinally(ref(this.tagsForm), async () => {
+      return await tryCatchFinally(ref(this.tagsForm), async () => {
         return (await getTag({ query: { search } })).data
-      })
+      }) ?? []
     },
-    async getTag(id: string): Promise<void> {
+    async getTag(id: string): Promise<Tag | undefined> {
       if (!id || this.tagForm.loading) return
 
-      await tryCatchFinally(ref(this.tagForm), async () => {
+      return await tryCatchFinally(ref(this.tagForm), async () => {
         return (await getTagById({ path: { id } })).data
       })
     },
-    async getTagBySlug(slug: string): Promise<void> {
+    async getTagBySlug(slug: string): Promise<Tag | undefined> {
       if (!slug || this.tagForm.loading) return
 
-      await tryCatchFinally(ref(this.tagForm), async () => {
+      return await tryCatchFinally(ref(this.tagForm), async () => {
         return (await getTagBySlug({ path: { slug } })).data
       })
     },
