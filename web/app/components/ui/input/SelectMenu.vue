@@ -9,12 +9,12 @@
           :disabled="disabled"
           @click="toggle"
         >
-          <span class="flex items-center gap-2 truncate" :class="{ 'text-gray-500 dark:text-gray-400': !selectedOption }">
-          <Icon 
-            v-if="selectedOption?.icon" 
-            :name="selectedOption.icon" 
-            class="h-5 w-5 flex-shrink-0" 
-            :class="selectedOption.iconClass || 'text-gray-400'" 
+          <span class="flex items-center gap-2 truncate" :class="{ 'text-base-content/40': !selectedOption }">
+          <Icon
+            v-if="selectedOption?.icon"
+            :name="selectedOption.icon"
+            class="h-5 w-5 flex-shrink-0"
+            :class="selectedOption.iconClass || 'text-base-content/40'"
           />
           {{ selectedOption ? selectedOption.text : placeholder || 'Select an option' }}
         </span>
@@ -23,7 +23,7 @@
         <button
           v-if="selectedOption && clearable && !disabled"
           type="button"
-          class="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          class="absolute cursor-pointer right-2 top-1/2 -translate-y-1/2 p-1 text-base-content/40 hover:text-base-content transition-colors"
           @click.stop="clear"
         >
           <Icon name="heroicons:x-mark" class="h-4 w-4" />
@@ -39,7 +39,7 @@
         >
           <div
             v-if="isOpen"
-            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-base-100 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:ring-white/10 sm:text-sm"
+            class="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-base-100 py-1 text-base shadow-lg ring-1 ring-base-content/10 focus:outline-none sm:text-sm"
           >
             <div
               v-for="option in options"
@@ -48,24 +48,24 @@
               @click="select(option)"
             >
               <div class="flex items-center gap-3">
-              <Icon 
-                v-if="option.icon" 
-                :name="option.icon" 
-                class="h-5 w-5 flex-shrink-0 transition-colors duration-200" 
+              <Icon
+                v-if="option.icon"
+                :name="option.icon"
+                class="h-5 w-5 flex-shrink-0 transition-colors duration-200"
                 :class="[
-                  isSelected(option) ? 'text-primary-500' : (option.iconClass || 'text-gray-400'),
-                  { 'group-hover:text-primary-500': !option.iconClass }
-                ]" 
+                  isSelected(option) ? 'text-primary' : (option.iconClass || 'text-base-content/40'),
+                  { 'group-hover:text-primary': !option.iconClass }
+                ]"
               />
               <span class="block truncate" :class="{ 'font-semibold': isSelected(option), 'font-normal': !isSelected(option) }">
                 {{ option.text }}
               </span>
             </div>
-              <span v-if="isSelected(option)" class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary-600 dark:text-primary-400">
+              <span v-if="isSelected(option)" class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
                 <Icon name="heroicons:check" class="h-5 w-5" aria-hidden="true" />
               </span>
             </div>
-            <div v-if="options.length === 0" class="px-4 py-2 text-sm text-gray-500">
+            <div v-if="options.length === 0" class="px-4 py-2 text-sm text-base-content/50">
               No options available
             </div>
           </div>

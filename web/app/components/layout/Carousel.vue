@@ -63,7 +63,8 @@
     <button
       v-if="showArrows && images.length > 1"
       type="button"
-      class="absolute cursor-pointer -left-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black/60 p-2 text-white shadow-lg transition-all duration-200 hover:bg-black/80 hover:scale-110 md:-left-6 flex items-center justify-center"
+      aria-label="Previous slide"
+      class="absolute cursor-pointer -left-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black/60 p-3 text-white shadow-lg transition-all duration-200 hover:bg-black/80 hover:scale-110 md:-left-6 flex items-center justify-center"
       @click="scrollLeft"
     >
       <Icon name="material-symbols:chevron-left" size="2em" />
@@ -71,22 +72,27 @@
     <button
       v-if="showArrows && images.length > 1"
       type="button"
-      class="absolute cursor-pointer -right-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black/60 p-2 text-white shadow-lg transition-all duration-200 hover:bg-black/80 hover:scale-110 md:-right-6 flex items-center justify-center"
+      aria-label="Next slide"
+      class="absolute cursor-pointer -right-4 top-1/2 z-50 -translate-y-1/2 transform rounded-full bg-black/60 p-3 text-white shadow-lg transition-all duration-200 hover:bg-black/80 hover:scale-110 md:-right-6 flex items-center justify-center"
       @click="scrollRight"
     >
       <Icon name="material-symbols:chevron-right" size="2em" />
     </button>
 
-    <div v-if="showArrows && images.length > 1" class="flex justify-center gap-2 pt-1">
+    <div v-if="showArrows && images.length > 1" class="flex justify-center gap-1 pt-1">
       <button
         v-for="(_, i) in images"
         :key="i"
         type="button"
         :aria-label="`Go to slide ${i + 1}`"
-        class="rounded-full transition-all duration-300"
-        :class="currentIndex === i ? 'w-5 h-2 bg-primary' : 'w-2 h-2 bg-base-content/30 hover:bg-base-content/60'"
+        class="group flex min-h-[44px] min-w-[44px] items-center justify-center"
         @click="goTo(i)"
-      />
+      >
+        <span
+          class="block rounded-full transition-all duration-300"
+          :class="currentIndex === i ? 'w-5 h-2 bg-primary' : 'w-2 h-2 bg-base-content/30 group-hover:bg-base-content/60'"
+        />
+      </button>
     </div>
   </div>
 
@@ -102,7 +108,8 @@
           <span class="text-white/70 text-sm ml-auto mr-4">{{ lightboxIndex + 1 }} / {{ images.length }}</span>
           <button
             type="button"
-            class="text-white/70 hover:text-white transition-colors"
+            aria-label="Close lightbox"
+            class="flex min-h-[44px] min-w-[44px] items-center justify-center text-white/70 hover:text-white transition-colors"
             @click="closeLightbox"
           >
             <Icon name="material-symbols:close" size="1.75em" />
@@ -122,6 +129,7 @@
         <button
           v-if="images.length > 1"
           type="button"
+          aria-label="Previous image"
           class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110 flex items-center justify-center cursor-pointer"
           @click="lightboxPrev"
         >
@@ -130,6 +138,7 @@
         <button
           v-if="images.length > 1"
           type="button"
+          aria-label="Next image"
           class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition-all hover:bg-white/25 hover:scale-110 flex items-center justify-center cursor-pointer"
           @click="lightboxNext"
         >

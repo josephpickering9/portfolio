@@ -158,64 +158,64 @@ watch(() => props.modelValue, (value) => {
 </script>
 
 <style scoped>
-.tiptap {
-  > * + * {
-    margin-top: 0.75em;
-  }
+.tiptap > * + * {
+  margin-top: 0.75em;
+}
 
-  ul,
-  ol {
-    padding: 0 1rem;
-  }
+.tiptap ul,
+.tiptap ol {
+  padding: 0 1rem;
+}
 
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.1;
-  }
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
+  line-height: 1.1;
+}
 
-  p {
-    margin: 1em 0;
-  }
+.tiptap p {
+  margin: 1em 0;
+}
 
-  code {
-    background-color: rgba(#616161, 0.1);
-    color: #616161;
-  }
+.tiptap code {
+  background-color: oklch(var(--bc) / 0.1);
+  color: oklch(var(--bc) / 0.7);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.3em;
+}
 
-  pre {
-    background: #0d0d0d;
-    color: #fff;
-    font-family: 'JetBrainsMono', monospace;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
+.tiptap pre {
+  background: oklch(var(--n));
+  color: oklch(var(--nc));
+  font-family: 'JetBrainsMono', monospace;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+}
 
-    code {
-      color: inherit;
-      padding: 0;
-      background: none;
-      font-size: 0.8rem;
-    }
-  }
+.tiptap pre code {
+  color: inherit;
+  padding: 0;
+  background: none;
+  font-size: 0.8rem;
+}
 
-  img {
-    max-width: 100%;
-    height: auto;
-  }
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+}
 
-  blockquote {
-    padding-left: 1rem;
-    border-left: 2px solid rgba(#0d0d0d, 0.1);
-  }
+.tiptap blockquote {
+  padding-left: 1rem;
+  border-left: 2px solid oklch(var(--bc) / 0.15);
+}
 
-  hr {
-    border: none;
-    border-top: 2px solid rgba(#0d0d0d, 0.1);
-    margin: 2rem 0;
-  }
+.tiptap hr {
+  border: none;
+  border-top: 2px solid oklch(var(--bc) / 0.15);
+  margin: 2rem 0;
 }
 </style>
 

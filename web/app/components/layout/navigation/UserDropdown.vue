@@ -1,6 +1,6 @@
 <template>
   <div class="dropdown dropdown-end">
-    <div tabindex="0" role="button" class="avatar btn btn-circle btn-ghost">
+    <div tabindex="0" role="button" aria-label="Open user menu" aria-haspopup="true" class="avatar btn btn-circle btn-ghost">
       <div class="w-10 rounded-full">
         <NuxtImg alt="Profile" src="/joe.png" placeholder format="webp" />
       </div>
@@ -10,7 +10,7 @@
         <li v-if="isAuthenticated">
           <div class="flex flex-col items-start gap-1 p-2">
             <span class="font-bold">Signed in as</span>
-            <span class="text-xs text-base-content/70 truncate w-full">{{ user?.email }}</span>
+            <span class="text-sm text-base-content/70 truncate w-full">{{ user?.email }}</span>
           </div>
         </li>
         <li v-if="isAuthenticated" class="mt-1 border-t border-base-200"/>

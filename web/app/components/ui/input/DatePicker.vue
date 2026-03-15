@@ -18,21 +18,21 @@
         <button
           v-if="value"
           type="button"
-          class="absolute right-10 btn btn-circle btn-ghost btn-xs text-base-content/50 hover:text-base-content"
+          class="absolute right-10 btn btn-circle btn-ghost btn-sm text-base-content/50 hover:text-base-content"
           @click.stop="clear"
         >
           <Icon name="heroicons:x-mark" size="1.2em" />
         </button>
         <button
           type="button"
-          class="absolute right-3 text-base-content/50 hover:text-base-content btn btn-circle btn-ghost btn-xs"
+          class="absolute right-3 text-base-content/50 hover:text-base-content btn btn-circle btn-ghost btn-sm"
           @click="toggleCalendar"
         >
           <Icon name="heroicons:calendar" size="1.5em" />
         </button>
       </div>
 
-      <div v-if="isOpen" class="dropdown-content z-[1] mt-2 w-72 rounded-box bg-base-100 p-4 shadow-xl ring-1 ring-base-content/10" @click.stop>
+      <div v-if="isOpen" class="dropdown-content z-[1] mt-2 w-full max-w-[calc(100vw-2rem)] sm:w-72 rounded-box bg-base-100 p-4 shadow-xl ring-1 ring-base-content/10" @click.stop>
         <div class="flex items-center justify-between mb-4">
           <button type="button" class="btn btn-circle btn-ghost btn-sm" @click="prevMonth">
             <Icon name="heroicons:chevron-left" />
@@ -44,7 +44,7 @@
         </div>
 
         <div class="grid grid-cols-7 mb-2 text-center">
-          <span v-for="day in weekdays" :key="day" class="text-xs font-bold text-base-content/50 uppercase">{{ day }}</span>
+          <span v-for="day in weekdays" :key="day" class="text-sm font-bold text-base-content/50 uppercase">{{ day }}</span>
         </div>
 
         <div class="grid grid-cols-7 gap-1">
@@ -54,7 +54,7 @@
             v-for="day in daysInMonth"
             :key="day.toString()"
             type="button"
-            class="btn btn-sm btn-ghost w-full h-9 min-h-0 p-0 font-normal"
+            class="btn btn-sm btn-ghost w-full h-10 min-h-0 p-0 font-normal"
             :class="{
               'btn-primary text-primary-content': isSelected(day),
               'text-base-content': !isSelected(day) && !isToday(day),

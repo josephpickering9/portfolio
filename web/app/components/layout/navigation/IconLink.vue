@@ -2,7 +2,7 @@
   <div class="flex items-center gap-x-1">
     <div class="flex items-center gap-x-2">
       <Icon v-if="icon" :name="icon" :size="iconSize" />
-      <a :href="to" :target="target" :rel="target === '_blank' ? 'noreferrer' : ''">
+      <a :href="to" :target="target" :rel="target === '_blank' ? 'noreferrer' : ''" class="rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2">
         {{ label }}
       </a>
     </div>

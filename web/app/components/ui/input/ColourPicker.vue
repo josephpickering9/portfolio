@@ -13,7 +13,7 @@
           v-for="color in presets"
           :key="color"
           type="button"
-          class="group relative h-8 w-8 rounded-full border border-base-200 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+          class="group relative h-10 w-10 rounded-full border border-base-200 shadow-sm transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           :style="{ backgroundColor: color }"
           :aria-label="`Select color ${color}`"
           @click="updateValue(color)"
@@ -29,7 +29,7 @@
         <div class="relative">
           <button
             type="button"
-            class="flex h-8 w-8 items-center justify-center rounded-full border border-dashed border-base-content/30 bg-transparent text-base-content/50 transition-colors hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+            class="flex h-10 w-10 items-center justify-center rounded-full border border-dashed border-base-content/30 bg-transparent text-base-content/50 transition-colors hover:border-primary hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             title="Custom Color"
             @click="showCustomPicker = !showCustomPicker"
           >
