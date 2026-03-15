@@ -12,7 +12,8 @@
     "lint": "eslint $(git diff --name-only --cached --relative | grep -E '\\.(js|vue|ts)$' | xargs)",
     "lint:full": "eslint .",
     "lint:commit": "eslint",
-    "typecheck": "vue-tsc --noEmit 2>&1 | grep -v 'node_modules' || echo 'Type checking complete!'"
+    "typecheck": "vue-tsc --noEmit 2>&1 | grep -v 'node_modules' || echo 'Type checking complete!'",
+    "generate-logos": "node scripts/generate-logo-grid.js --include 'alnwick-castle,yorkshire-sculpture-park,storybook,beatcovidne,taxigoat,boiler-plan,visit-northumberland,glasgow-retina,research-portal,nightingale-design-research'"
   },
   "lint-staged": {
     "*.{js,vue,ts}": "yarn lint:commit"
@@ -68,6 +69,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "nuxt": "^4.2.1",
+    "nuxt-umami": "^3.2.1",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "vue": "^3.5.25",

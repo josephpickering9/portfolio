@@ -1,6 +1,6 @@
 # Work Experience (Frontend)
 
-A Nuxt 3 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it has evolved into a full portfolio with AI-powered search, company timelines, and a CMS for managing content.
+A Nuxt 4 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it has evolved into a full portfolio with AI-powered search, company timelines, and a CMS for managing content.
 
 Linked to the [Work Experience API](https://github.com/josephpickering9/work_experience_api).
 
@@ -20,7 +20,7 @@ Linked to the [Work Experience API](https://github.com/josephpickering9/work_exp
 
 ## Features
 
-- **Server-Side Rendering** via Nuxt 3 for fast load times and SEO
+- **Server-Side Rendering** via Nuxt 4 for fast load times and SEO
 - **AI Search** powered by Vertex AI — query projects in natural language
 - **Company Timelines** — visual history of roles and projects per company
 - **CMS** — authenticated users can create, update, and delete projects, companies, and technologies
@@ -34,7 +34,7 @@ Linked to the [Work Experience API](https://github.com/josephpickering9/work_exp
 
 | Layer | Technology |
 |---|---|
-| Framework | Nuxt 3, Vue 3 |
+| Framework | Nuxt 4, Vue 3 |
 | Styling | Tailwind CSS, daisyUI |
 | State | Pinia (with persisted state) |
 | Auth | Auth0 |

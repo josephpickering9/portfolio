@@ -48,6 +48,12 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@nuxt/eslint',
     '@nuxt/image',
+    ['nuxt-umami', {
+      id: process.env['NUXT_PUBLIC_UMAMI_ID'] ?? '',
+      host: 'https://cloud.umami.is',
+      autoTrack: true,
+      ignoreLocalhost: true,
+    }],
   ],
 
   vite: {
