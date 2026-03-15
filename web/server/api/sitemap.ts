@@ -1,9 +1,11 @@
-import { OpenAPI, ProjectService } from '../../api'
+import { defineSitemapEventHandler } from '#imports'
 
-export default defineSitemapEventHandler(async (e) => {
+export default defineSitemapEventHandler(async (event) => {
   try {
-    OpenAPI.BASE = process.env.NUXT_PUBLIC_API_BASE ?? useRuntimeConfig().public.apiBase ?? ''
-    const projects = await ProjectService.getProject()
+    const config = useRuntimeConfig(event)
+    const apiBase = process.env.NUXT_PUBLIC_API_BASE ?? config.public.apiBase ?? ''
+
+    const projects = await $fetch<Array<{ slug: string }>>(`${apiBase}/project`)
 
     return projects.map((p) => ({
       loc: `/projects/${p.slug}`,
