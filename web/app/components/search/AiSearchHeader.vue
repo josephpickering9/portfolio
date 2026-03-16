@@ -10,7 +10,7 @@
       Ask my AI Assistant
     </h1>
     <p class="text-lg text-base-content/60 max-w-md mx-auto">
-      Explore my experience, projects, and skills.
+      Explore my experience, projects &amp; skills.
     </p>
   </div>
 </template>

@@ -14,7 +14,7 @@
         Full Stack Developer
       </p>
       <p class="text-lg text-base-content/70 leading-relaxed max-w-2xl mx-auto animate-fade-in-up" style="animation-delay: 320ms">
-        I'm a passionate developer building cleaner, faster, and more intuitive applications.
+        I'm a passionate developer building cleaner, faster and more intuitive applications.
         My journey spans from <span class="font-semibold text-primary">Vue, React &amp; TypeScript</span> to <span class="font-semibold text-secondary">.NET, C# &amp; Kotlin</span>.
         I love solving complex problems and turning ideas into reality.
       </p>

@@ -13,12 +13,12 @@
           <Icon name="mdi:launch" />
         </div>
       </div>
-      <div v-if="dateRange || duration" class="flex items-center gap-2 text-xs italic text-base-content/60">
+      <div v-if="dateRange || duration" class="flex items-center gap-2 text-sm italic text-base-content/60">
         <p v-if="dateRange" class="m-0">{{ dateRange }}</p>
         <span v-if="dateRange && duration" class="text-base-content/40">•</span>
         <p v-if="duration" class="m-0">{{ duration }}</p>
       </div>
-      <div class="prose prose-sm max-w-none pb-2 italic" v-html="company.description" />
+      <div class="prose max-w-none pb-2 italic" v-html="company.description" />
     </div>
     <FormButton
       v-if="isAuthenticated"
