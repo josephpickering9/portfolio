@@ -58,13 +58,19 @@ const file = ref<HTMLInputElement | null>(null)
 const images = ref<string[]>(props.imageUrls ?? [])
 
 function inputChange() {
-  if (file.value) {
+  if (file.value?.files) {
     emit('update:file', file.value.files)
     emit('update:modelValue', file.value.files)
+
+    images.value = [
+      ...images.value,
+      ...Array.from(file.value.files).map((selectedFile) => URL.createObjectURL(selectedFile)),
+    ]
   }
 }
 
 function removeImage(url: string) {
+  if (url.startsWith('blob:')) URL.revokeObjectURL(url)
   images.value = images.value.filter((image) => image !== url)
 }
 

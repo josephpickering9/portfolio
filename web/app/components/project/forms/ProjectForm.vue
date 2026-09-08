@@ -10,7 +10,7 @@
           size="sm"
           icon="material-symbols:delete"
           :disabled="loading"
-          @click="remove"
+          @click="showDeleteConfirm = true"
         />
         <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
       </div>
@@ -26,6 +26,14 @@
         </template>
       </Tabs>
     </div>
+
+    <ConfirmDialog
+      v-model:open="showDeleteConfirm"
+      title="Delete this project?"
+      message="This action cannot be undone."
+      confirm-label="Delete"
+      @confirm="remove"
+    />
   </div>
 </template>
 
@@ -39,6 +47,7 @@ import { useNotificationStore } from '~/store/NotificationStore'
 import type { CreateProject, Project  } from '@api'
 import { defaultProjectForm } from '~/utils/default-helper'
 import FormButton from '~/components/ui/form/FormButton.vue'
+import ConfirmDialog from '~/components/ui/layout/ConfirmDialog.vue'
 import Tabs from '~/components/layout/Tabs.vue'
 import ProjectGeneralForm from './ProjectGeneralForm.vue'
 import ProjectImagesForm from './ProjectImagesForm.vue'
@@ -60,6 +69,7 @@ const notificationStore = useNotificationStore()
 const activeTab = ref(0)
 const form = ref<CreateProject>(cloneDeep(defaultProjectForm))
 const validated = ref(false)
+const showDeleteConfirm = ref(false)
 
 // Template Refs
 const projectGeneralForm = ref<InstanceType<typeof ProjectGeneralForm> | null>(null)
@@ -106,8 +116,13 @@ async function validate(tab: number): Promise<boolean> {
 }
 
 async function save() {
-  const isValid = await validate(activeTab.value)
-  if (!isValid) return
+  for (let tab = 0; tab < 4; tab++) {
+    const isValid = await validate(tab)
+    if (!isValid) {
+      activeTab.value = tab
+      return
+    }
+  }
 
   let response: Project | undefined
 
@@ -129,6 +144,7 @@ async function save() {
 }
 
 async function remove() {
+  showDeleteConfirm.value = false
   if (!project.value) return notificationStore.displayErrorNotification('Project not found')
 
   await projectStore.deleteProject(project.value.id)

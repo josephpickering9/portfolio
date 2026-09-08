@@ -123,9 +123,21 @@ const showResultsAbove = ref(false)
 const highlighted = ref(-1)
 
 const searchResults = computed((): SearchItem[] => {
-  const results = isEmpty(search.value)
+  const query = search.value.toLowerCase()
+
+  let results = isEmpty(search.value)
     ? props.data
-    : props.data.filter((item) => item.title.toLowerCase().includes(search.value.toLowerCase()))
+    : props.data.filter((item) => item.title.toLowerCase().includes(query))
+
+  if (!isEmpty(search.value)) {
+    const nameOf = (title: string) => title.toLowerCase().split(':').pop() ?? ''
+    results = [...results].sort((a, b) => {
+      const aStartsWith = nameOf(a.title).startsWith(query)
+      const bStartsWith = nameOf(b.title).startsWith(query)
+      if (aStartsWith === bStartsWith) return 0
+      return aStartsWith ? -1 : 1
+    })
+  }
 
   const ordered = showResultsAbove.value ? [...results].reverse() : results
 

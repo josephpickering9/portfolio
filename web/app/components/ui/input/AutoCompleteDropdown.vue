@@ -16,7 +16,7 @@
       <ul class="m-0 w-full list-none p-0">
         <li
           v-for="(result, index) in results"
-          :key="index"
+          :key="result.value"
           ref="items"
           class="group relative m-0 flex cursor-pointer select-none items-center rounded-lg px-3 py-2 transition-colors hover:bg-base-200"
           :class="{ 'bg-base-200 text-base-content': highlighted === index, 'text-base-content/80': highlighted !== index }"
@@ -24,7 +24,6 @@
           :aria-selected="highlighted === index"
           tabindex="0"
           @mousedown.stop.prevent="$emit('select', result)"
-          @click.stop.prevent="$emit('select', result)"
           @mouseenter="$emit('highlight', index)"
           @focus="$emit('highlight', index)"
         >

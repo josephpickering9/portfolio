@@ -14,7 +14,7 @@
     </div>
     <div v-else class="flex h-12 w-full items-center space-x-8">
       <NuxtImg :src="image" alt="File input image" placeholder format="webp" class="m-0 h-12 w-12 rounded-full" />
-      <button class="btn btn-error btn-xs" @click.stop.prevent="image = undefined">Remove</button>
+      <button class="btn btn-error btn-xs" @click.stop.prevent="removeImage">Remove</button>
     </div>
   </FormElementContainer>
 </template>
@@ -56,12 +56,24 @@ function inputChange() {
   if (file.value) {
     emit('update:file', file.value.files)
     emit('update:modelValue', file.value.files)
+
+    const selectedFile = file.value.files?.item(0)
+    if (selectedFile) {
+      if (image.value?.startsWith('blob:')) URL.revokeObjectURL(image.value)
+      image.value = URL.createObjectURL(selectedFile)
+    }
   }
 }
 
 function reset() {
+  if (image.value?.startsWith('blob:')) URL.revokeObjectURL(image.value)
   image.value = previousImageUrl.value
   if (file.value) file.value.value = ''
+}
+
+function removeImage() {
+  if (image.value?.startsWith('blob:')) URL.revokeObjectURL(image.value)
+  image.value = undefined
 }
 
 

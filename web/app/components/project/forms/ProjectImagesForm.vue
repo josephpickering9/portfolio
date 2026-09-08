@@ -73,7 +73,7 @@
 
           <div class="rounded-lg bg-base-200/50 p-6">
             <FormGroup :errors="v$['showMockup']?.$errors" name="Display Options">
-              <Toggle v-model="showMockup" label="Show Device Mockup on Details Page" :disabled="loading" />
+              <Toggle v-model="form.showMockup" label="Show Device Mockup on Details Page" :disabled="loading" />
             </FormGroup>
           </div>
         </div>
@@ -130,7 +130,6 @@ const bannerUrl = ref<string | undefined>(undefined)
 const cardUrl = ref<string | undefined>(undefined)
 const desktopUrls = ref<string[]>([])
 const mobileUrls = ref<string[]>([])
-const showMockup = ref(false)
 
 const project = computed((): Project | undefined => {
   return projectStore.project

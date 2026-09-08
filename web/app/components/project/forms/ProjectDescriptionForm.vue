@@ -26,6 +26,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
+import { required } from '@vuelidate/validators'
 import { cloneDeep } from 'lodash-es'
 import type { CreateProject, Project } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
@@ -56,7 +57,13 @@ const validation = useValidation()
 const form = ref<CreateProject>(props.modelValue)
 const extraDescription = ref<string>('')
 
-const v$ = useVuelidate()
+const rules = {
+  form: {
+    description: { required },
+  },
+}
+
+const v$ = useVuelidate(rules, { form })
 
 const loading = computed((): boolean => {
   return projectStore.projectCreating || projectStore.projectLoading || false

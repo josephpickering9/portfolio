@@ -12,7 +12,7 @@
           size="sm"
           icon="material-symbols:delete"
           :disabled="loading"
-          @click="$emit('delete')"
+          @click="showDeleteConfirm = true"
         />
         
         <slot name="actions-middle" />
@@ -33,11 +33,21 @@
     <div class="w-full">
       <slot />
     </div>
+
+    <ConfirmDialog
+      v-model:open="showDeleteConfirm"
+      title="Delete this?"
+      message="This action cannot be undone."
+      confirm-label="Delete"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
+import ConfirmDialog from '~/components/ui/layout/ConfirmDialog.vue'
 
 interface Props {
   title: string
@@ -52,8 +62,15 @@ withDefaults(defineProps<Props>(), {
   saveLabel: 'Save',
 })
 
-defineEmits<{
+const emit = defineEmits<{
   'save': []
   'delete': []
 }>()
+
+const showDeleteConfirm = ref(false)
+
+function confirmDelete() {
+  showDeleteConfirm.value = false
+  emit('delete')
+}
 </script>
