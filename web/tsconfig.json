@@ -4,6 +4,7 @@
     "checkUnknownSlotNames": true
   },
   "compilerOptions": {
+    "baseUrl": "./.nuxt",
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
