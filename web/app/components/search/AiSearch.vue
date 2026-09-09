@@ -50,26 +50,17 @@ const searchResult = ref<string | null>(null)
 const displayedPrompts = ref<Array<{ text: string, icon: string, color?: string }>>([])
 const hasSearched = ref(false)
 
-// TODO: Resolve all commented out prompts
 const allPrompts = [
-  // { text: "What project is Joe most proud of?", icon: "heroicons:trophy" },
   { text: "What React projects has Joe worked on?", icon: "logos:react", color: "#61DAFB" },
-  // { text: "What's the most complex project Joe has worked on?", icon: "heroicons:clock" },
-  // { text: "Summarize Joe's work history.", icon: "heroicons:clipboard-document-list" },
   { text: "What technologies does Joe use most?", icon: "heroicons:code-bracket" },
-  // { text: "What Python projects has Joe worked on?", icon: "mdi:language-python", color: "#3776AB" },
   { text: "What has Joe built with Next.js?", icon: "simple-icons:nextdotjs", color: "#ffffff" },
   { text: "Tell me about Joe's .NET background.", icon: "simple-icons:dotnet", color: "#512BD4" },
   { text: "Which projects use Vue?", icon: "mdi:vuejs", color: "#42B883" },
   { text: "Show me projects using TypeScript.", icon: "mdi:language-typescript", color: "#3178C6" },
   { text: "What Flutter apps has Joe built?", icon: "simple-icons:flutter", color: "#02569B" },
-  // { text: "Has Joe worked with databases like PostgreSQL?", icon: "simple-icons:postgresql", color: "#4169E1" },
   { text: "What about mobile development with Android?", icon: "mdi:android", color: "#3DDC84" },
   { text: "What PHP projects has Joe worked on?", icon: "mdi:language-php", color: "#556097" },
-  // { text: "What fintech experience does Joe have?", icon: "heroicons:banknotes" },
   { text: "What AI projects has Joe worked on?", icon: "heroicons:cpu-chip" },
-  // { text: "Tell me about Joe's experience with GCP.", icon: "simple-icons:googlecloud", color: "#4285F4" },
-  // { text: "What authentication systems has Joe used?", icon: "heroicons:lock-closed" },
   { text: "Has Joe worked on any mobile apps?", icon: "heroicons:device-phone-mobile" },
   { text: "What projects involved document processing?", icon: "heroicons:document-text" },
   { text: "What's Joe's experience with Nuxt?", icon: "simple-icons:nuxtdotjs", color: "#00DC82" },

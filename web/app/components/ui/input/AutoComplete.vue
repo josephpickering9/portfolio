@@ -180,8 +180,9 @@ function blur() {
 }
 
 function onEnter() {
-  if (highlighted.value !== -1) {
-    handleSelect(searchResults.value[highlighted.value]!)
+  const selected = highlighted.value !== -1 ? searchResults.value[highlighted.value] : undefined
+  if (selected) {
+    handleSelect(selected)
   } else if (value.value) {
     handleSelect(value.value)
   }

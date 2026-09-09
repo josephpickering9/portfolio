@@ -5,7 +5,7 @@
     :show-delete="isUpdate"
     save-label="Save Technology"
     @save="save(props.id || null, createTagValue, isUpdate)"
-    @delete="remove(props.id!)"
+    @delete="handleDelete"
   >
     <div class="mb-8">
       <p v-if="initialLoad" class="skeleton mt-2 h-5 w-64 rounded"/>
@@ -159,6 +159,10 @@ const { save, remove, fetch } = useEntityForm<Tag, CreateTag>({
 const loading = computed((): boolean => {
   return tagStore.tagCreating || tagStore.tagLoading || false
 })
+
+function handleDelete() {
+  if (props.id) remove(props.id)
+}
 
 onMounted(async () => {
   if (isUpdate.value && props.id) {

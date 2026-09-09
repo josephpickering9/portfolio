@@ -264,7 +264,8 @@ function setupObserver() {
     { root: carouselEl, threshold: 0.6 },
   )
 
-  itemRefs.value.forEach(el => { if (el) observer!.observe(el) })
+  const activeObserver = observer
+  itemRefs.value.forEach(el => { if (el) activeObserver.observe(el) })
 }
 
 onMounted(async () => {

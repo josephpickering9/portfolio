@@ -62,8 +62,11 @@ export const useAiStore = defineStore('aiStore', {
                 const promises = projectCitations.map(async c => {
                     if (c.project) return c.project
 
+                    const id = c.id
+                    if (!id) return undefined
+
                     try {
-                        return (await getProjectById({ path: { id: c.id! } })).data
+                        return (await getProjectById({ path: { id } })).data
                     } catch {
                         return undefined
                     }

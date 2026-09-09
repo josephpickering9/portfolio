@@ -15,6 +15,7 @@ Linked to the [Work Experience API](https://github.com/josephpickering9/work_exp
 - [Environment Variables](#environment-variables)
 - [Authentication](#authentication)
 - [OpenAPI Codegen](#openapi-codegen)
+- [Testing](#testing)
 - [Linting](#linting)
 - [Deployment](#deployment)
 
@@ -34,14 +35,17 @@ Linked to the [Work Experience API](https://github.com/josephpickering9/work_exp
 
 | Layer | Technology |
 |---|---|
-| Framework | Nuxt 4, Vue 3 |
-| Styling | Tailwind CSS, daisyUI |
+| Framework | Nuxt 4, Vue 3, TypeScript |
+| Styling | Tailwind CSS v4, daisyUI |
 | State | Pinia (with persisted state) |
-| Auth | Auth0 |
+| Auth | Auth0 (`@auth0/auth0-vue`) |
 | API Client | `@hey-api/client-axios` (OpenAPI generated) |
 | Forms | Vuelidate |
 | Rich Text | Tiptap |
 | Drag & Drop | vuedraggable |
+| PWA | `@vite-pwa/nuxt` |
+| Testing | Vitest (unit), Playwright (E2E) |
+| Linting | ESLint, Prettier, Husky + lint-staged |
 
 ## Project Structure
 
@@ -56,6 +60,7 @@ app/
 └── data/           # Static data (tag types)
 
 api/                # Auto-generated OpenAPI client (do not edit manually)
+e2e/                # Playwright E2E specs
 ```
 
 ## Getting Started
@@ -72,8 +77,8 @@ yarn install
 cp .env.example .env
 # Fill in the values — see Environment Variables below
 
-# Generate API types from the running backend
-yarn fetch-codegen
+# With the backend running locally (see its README), generate the API client
+yarn codegen
 
 # Start dev server
 yarn dev
@@ -83,12 +88,13 @@ yarn dev
 
 | Variable | Description |
 |---|---|
-| `NUXT_PUBLIC_API_BASE` | Base URL of the Work Experience API (e.g. `http://localhost:3000`) |
-| `NUXT_PUBLIC_BASE` | Base URL of this frontend (used for PWA and redirects) |
+| `NUXT_PUBLIC_API_BASE` | Base URL of the Work Experience API (e.g. `http://localhost:5105` locally) |
+| `NUXT_PUBLIC_BASE` | Base URL of this frontend (used for PWA and redirects, e.g. `http://localhost:3000` locally) |
 | `NUXT_AUTH0_CLIENT_ID` | Auth0 application client ID |
 | `NUXT_AUTH0_CLIENT_SECRET` | Auth0 application client secret |
 | `NUXT_AUTH0_DOMAIN` | Auth0 domain (e.g. `your-tenant.auth0.com`) |
 | `NUXT_PUBLIC_LINKED_IN_URL` | LinkedIn profile URL displayed in the header |
+| `NUXT_PUBLIC_UMAMI_ID` | Umami analytics website ID (optional — leave blank to disable analytics) |
 
 ## Authentication
 
@@ -103,15 +109,26 @@ Authentication is enforced per-page via `definePageMeta({ middleware: 'auth' })`
 
 ## OpenAPI Codegen
 
-API types and the HTTP client are auto-generated from the backend's Swagger spec. The generated files live in `api/` and should not be edited manually.
+API types and the HTTP client are auto-generated from the backend's Swagger spec. The generated files live in `api/` and should not be edited manually — they're overwritten on the next run.
 
 ```bash
-# Generate from a locally running API
+# With the backend running locally at http://localhost:5105, regenerate the client
 yarn codegen
-
-# Fetch the latest swagger.json from the API and regenerate
-yarn fetch-codegen
 ```
+
+Fix any resulting TypeScript errors in stores/components that consume the changed types.
+
+## Testing
+
+Vitest for unit tests, Playwright for E2E:
+
+```bash
+yarn test          # Unit tests (app/**/*.test.ts)
+yarn test:watch    # Unit tests in watch mode
+yarn test:e2e      # E2E tests (e2e/*.spec.ts) — starts its own dev server automatically
+```
+
+E2E coverage is currently the public browsing flows (project search/filter, public page navigation) — the authenticated CMS flows (create/update/delete) sit behind a real Auth0 login with no bypass in this codebase, so they aren't covered yet. See `CLAUDE.md`'s Testing section for details.
 
 ## Linting
 
@@ -125,4 +142,8 @@ yarn lint --fix    # Lint and auto-fix
 
 ## Deployment
 
-The project deploys automatically to a Digital Ocean droplet via GitHub Actions on push to the `develop` branch. The server runs the app with PM2 (`ecosystem.config.js`).
+The project deploys automatically to a Digital Ocean droplet via GitHub Actions on push to `main`. The server runs the app with PM2 (`ecosystem.config.js`).
+
+## Conventions
+
+Coding conventions (directory layout, component patterns, testing, linting) live in [`CLAUDE.md`](./CLAUDE.md). The monorepo root's [`docs/CODE_QUALITY_BACKLOG.md`](../docs/CODE_QUALITY_BACKLOG.md) tracks the active code-quality backlog for both projects.

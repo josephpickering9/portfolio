@@ -135,12 +135,12 @@ function handleItemKeydown(event: KeyboardEvent) {
       event.preventDefault()
       emit('close')
       break
-    case 'Enter':
+    case 'Enter': {
       event.preventDefault()
-      if (filteredTags.value[focusedIndex.value]) {
-        selectTag(filteredTags.value[focusedIndex.value]!.id)
-      }
+      const focusedTag = filteredTags.value[focusedIndex.value]
+      if (focusedTag) selectTag(focusedTag.id)
       break
+    }
   }
 }
 

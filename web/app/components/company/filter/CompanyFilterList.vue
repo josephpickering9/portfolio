@@ -84,12 +84,12 @@ function handleItemKeydown(event: KeyboardEvent) {
       event.preventDefault()
       emit('close')
       break
-    case 'Enter':
+    case 'Enter': {
       event.preventDefault()
-      if (filteredCompanies.value[focusedIndex.value]) {
-        selectCompany(filteredCompanies.value[focusedIndex.value]!.id)
-      }
+      const focusedCompany = filteredCompanies.value[focusedIndex.value]
+      if (focusedCompany) selectCompany(focusedCompany.id)
       break
+    }
   }
 }
 

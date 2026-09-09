@@ -112,13 +112,10 @@ const createCompanyValue = computed((): CreateCompany => {
 })
 
 async function save() {
-  let response: Company | undefined
-
-  if (isUpdate.value) {
-    response = await companyStore.updateCompany(props.id!, createCompanyValue.value)
-  } else {
-    response = await companyStore.createCompany(createCompanyValue.value)
-  }
+  const id = props.id
+  const response = id
+    ? await companyStore.updateCompany(id, createCompanyValue.value)
+    : await companyStore.createCompany(createCompanyValue.value)
 
   if (!error.value && response) {
     router.push(`/companies`)
@@ -129,21 +126,23 @@ async function save() {
 }
 
 async function remove() {
-  if (isUpdate.value) {
-    await companyStore.deleteCompany(props.id!)
+  const id = props.id
+  if (!id) return
 
-    if (!error.value) {
-      router.push(`/companies`)
-      notificationStore.displaySuccessNotification('Company deleted successfully')
-    } else {
-      notificationStore.displayErrorNotification(error.value || 'An error occurred')
-    }
+  await companyStore.deleteCompany(id)
+
+  if (!error.value) {
+    router.push(`/companies`)
+    notificationStore.displaySuccessNotification('Company deleted successfully')
+  } else {
+    notificationStore.displayErrorNotification(error.value || 'An error occurred')
   }
 }
 
 onMounted(async () => {
-  if (isUpdate.value) {
-    await companyStore.getCompany(props.id!)
+  const id = props.id
+  if (id) {
+    await companyStore.getCompany(id)
 
     if (!companyError.value && company.value) {
       name.value = company.value.name

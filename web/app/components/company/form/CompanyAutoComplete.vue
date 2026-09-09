@@ -55,10 +55,12 @@ const companies = computed((): Company[] => {
 
 const companyItems = computed((): SearchItem[] => {
   const sortedCompanies = [...companies.value].sort((a, b) => {
-    if (!a.startDate && !b.startDate) return 0
-    if (!a.startDate) return -1
-    if (!b.startDate) return 1
-    return b.startDate!.localeCompare(a.startDate!)
+    const aStartDate = a.startDate
+    const bStartDate = b.startDate
+    if (!aStartDate && !bStartDate) return 0
+    if (!aStartDate) return -1
+    if (!bStartDate) return 1
+    return bStartDate.localeCompare(aStartDate)
   })
 
   return sortedCompanies.map((company) => ({

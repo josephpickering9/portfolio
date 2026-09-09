@@ -158,8 +158,9 @@ async function remove() {
 }
 
 onMounted(async () => {
-  if (isUpdate.value) {
-    await projectStore.getProjectBySlug(props.slug!)
+  const slug = props.slug
+  if (slug) {
+    await projectStore.getProjectBySlug(slug)
 
     if (!projectError.value && project.value) {
       form.value.title = project.value.title

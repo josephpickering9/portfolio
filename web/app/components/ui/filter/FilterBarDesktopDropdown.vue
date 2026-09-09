@@ -169,12 +169,12 @@ function handleMainMenuKeydown(event: KeyboardEvent) {
       break
     case 'ArrowLeft':
     case 'ArrowRight':
-    case 'Enter':
+    case 'Enter': {
       event.preventDefault()
-      if (focusedFilterTypeIndex.value >= 0 && props.availableFilterTypes[focusedFilterTypeIndex.value]) {
-        emit('submenu:open', props.availableFilterTypes[focusedFilterTypeIndex.value]!.value)
-      }
+      const filterType = focusedFilterTypeIndex.value >= 0 ? props.availableFilterTypes[focusedFilterTypeIndex.value] : undefined
+      if (filterType) emit('submenu:open', filterType.value)
       break
+    }
     case 'Escape':
       event.preventDefault()
       emit('close')
