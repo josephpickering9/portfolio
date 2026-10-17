@@ -92,6 +92,10 @@ public class VertexIngestService : IVertexIngestService
             Title = project.Title,
             ShortDescription = project.ShortDescription,
             Description = StripHtml(project.Description),
+            ProblemStatement = project.ProblemStatement,
+            KeyDecision = project.KeyDecision,
+            Outcome = project.Outcome,
+            Stats = project.Stats.OrderBy(s => s.Order ?? 0).Select(s => $"{s.Label}: {s.Value}").ToList(),
             StartDate = project.StartDate,
             EndDate = project.EndDate,
             Website = project.Website,
@@ -126,6 +130,10 @@ public class VertexProjectDto
     [VertexKeyProperty("title")] [VertexField(retrievable: true)] public string Title { get; init; } = string.Empty;
     [VertexField(searchable: true, retrievable: true)] public string ShortDescription { get; init; } = string.Empty;
     [VertexKeyProperty("description")] [VertexField(retrievable: true)] public string Description { get; init; } = string.Empty;
+    [VertexField(searchable: true, retrievable: true)] public string? ProblemStatement { get; init; }
+    [VertexField(searchable: true, retrievable: true)] public string? KeyDecision { get; init; }
+    [VertexField(searchable: true, retrievable: true)] public string? Outcome { get; init; }
+    [VertexField(searchable: true, retrievable: true)] public List<string>? Stats { get; init; } = [];
     [VertexKeyProperty("create_time")] [VertexField(retrievable: true)] public DateOnly StartDate { get; init; }
     [VertexField(indexable: true, retrievable: true)] public DateOnly? EndDate { get; init; }
     [VertexKeyProperty("uri")] [VertexField(retrievable: true)] public string? Website { get; init; }
