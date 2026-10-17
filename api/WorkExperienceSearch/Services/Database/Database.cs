@@ -10,6 +10,7 @@ public class Database(DbContextOptions<Database> options) : DbContext(options)
     public DbSet<Project> Project { get; set; }
     public DbSet<ProjectImage> ProjectImage { get; set; }
     public DbSet<ProjectRepository> ProjectRepository { get; set; }
+    public DbSet<ProjectStat> ProjectStat { get; set; }
     public DbSet<Tag> Tag { get; set; }
     public DbSet<Company> Company { get; set; }
 
@@ -46,6 +47,15 @@ public class Database(DbContextOptions<Database> options) : DbContext(options)
             .ValueGeneratedOnAdd();
 
         modelBuilder.Entity<ProjectRepository>()
+            .Property(e => e.ProjectId)
+            .HasGuidIdConversion();
+
+        modelBuilder.Entity<ProjectStat>()
+            .Property(e => e.Id)
+            .HasGuidIdConversion()
+            .ValueGeneratedOnAdd();
+
+        modelBuilder.Entity<ProjectStat>()
             .Property(e => e.ProjectId)
             .HasGuidIdConversion();
 

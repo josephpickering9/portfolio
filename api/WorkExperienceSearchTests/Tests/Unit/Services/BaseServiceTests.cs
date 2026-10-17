@@ -63,6 +63,7 @@ public class BaseServiceTests : IAsyncLifetime
         Context.Company.RemoveRange(Context.Company);
         Context.ProjectImage.RemoveRange(Context.ProjectImage);
         Context.ProjectRepository.RemoveRange(Context.ProjectRepository);
+        Context.ProjectStat.RemoveRange(Context.ProjectStat);
         await Context.SaveChangesAsync();
     }
 

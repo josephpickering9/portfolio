@@ -10,6 +10,7 @@ public class ProjectService(
     IProjectRepository projectRepository,
     IProjectImageService projectImageService,
     IProjectRepositoryService projectRepositoryService,
+    IProjectStatService projectStatService,
     ITagService tagService,
     ILogger<ProjectService> logger
 ) : IProjectService
@@ -64,6 +65,9 @@ public class ProjectService(
             Title = createProject.Title,
             ShortDescription = createProject.ShortDescription,
             Description = createProject.Description,
+            ProblemStatement = createProject.ProblemStatement,
+            KeyDecision = createProject.KeyDecision,
+            Outcome = createProject.Outcome,
             CompanyId = createProject.CompanyId,
             StartDate = createProject.StartDate,
             EndDate = createProject.EndDate,
@@ -106,6 +110,9 @@ public class ProjectService(
         project.Title = createProject.Title;
         project.ShortDescription = createProject.ShortDescription;
         project.Description = createProject.Description;
+        project.ProblemStatement = createProject.ProblemStatement;
+        project.KeyDecision = createProject.KeyDecision;
+        project.Outcome = createProject.Outcome;
         project.CompanyId = createProject.CompanyId;
         project.StartDate = createProject.StartDate;
         project.EndDate = createProject.EndDate;
@@ -150,6 +157,9 @@ public class ProjectService(
         var repositoriesResult = await SyncProjectRepositories(project, createProject);
         if (!repositoriesResult.IsSuccess) return repositoriesResult;
 
+        var statsResult = await SyncProjectStats(project, createProject);
+        if (!statsResult.IsSuccess) return statsResult;
+
         return new Success<Project>(project);
     }
 
@@ -185,6 +195,16 @@ public class ProjectService(
         if (!repositories.IsSuccess || repositories.Data == null) return new BadRequestFailure<Project>("Repositories could not be created");
 
         project.Repositories = repositories.Data;
+
+        return new Success<Project>(project);
+    }
+
+    private async Task<Result<Project>> SyncProjectStats(Project project, CreateProject createProject)
+    {
+        var stats = await projectStatService.SyncProjectStatsAsync(project, createProject.Stats);
+        if (!stats.IsSuccess || stats.Data == null) return new BadRequestFailure<Project>("Stats could not be created");
+
+        project.Stats = stats.Data;
 
         return new Success<Project>(project);
     }

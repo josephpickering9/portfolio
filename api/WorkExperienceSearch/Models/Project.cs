@@ -15,6 +15,12 @@ public class Project
 
     [Required] public string Description { get; set; } = null!;
 
+    public string? ProblemStatement { get; set; }
+
+    public string? KeyDecision { get; set; }
+
+    public string? Outcome { get; set; }
+
     public CompanyId? CompanyId { get; set; } = null!;
     public Company? Company { get; set; } = null!;
 
@@ -33,6 +39,8 @@ public class Project
     [Required] public List<ProjectRepository> Repositories { get; set; } = [];
 
     [Required] public List<Tag> Tags { get; set; } = [];
+
+    [Required] public List<ProjectStat> Stats { get; set; } = [];
 
     [NotMapped] public List<Project> RelatedProjects { get; set; } = [];
 

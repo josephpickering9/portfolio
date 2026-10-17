@@ -47,10 +47,12 @@ builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IProjectCodeRepository, ProjectCodeRepository>();
 builder.Services.AddScoped<IProjectImageRepository, ProjectImageRepository>();
+builder.Services.AddScoped<IProjectStatRepository, ProjectStatRepository>();
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IProjectImageService, ProjectImageService>();
 builder.Services.AddScoped<IProjectRepositoryService, ProjectRepositoryService>();
+builder.Services.AddScoped<IProjectStatService, ProjectStatService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<ICompanyService, CompanyService>();
 builder.Services.AddScoped<IImageService, ImageService>();
@@ -81,6 +83,7 @@ builder.Services.AddSwaggerGen(c =>
     c.MapType<TagId>(() => new OpenApiSchema { Type = "string", Format = "uuid" });
     c.MapType<ProjectImageId>(() => new OpenApiSchema { Type = "string", Format = "uuid" });
     c.MapType<ProjectRepositoryId>(() => new OpenApiSchema { Type = "string", Format = "uuid" });
+    c.MapType<ProjectStatId>(() => new OpenApiSchema { Type = "string", Format = "uuid" });
 });
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -102,6 +105,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimitPolicies();
 builder.Services.AddAuth0WebAppAuthentication(options =>
 {
     options.Domain = builder.Configuration["Auth0:Domain"] ?? "";
@@ -157,6 +161,7 @@ app.UseHttpsRedirection();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 app.Run();
 

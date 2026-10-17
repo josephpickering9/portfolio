@@ -38,6 +38,7 @@ public class ProjectRepository(Database context, IMemoryCache cache, CacheInvali
             .Include(p => p.Tags)
             .Include(p => p.Images)
             .Include(p => p.Repositories)
+            .Include(p => p.Stats)
             .Where(p => ids.Contains(p.Id))
             .AsNoTracking()
             .ToListAsync(cancellationToken);
@@ -52,6 +53,7 @@ public class ProjectRepository(Database context, IMemoryCache cache, CacheInvali
             .Include(p => p.Tags)
             .Include(p => p.Images)
             .Include(p => p.Repositories)
+            .Include(p => p.Stats)
             .Include(p => p.Company)
             .SingleOrDefaultAsync(p => p.Id == id, cancellationToken);
 
@@ -157,5 +159,6 @@ public class ProjectRepository(Database context, IMemoryCache cache, CacheInvali
         query
             .Include(p => p.Tags)
             .Include(p => p.Images.OrderBy(i => i.Type).ThenBy(i => i.Order ?? 0))
-            .Include(p => p.Repositories.OrderBy(i => i.Order ?? 0));
+            .Include(p => p.Repositories.OrderBy(i => i.Order ?? 0))
+            .Include(p => p.Stats.OrderBy(i => i.Order ?? 0));
 }

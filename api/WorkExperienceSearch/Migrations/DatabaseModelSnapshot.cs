@@ -91,6 +91,15 @@ namespace Work_Experience_Search.Migrations
                     b.Property<DateOnly?>("EndDate")
                         .HasColumnType("date");
 
+                    b.Property<string>("KeyDecision")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Outcome")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProblemStatement")
+                        .HasColumnType("text");
+
                     b.Property<string>("ShortDescription")
                         .IsRequired()
                         .HasColumnType("text");
@@ -179,6 +188,33 @@ namespace Work_Experience_Search.Migrations
                     b.ToTable("ProjectRepository");
                 });
 
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectStat", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("Order")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.ToTable("ProjectStat");
+                });
+
             modelBuilder.Entity("Work_Experience_Search.Models.Tag", b =>
                 {
                     b.Property<Guid>("Id")
@@ -257,11 +293,24 @@ namespace Work_Experience_Search.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Work_Experience_Search.Models.ProjectStat", b =>
+                {
+                    b.HasOne("Work_Experience_Search.Models.Project", "Project")
+                        .WithMany("Stats")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Work_Experience_Search.Models.Project", b =>
                 {
                     b.Navigation("Images");
 
                     b.Navigation("Repositories");
+
+                    b.Navigation("Stats");
                 });
 #pragma warning restore 612, 618
         }

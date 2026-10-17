@@ -61,6 +61,14 @@ public class ProjectRepositoryService(IProjectRepository projectRepository, IPro
         var repositoriesToCreate = repositories.Where(i => i.Id == null).ToList();
         var repositoriesToSave = project.Repositories.Where(i => repositories.Any(x => x.Id == i.Id)).ToList();
 
+        foreach (var repository in repositoriesToSave)
+        {
+            var request = repositories.First(x => x.Id == repository.Id);
+            repository.Title = request.Title;
+            repository.Url = request.Url;
+            repository.Order = request.Order;
+        }
+
         foreach (var repository in repositoriesToDelete)
         {
             await projectCodeRepository.RemoveAsync(repository);
@@ -72,6 +80,7 @@ public class ProjectRepositoryService(IProjectRepository projectRepository, IPro
             {
                 Title = repository.Title,
                 Url = repository.Url,
+                Order = repository.Order,
                 Project = project
             };
 
@@ -80,7 +89,7 @@ public class ProjectRepositoryService(IProjectRepository projectRepository, IPro
             repositoriesToSave.Add(projectRepository);
         }
 
-        if (repositoriesToCreate.Count > 0 || repositoriesToDelete.Count > 0) await projectCodeRepository.SaveChangesAsync();
+        await projectCodeRepository.SaveChangesAsync();
 
         return new Success<List<Models.ProjectRepository>>(repositoriesToSave);
     }

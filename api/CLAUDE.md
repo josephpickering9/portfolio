@@ -84,7 +84,7 @@ docker-compose -f WorkExperienceSearch/docker-compose.yml up -d   # Postgres
 dotnet ef database update --project WorkExperienceSearch
 dotnet run --project WorkExperienceSearch                          # http://localhost:5105, Swagger at /swagger
 ```
-`.env` (via `dotenv.net`) supplies `DefaultConnection`, `Auth0__*`, `VertexAi__*` — see `README.md` for the full list. Never commit `.env`.
+`.env` (via `dotenv.net`) supplies `ConnectionStrings__DefaultConnection`, `Auth0__*`, `VertexAi__*` — see `README.md` for the full list. Never commit `.env`.
 
 ## Auth
 Auth0 JWT Bearer scheme. `[Authorize]` on write endpoints.

@@ -201,7 +201,7 @@ jobs:
             EOF
 
             cat > .env << EOF
-            DefaultConnection=${{ secrets.DATABASE_CONNECTION_STRING }}
+            ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_CONNECTION_STRING }}
             Auth0:Domain=${{ secrets.AUTH0_DOMAIN }}
             Auth0:ClientId=${{ secrets.AUTH0_CLIENT_ID }}
             Auth0:ClientSecret=${{ secrets.AUTH0_CLIENT_SECRET }}

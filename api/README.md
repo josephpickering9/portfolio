@@ -93,10 +93,10 @@ public class ProjectController(IProjectService projectService) : ControllerBase
 
 3. **Configure environment variables**
 
-   Create a `.env` file in `WorkExperienceSearch/` (use `.env.example` as a reference). Keys use a colon, not a double underscore, matching `IConfiguration`'s path syntax directly — `dotenv.net` loads them as literal environment variable names and ASP.NET's `AddEnvironmentVariables()` binds a colon in the name straight through:
+   Create a `.env` file in `WorkExperienceSearch/` (use `.env.example` as a reference). Most keys use a colon, matching `IConfiguration`'s path syntax directly — `dotenv.net` loads them as literal environment variable names and ASP.NET's `AddEnvironmentVariables()` binds a colon in the name straight through. The connection string uses `ConnectionStrings__DefaultConnection` so `GetConnectionString("DefaultConnection")` picks it up (`__` also maps to `:`):
 
    ```env
-   DefaultConnection=Host=localhost;Port=5432;Database=work_experience;Username=postgres;Password=postgres
+   ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=work_experience;Username=postgres;Password=postgres
    Auth0:Domain=your-auth0-domain.auth0.com
    Auth0:ClientId=your-client-id
    Auth0:ClientSecret=your-client-secret

@@ -47,6 +47,13 @@ public readonly record struct ProjectRepositoryId(Guid Value) : IId
     public static ProjectRepositoryId New() => new(Guid.NewGuid());
 }
 
+[TypeConverter(typeof(GuidIdTypeConverter<ProjectStatId>))]
+public readonly record struct ProjectStatId(Guid Value) : IId
+{
+    public override string ToString() => Value.ToString();
+    public static ProjectStatId New() => new(Guid.NewGuid());
+}
+
 public class GuidIdTypeConverter<TId> : TypeConverter where TId : struct, IId
 {
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>

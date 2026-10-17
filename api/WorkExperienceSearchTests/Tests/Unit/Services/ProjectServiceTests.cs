@@ -17,6 +17,7 @@ public class ProjectServiceTests : BaseServiceTests
     private readonly Mock<ITagService> _mockTagService;
     private readonly Mock<IProjectImageService> _mockProjectImageService;
     private readonly Mock<IProjectRepositoryService> _mockProjectRepositoryService;
+    private readonly Mock<IProjectStatService> _mockProjectStatService;
     private readonly IProjectService _projectService;
 
     public ProjectServiceTests()
@@ -24,14 +25,18 @@ public class ProjectServiceTests : BaseServiceTests
         _mockTagService = new Mock<ITagService>();
         _mockProjectImageService = new Mock<IProjectImageService>();
         _mockProjectRepositoryService = new Mock<IProjectRepositoryService>();
+        _mockProjectStatService = new Mock<IProjectStatService>();
         var projectRepository = new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator());
-        _projectService = new ProjectService(projectRepository, _mockProjectImageService.Object, _mockProjectRepositoryService.Object, _mockTagService.Object, NullLogger<ProjectService>.Instance);
-        
+        _projectService = new ProjectService(projectRepository, _mockProjectImageService.Object, _mockProjectRepositoryService.Object, _mockProjectStatService.Object, _mockTagService.Object, NullLogger<ProjectService>.Instance);
+
         _mockProjectImageService.Setup(service => service.SyncProjectImagesAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectImage>>()))
             .ReturnsAsync(() => new Success<List<ProjectImage>>([]));
-        
+
         _mockProjectRepositoryService.Setup(service => service.SyncProjectRepositoriesAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectRepository>>()))
             .ReturnsAsync(() => new Success<List<ProjectRepository>>([]));
+
+        _mockProjectStatService.Setup(service => service.SyncProjectStatsAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectStat>>()))
+            .ReturnsAsync(() => new Success<List<ProjectStat>>([]));
     }
 
     [Fact]
@@ -188,6 +193,61 @@ public class ProjectServiceTests : BaseServiceTests
         Assert.NotNull(projectInDb.Tags);
         Assert.Equal(newProject.Tags.Count, projectInDb.Tags.Count);
         Assert.Contains(projectInDb.Tags, t => t.Title == "Test Tag");
+    }
+
+    [Fact]
+    public async Task CreateProjectAsync_WithCaseStudyFields_ReturnsProjectWithCaseStudyFields()
+    {
+        var newProject = new CreateProject
+        {
+            Title = "Case Study Project",
+            Description = "Test Description",
+            ShortDescription = "Test Short Description",
+            ProblemStatement = "Booking took a week over email.",
+            KeyDecision = "Live availability over WebSocket, not a bigger form.",
+            Outcome = "Confirmation time dropped from days to minutes.",
+            StartDate = new DateOnly(2021, 1, 1),
+            Tags = []
+        };
+
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(() => new Success<List<Tag>>([]));
+
+        var result = (await _projectService.CreateProjectAsync(newProject)).ExpectSuccess();
+
+        Assert.NotNull(result);
+        Assert.Equal(newProject.ProblemStatement, result.ProblemStatement);
+        Assert.Equal(newProject.KeyDecision, result.KeyDecision);
+        Assert.Equal(newProject.Outcome, result.Outcome);
+
+        var projectInDb = await Context.Project.FindAsync(result.Id);
+        Assert.NotNull(projectInDb);
+        Assert.Equal(newProject.ProblemStatement, projectInDb.ProblemStatement);
+        Assert.Equal(newProject.KeyDecision, projectInDb.KeyDecision);
+        Assert.Equal(newProject.Outcome, projectInDb.Outcome);
+    }
+
+    [Fact]
+    public async Task CreateProjectAsync_WithoutCaseStudyFields_LeavesThemNull()
+    {
+        var newProject = new CreateProject
+        {
+            Title = "No Case Study Project",
+            Description = "Test Description",
+            ShortDescription = "Test Short Description",
+            StartDate = new DateOnly(2021, 1, 1),
+            Tags = []
+        };
+
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(() => new Success<List<Tag>>([]));
+
+        var result = (await _projectService.CreateProjectAsync(newProject)).ExpectSuccess();
+
+        Assert.NotNull(result);
+        Assert.Null(result.ProblemStatement);
+        Assert.Null(result.KeyDecision);
+        Assert.Null(result.Outcome);
     }
 
     [Fact]

@@ -8,6 +8,9 @@ public record CreateProject
     public required string Title { get; init; }
     public required string ShortDescription { get; init; }
     public required string Description { get; init; }
+    public string? ProblemStatement { get; init; }
+    public string? KeyDecision { get; init; }
+    public string? Outcome { get; init; }
     public CompanyId? CompanyId { get; init; }
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
@@ -16,6 +19,7 @@ public record CreateProject
     public List<CreateProjectImage> Images { get; init; } = [];
     public List<string> Tags { get; init; } = [];
     public List<CreateProjectRepository> Repositories { get; init; } = [];
+    public List<CreateProjectStat> Stats { get; init; } = [];
 }
 
 public record CreateProjectImage
@@ -31,5 +35,13 @@ public record CreateProjectRepository
     public ProjectRepositoryId? Id { get; init; }
     public required string Title { get; init; }
     public required string Url { get; init; }
+    public int? Order { get; init; }
+}
+
+public record CreateProjectStat
+{
+    public ProjectStatId? Id { get; init; }
+    public required string Label { get; init; }
+    public required string Value { get; init; }
     public int? Order { get; init; }
 }

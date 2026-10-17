@@ -175,6 +175,45 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
     }
 
     [Fact]
+    public async Task PostProject_WithCaseStudyFieldsAndStats_CreatesProjectWithCaseStudyFieldsAndStats()
+    {
+        var content = new MultipartFormDataContent
+        {
+            { new StringContent("Case Study Project"), "Title" },
+            { new StringContent("A short description"), "ShortDescription" },
+            { new StringContent("A long description"), "Description" },
+            { new StringContent("Booking took a week over email."), "ProblemStatement" },
+            { new StringContent("Live availability over WebSocket, not a bigger form."), "KeyDecision" },
+            { new StringContent("Confirmation time dropped from days to minutes."), "Outcome" },
+            { new StringContent("2021-01-01"), "StartDate" },
+        };
+        content.Add(new StringContent("gigs logged"), "Stats[0].Label");
+        content.Add(new StringContent("242"), "Stats[0].Value");
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/project", content);
+
+        httpResponse.EnsureSuccessStatusCode();
+        var stringResponse = await httpResponse.Content.ReadAsStringAsync();
+        var actualProject = GetJsonContent<Project>(stringResponse);
+
+        Assert.NotNull(actualProject);
+        Assert.Equal("Booking took a week over email.", actualProject.ProblemStatement);
+        Assert.Equal("Live availability over WebSocket, not a bigger form.", actualProject.KeyDecision);
+        Assert.Equal("Confirmation time dropped from days to minutes.", actualProject.Outcome);
+        Assert.Single(actualProject.Stats);
+        Assert.Equal("gigs logged", actualProject.Stats.Single().Label);
+        Assert.Equal("242", actualProject.Stats.Single().Value);
+
+        using var scope = Factory.Services.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<Database>();
+        var projectInDb = await context.Project.FindAsync(actualProject.Id);
+        Assert.NotNull(projectInDb);
+        Assert.Equal("Booking took a week over email.", projectInDb.ProblemStatement);
+        Assert.Equal("Live availability over WebSocket, not a bigger form.", projectInDb.KeyDecision);
+        Assert.Equal("Confirmation time dropped from days to minutes.", projectInDb.Outcome);
+    }
+
+    [Fact]
     public async Task PostProject_WithImages_CreatesProjectAndImagesWithoutDuplicateInsertError()
     {
         var content = new MultipartFormDataContent
