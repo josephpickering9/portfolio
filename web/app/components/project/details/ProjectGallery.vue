@@ -12,12 +12,18 @@
         @click="openAt(index)"
       >
         <component :is="framed ? MockupBrowser : 'div'" v-bind="framed ? { size: 'sm' } : {}">
-          <img
+          <NuxtImg
+            format="webp"
             :src="getImageUrl(image)"
             :alt="`${title} screenshot ${index + 1}`"
+            width="560"
+            height="350"
+            fit="cover"
+            :modifiers="{ position: 'top' }"
+            sizes="100vw lg:560px"
             loading="lazy"
-            class="block aspect-16/10 w-full object-cover object-left-top"
-          >
+            class="block aspect-16/10 w-full object-cover object-top"
+          />
         </component>
       </button>
     </div>

@@ -26,6 +26,15 @@
         <Icon :name="prompt.icon" class="shrink-0" />
         {{ prompt.text }}
       </button>
+      <button
+        type="button"
+        class="flex items-center gap-1.5 rounded-full border border-dashed border-line px-3.25 py-1.75 text-[13px] text-muted transition-colors duration-200 hover:text-text"
+        aria-label="More prompts"
+        @click="shufflePrompts"
+      >
+        <Icon name="mdi:shuffle-variant" />
+        More
+      </button>
     </div>
   </div>
 </template>
@@ -45,7 +54,9 @@ function ask(text: string) {
   navigateTo({ path: '/search', query: { q: question } })
 }
 
-onMounted(() => {
+function shufflePrompts() {
   prompts.value = sampleSize(aiPrompts, SUGGESTED_PROMPT_COUNT)
-})
+}
+
+onMounted(shufflePrompts)
 </script>

@@ -24,9 +24,14 @@ v-if="getCardImage(project)"
             format="webp"
             :src="getImageUrl(getCardImage(project))"
             :alt="project.title"
-            sizes="100vw lg:560px"
+            width="556"
+            height="348"
+            fit="cover"
+            :modifiers="{ position: isLeftAligned(project) ? 'left top' : 'top' }"
+            sizes="100vw lg:556px"
             loading="lazy"
-            class="block aspect-16/10 w-full object-cover object-left-top"
+            class="block aspect-16/10 w-full object-cover"
+            :class="isLeftAligned(project) ? 'object-left-top' : 'object-top'"
           />
           <div v-else class="aspect-16/10" />
         </MockupBrowser>
@@ -46,6 +51,7 @@ v-if="getCardImage(project)"
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import type { Project } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
 import { LoadingType } from '~/types/LoadingType'
 import { getImageUrl } from '~/utils/image-helper'
@@ -55,11 +61,16 @@ import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 import LoadError from '~/components/feedback/LoadError.vue'
 
 const FEATURED_SLUGS = ['pulse', 'ai-chatbot', 'data-extractor', 'glasgow-retina']
+const LEFT_ALIGNED_SLUGS = ['pulse']
 
 const projectStore = useProjectStore()
 
 const loading = computed(() => projectStore.projectsLoading || (!projectStore.projectsForm.data && !projectStore.projectsError))
 const featured = computed(() => pickBySlug(projectStore.projects, FEATURED_SLUGS))
+
+function isLeftAligned(project: Project): boolean {
+  return LEFT_ALIGNED_SLUGS.includes(project.slug)
+}
 
 function load() {
   projectStore.getProjects()

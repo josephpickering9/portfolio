@@ -96,7 +96,7 @@ export default defineNuxtConfig({
 
   image: {
     dir: 'assets/img',
-    quality: 80,
+    quality: 90,
     format: ['webp'],
     domains: apiImageHosts(),
   },

@@ -82,13 +82,18 @@
               :aria-current="i === index ? 'true' : undefined"
               @click="emit('update:index', i)"
             >
-              <img
+              <NuxtImg
+                format="webp"
                 :src="image.src"
                 alt=""
+                :width="image.kind === 'mobile' ? 24 : 76"
+                height="48"
+                fit="cover"
+                :modifiers="{ position: 'top' }"
                 loading="lazy"
                 class="block h-12 object-cover object-top"
                 :class="image.kind === 'mobile' ? 'w-6' : 'w-19'"
-              >
+              />
             </button>
           </li>
         </ul>

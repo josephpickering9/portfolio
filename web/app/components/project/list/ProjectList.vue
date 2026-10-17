@@ -26,7 +26,7 @@
 
     <LoadError v-if="projectStore.projectsError && !projectStore.projectsLoading" @retry="load" />
 
-    <div v-else-if="loading" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-7">
+    <div v-else-if="loading" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-8">
       <Skeleton v-for="n in SKELETON_COUNT" :key="n" :type="LoadingType.CARD" />
     </div>
 
@@ -39,7 +39,7 @@
 
     <div
       v-else-if="viewMode === ViewMode.CARD"
-      class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-7"
+      class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-8"
       data-testid="project-grid"
     >
       <ProjectListItem v-for="project in filteredProjects" :key="project.id" :project="project" />
