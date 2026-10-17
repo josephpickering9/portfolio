@@ -8,6 +8,7 @@ export async function tryCatchFinally<T>(
 ): Promise<T | undefined> {
     try {
         form.value.error = undefined;
+        form.value.status = undefined;
         form.value.loading = true;
 
         const result = await fun();
@@ -15,6 +16,7 @@ export async function tryCatchFinally<T>(
     } catch (error: any) {
         if (error?.name === 'CanceledError') return;
         form.value.error = extractError(error);
+        form.value.status = error?.response?.status;
     } finally {
         form.value.loading = false;
     }

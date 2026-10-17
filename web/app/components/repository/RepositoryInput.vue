@@ -1,99 +1,78 @@
 <template>
-  <FormElementContainer :label="label">
-    <div class="flex flex-col gap-8">
-      <div class="flex items-end gap-2">
-        <FormGroup :errors="v$.title?.$errors" name="Title">
-          <TextInput v-model="title" label="Title" @keyup.enter="addRepository" />
-        </FormGroup>
-        <FormGroup :errors="v$.url?.$errors" name="URL">
-          <TextInput v-model="url" label="URL" @keyup.enter="addRepository" />
-        </FormGroup>
-        <FormButton label="Add" type="primary" size="sm" icon="mdi:plus" class="mb-2" @click="addRepository" />
-      </div>
-      <div class="flex min-h-8 items-center px-4">
-        <div v-if="value && value.length" class="flex flex-col items-start gap-4">
-          <div v-for="(repository, index) in value" :key="index" class="flex w-full items-center gap-2">
-            <Icon name="mdi:github" />
-            <span class="text-sm font-semibold">{{ repository.title }}</span>
-            <span class="flex-1 text-sm text-gray-500">({{ repository.url }})</span>
-            <FormButton
-              label="Remove"
-              class="self-end"
-              type="error"
-              size="xs"
-              icon="mdi:minus"
-              @click="removeRepository(index)"
-            />
-          </div>
+  <div class="flex flex-col gap-3">
+    <div v-for="(repository, index) in modelValue" :key="index" class="flex flex-col gap-1.5">
+      <div class="flex flex-wrap items-center gap-2.5">
+        <input
+          :value="repository.title"
+          placeholder="Frontend"
+          :aria-label="`Repository ${index + 1} title`"
+          class="min-w-0 flex-[0_1_180px] rounded-field border bg-bg px-3.5 py-2.75 text-[15px] text-text outline-none focus:border-accent"
+          :class="errorFor(index, 'title') ? 'border-danger' : 'border-line'"
+          @input="update(index, 'title', ($event.target as HTMLInputElement).value)"
+        >
+        <div
+          class="flex flex-[1_1_300px] items-center gap-2.5 rounded-field border bg-bg px-3.5 focus-within:border-accent"
+          :class="errorFor(index, 'url') ? 'border-danger' : 'border-line'"
+        >
+          <Icon name="mdi:github" class="shrink-0 text-muted" />
+          <input
+            :value="repository.url"
+            placeholder="https://github.com/…"
+            :aria-label="`Repository ${index + 1} URL`"
+            class="min-w-0 flex-1 border-0 bg-transparent py-2.75 text-[15px] text-text outline-none"
+            @input="update(index, 'url', ($event.target as HTMLInputElement).value)"
+          >
         </div>
-        <div v-else-if="showEmptyMessage" class="flex items-center text-sm italic text-gray-500">No repositories added</div>
+        <RowRemoveButton label="Remove repository" @click="remove(index)" />
       </div>
+      <span v-if="errorFor(index, 'url') || errorFor(index, 'title')" class="text-[13px] text-danger" role="alert">
+        {{ errorFor(index, 'title') || errorFor(index, 'url') }}
+      </span>
     </div>
-  </FormElementContainer>
+    <span v-if="!modelValue.length" class="text-sm text-muted">
+      No repositories linked. Public repos appear as buttons on the case study.
+    </span>
+    <FormButton label="Add repository" variant="dashed" icon="mdi:plus" @click="add" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required, url as urlValidator } from '@vuelidate/validators'
 import type { CreateProjectRepository } from '@api'
-import useValidation from '~/composables/useValidation'
-import TextInput from '~/components/ui/input/TextInput.vue'
 import FormButton from '~/components/ui/form/FormButton.vue'
-import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
-import FormGroup from '~/components/ui/form/FormGroup.vue'
+import RowRemoveButton from '~/components/ui/button/RowRemoveButton.vue'
+
+type RepositoryField = 'title' | 'url'
 
 interface Props {
-  label?: string | null
-  modelValue?: CreateProjectRepository[]
-  showEmptyMessage?: boolean
+  modelValue: CreateProjectRepository[]
+  errors?: Record<number, Partial<Record<RepositoryField, string>>>
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  label: undefined,
-  modelValue: () => [],
-  showEmptyMessage: true,
+  errors: () => ({}),
 })
 
+const emit = defineEmits<{ (e: 'update:modelValue', value: CreateProjectRepository[]): void }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: CreateProjectRepository[]]
-}>()
-
-const validation = useValidation()
-
-const value = ref<CreateProjectRepository[]>([])
-const title = ref('')
-const url = ref('')
-
-
-const rules = {
-  title: { required },
-  url: { required, url: urlValidator },
+function errorFor(index: number, field: RepositoryField): string | undefined {
+  return props.errors[index]?.[field]
 }
 
-const v$ = useVuelidate(rules, { title, url })
-
-async function addRepository() {
-  const isValid = await validation.validate(v$)
-  if (!isValid) return
-
-  value.value.push({ title: title.value, url: url.value })
-  title.value = ''
-  url.value = ''
-  v$.value.$reset()
+function update(index: number, field: RepositoryField, value: string) {
+  emit(
+    'update:modelValue',
+    props.modelValue.map((repository, repoIndex) => (repoIndex === index ? { ...repository, [field]: value } : repository)),
+  )
 }
 
-function removeRepository(index: number) {
-  value.value.splice(index, 1)
+function add() {
+  emit('update:modelValue', [...props.modelValue, { title: '', url: '' }])
 }
 
-
-watch(() => props.modelValue, (newValue) => {
-  value.value = newValue
-}, { immediate: true })
-
-watch(value, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
+function remove(index: number) {
+  emit(
+    'update:modelValue',
+    props.modelValue.filter((_, repoIndex) => repoIndex !== index),
+  )
+}
 </script>

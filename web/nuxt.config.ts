@@ -1,5 +1,15 @@
 import { fileURLToPath, URL } from 'node:url'
 
+function apiImageHosts(): string[] {
+  const apiBase = process.env['NUXT_PUBLIC_API_BASE']
+  if (!apiBase) return []
+  try {
+    return [new URL(apiBase).host]
+  } catch {
+    return []
+  }
+}
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-03',
 
@@ -68,7 +78,6 @@ export default defineNuxtConfig({
         'date-fns',
         'axios',
         'lodash-es',
-        'marked',
       ],
     },
   },
@@ -87,8 +96,9 @@ export default defineNuxtConfig({
 
   image: {
     dir: 'assets/img',
-    quality: 85,
+    quality: 80,
     format: ['webp'],
+    domains: apiImageHosts(),
   },
 
   pwa: {

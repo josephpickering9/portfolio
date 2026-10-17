@@ -1,104 +1,112 @@
 <template>
-  <div
-    class="w-full max-w-4xl flex flex-col gap-4 md:gap-8 transition-all duration-700 pb-2 ease-in-out"
-    :class="hasSearched || searchResult ? 'pt-8 md:pt-10 mb-auto' : 'my-auto'"
-  >
-    <AiSearchHeader :has-searched="hasSearched || !!searchResult" />
-
-    <div class="w-full relative z-20">
-      <AiSearchInput 
-        v-model="searchQuery"
-        :loading="aiStore.queryForm.loading ?? false"
-        :has-searched="hasSearched || !!searchResult"
-        @search="performSearch"
-      />
-
-      <AiSuggestedPrompts 
-        :prompts="displayedPrompts"
-        :loading="aiStore.queryForm.loading ?? false"
-        :has-searched="hasSearched || !!searchResult"
-        @select="usePrompt"
-      />
-    </div>
-
+  <div class="relative mx-auto flex w-full max-w-205 flex-col gap-7 px-7 pb-30" :class="compact ? 'pt-12' : 'pt-20'">
+    <div
+      class="pointer-events-none absolute top-0 left-1/2 h-105 w-175 max-w-full -translate-x-1/2 bg-[radial-gradient(closest-side,var(--glow),transparent)]"
+      aria-hidden="true"
+    />
+    <AiSearchHeader :compact="compact" />
+    <AiSearchInput v-model="query" @submit="ask" />
+    <AiSuggestedPrompts :prompts="prompts" @select="ask" @shuffle="shufflePrompts" />
     <AiSearchResult
-      v-if="hasSearched || searchResult"
-      :loading="aiStore.queryForm.loading ?? false"
-      :result="searchResult"
-      :error="aiStore.queryForm.error"
-      :citations="aiStore.citedProjects"
+      v-if="askedQuestion"
+      :question="askedQuestion"
+      :thinking="thinking"
+      :error="failed"
+      :answer="answer"
+      :citations="citations"
       :citations-loading="aiStore.citedProjectsLoading ?? false"
-      @reset="resetSearch"
-      @dismiss-error="aiStore.queryForm.error = undefined"
+      @reset="reset"
+      @retry="ask(askedQuestion)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { sampleSize } from 'lodash-es'
+import { useRoute, useRouter } from 'vue-router'
 import { useAiStore } from '~/store/AiStore'
-import type { PostVertexQueryResponse } from '@api'
+import { aiPrompts, SUGGESTED_PROMPT_COUNT } from '~/data/AiPrompts'
+import type { AiPrompt } from '~/data/AiPrompts'
+import { uniqueBy } from '~/utils/markdown-helper'
+import { useViewTransition } from '~/composables/useViewTransition'
 import AiSearchHeader from './AiSearchHeader.vue'
 import AiSearchInput from './AiSearchInput.vue'
 import AiSuggestedPrompts from './AiSuggestedPrompts.vue'
 import AiSearchResult from './AiSearchResult.vue'
 
+const route = useRoute()
+const router = useRouter()
 const aiStore = useAiStore()
-const searchQuery = ref('')
-const searchResult = ref<string | null>(null)
-const displayedPrompts = ref<Array<{ text: string, icon: string, color?: string }>>([])
-const hasSearched = ref(false)
+const { withViewTransition } = useViewTransition()
 
-const allPrompts = [
-  { text: "What React projects has Joe worked on?", icon: "logos:react", color: "#61DAFB" },
-  { text: "What technologies does Joe use most?", icon: "heroicons:code-bracket" },
-  { text: "What has Joe built with Next.js?", icon: "simple-icons:nextdotjs", color: "#ffffff" },
-  { text: "Tell me about Joe's .NET background.", icon: "simple-icons:dotnet", color: "#512BD4" },
-  { text: "Which projects use Vue?", icon: "mdi:vuejs", color: "#42B883" },
-  { text: "Show me projects using TypeScript.", icon: "mdi:language-typescript", color: "#3178C6" },
-  { text: "What Flutter apps has Joe built?", icon: "simple-icons:flutter", color: "#02569B" },
-  { text: "What about mobile development with Android?", icon: "mdi:android", color: "#3DDC84" },
-  { text: "What PHP projects has Joe worked on?", icon: "mdi:language-php", color: "#556097" },
-  { text: "What AI projects has Joe worked on?", icon: "heroicons:cpu-chip" },
-  { text: "Has Joe worked on any mobile apps?", icon: "heroicons:device-phone-mobile" },
-  { text: "What projects involved document processing?", icon: "heroicons:document-text" },
-  { text: "What's Joe's experience with Nuxt?", icon: "simple-icons:nuxtdotjs", color: "#00DC82" },
-  { text: "Tell me about Joe's CI/CD experience.", icon: "simple-icons:githubactions", color: "#2088FF" },
-  { text: "What Kotlin projects has Joe built?", icon: "simple-icons:kotlin", color: "#7F52FF" },
-  { text: "Has Joe worked with WordPress or CMS platforms?", icon: "simple-icons:wordpress", color: "#21759B" },
-]
+const query = ref('')
+const prompts = ref<AiPrompt[]>([])
+const askedQuestion = ref('')
+const thinking = ref(false)
+const failed = ref(false)
+const answer = ref('')
+let requestId = 0
+
+const initialQuestion = readInitialQuestion()
+const openedWithQuestion = ref(initialQuestion !== '')
+const compact = computed(() => openedWithQuestion.value || askedQuestion.value !== '')
+
+const citations = computed(() => uniqueBy(aiStore.citedProjects, (project) => project.slug))
+
+function readInitialQuestion(): string {
+  const value = route.query['q']
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function shufflePrompts() {
+  prompts.value = sampleSize(aiPrompts, SUGGESTED_PROMPT_COUNT)
+}
+
+async function ask(question: string) {
+  const id = ++requestId
+  const start = () => {
+    query.value = question
+    askedQuestion.value = question
+    thinking.value = true
+    failed.value = false
+    answer.value = ''
+  }
+  if (compact.value) start()
+  else await withViewTransition(start)
+  aiStore.getCitedProjects([])
+  router.replace({ query: { q: question } })
+
+  const result = await aiStore.query(question)
+  if (id !== requestId) return
+
+  thinking.value = false
+  if (aiStore.queryForm.error || !result) {
+    failed.value = true
+    return
+  }
+
+  answer.value = result.answer ?? ''
+  aiStore.getCitedProjects(result.citations ?? [])
+}
+
+async function reset() {
+  requestId++
+  await withViewTransition(() => {
+    openedWithQuestion.value = false
+    query.value = ''
+    askedQuestion.value = ''
+    thinking.value = false
+    failed.value = false
+    answer.value = ''
+  })
+  aiStore.getCitedProjects([])
+  shufflePrompts()
+  router.replace({ query: {} })
+}
 
 onMounted(() => {
-  displayedPrompts.value = sampleSize(allPrompts, 3)
+  shufflePrompts()
+  if (initialQuestion) ask(initialQuestion)
 })
-
-async function performSearch() {
-  if (!searchQuery.value) return
-  
-  hasSearched.value = true
-  searchResult.value = null
-  
-  await aiStore.query(searchQuery.value)
-  const result = aiStore.queryForm.data as PostVertexQueryResponse | undefined
-  
-  if (result) {
-    const finalResult = result.answer || ''
-    aiStore.getCitedProjects(result.citations ?? [])
-    searchResult.value = finalResult
-  }
-}
-
-function usePrompt(prompt: string) {
-  searchQuery.value = prompt
-  performSearch()
-}
-
-function resetSearch() {
-  searchQuery.value = ''
-  searchResult.value = null
-  aiStore.getCitedProjects([])
-  hasSearched.value = false
-  displayedPrompts.value = sampleSize(allPrompts, 3)
-}
 </script>

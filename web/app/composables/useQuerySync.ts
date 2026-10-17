@@ -2,6 +2,9 @@ import { watch, type Ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { isEmpty } from 'lodash-es'
 
+// Updates are chained so that several keys changing in one tick each build on the URL the previous update produced.
+let pendingUpdate: Promise<void> = Promise.resolve()
+
 interface QueryOptions<T> {
     key: string
     initialValue: T
@@ -27,18 +30,15 @@ export function useQuerySync<T>(
     }
 
     const updateQuery = () => {
-        const serializedValue = serialize ? serialize(value.value) : (value.value as unknown as string)
-        const newQuery: Record<string, any> = { ...route.query }
+        pendingUpdate = pendingUpdate.then(async () => {
+            const serializedValue = serialize ? serialize(value.value) : (value.value as unknown as string)
+            const currentQuery = router.currentRoute.value.query
+            const nextValue = serializedValue && !isEmpty(serializedValue) ? serializedValue : undefined
 
-        if (serializedValue && !isEmpty(serializedValue)) {
-            newQuery[key] = serializedValue
-        } else {
-            newQuery[key] = undefined
-        }
-
-        if (route.query[key] !== newQuery[key]) {
-            router.push({ query: newQuery })
-        }
+            if (currentQuery[key] !== nextValue) {
+                await router.replace({ query: { ...currentQuery, [key]: nextValue } })
+            }
+        }).catch(() => undefined)
     }
 
     loadFromQuery()

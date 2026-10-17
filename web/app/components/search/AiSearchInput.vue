@@ -1,51 +1,34 @@
 <template>
-  <div class="w-full relative z-20">
-    <div 
-      class="relative group transition-transform duration-300"
-      :class="{'scale-105': isInputFocused && !hasSearched}"
+  <form
+    class="relative flex items-center gap-3 rounded-[18px] [view-transition-name:ai-search-field] border border-line bg-surface py-2 pr-2 pl-5.5 shadow-[0_24px_70px_-24px_var(--glow)]"
+    role="search"
+    @submit.prevent="submit"
+  >
+    <input
+      :value="modelValue"
+      type="text"
+      aria-label="Ask about my work"
+      placeholder="What has Joe built with .NET?"
+      class="min-w-0 flex-1 border-0 bg-transparent py-3.5 text-lg text-text outline-none"
+      @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
     >
-      <div class="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"/>
-      
-      <div class="relative bg-base-100/80 backdrop-blur-xl border border-base-content/10 shadow-lg rounded-full overflow-hidden flex items-center p-2 transition-all duration-300 ring-4 ring-transparent focus-within:ring-primary/10 focus-within:border-primary/50 focus-within:shadow-xl">
-        <div class="pl-4 pr-2 text-base-content/40">
-          <Icon name="heroicons:magnifying-glass" class="w-6 h-6" />
-        </div>
-        <input
-          :value="modelValue"
-          type="text"
-          placeholder="Ask anything..."
-          class="flex-1 bg-transparent border-none outline-none text-lg px-2 h-12 md:h-14 placeholder:text-base-content/30"
-          @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-          @focus="isInputFocused = true"
-          @blur="isInputFocused = false"
-          @keyup.enter="$emit('search')"
-        >
-        <button 
-          class="btn btn-circle btn-primary btn-md ml-2 border-none shadow-lg hover:shadow-primary/50 hover:scale-105 transition-all duration-300"
-          :disabled="loading || !modelValue"
-          @click="$emit('search')"
-        >
-          <span v-if="loading" class="loading loading-spinner loading-sm text-white"/>
-          <Icon v-else name="heroicons:arrow-right" class="w-5 h-5 text-white" />
-        </button>
-      </div>
-    </div>
-  </div>
+    <button type="submit" class="rounded-xl bg-accent px-5.5 py-3.5 text-[15px] font-medium text-accent-ink">Ask</button>
+  </form>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-defineProps<{
+interface Props {
   modelValue: string
-  loading: boolean
-  hasSearched: boolean
+}
+
+const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  (e: 'update:modelValue' | 'submit', value: string): void
 }>()
 
-defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'search'): void
-}>()
-
-const isInputFocused = ref(false)
+function submit() {
+  const question = props.modelValue.trim()
+  if (question) emit('submit', question)
+}
 </script>

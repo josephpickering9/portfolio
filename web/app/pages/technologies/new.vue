@@ -1,7 +1,5 @@
 <template>
-  <div class="flex w-full flex-col items-center px-4">
-    <TagForm />
-  </div>
+  <TagForm />
 </template>
 
 <script setup lang="ts">
@@ -11,6 +9,5 @@ import TagForm from '~/components/tag/form/TagForm.vue'
 definePageMeta({ middleware: 'auth' })
 
 const { updateMeta } = useMeta()
-
-updateMeta({ title: 'New Tag', description: 'Create a new tag' })
+updateMeta({ title: 'New technology' })
 </script>

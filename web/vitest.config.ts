@@ -6,6 +6,7 @@ export default defineConfig({
     alias: {
       '~': fileURLToPath(new URL('./app', import.meta.url)),
       '@': fileURLToPath(new URL('./app', import.meta.url)),
+      '@api': fileURLToPath(new URL('./api', import.meta.url)),
     },
   },
   test: {

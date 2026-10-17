@@ -1,100 +1,53 @@
 <template>
-  <ListLayout
-    title="Companies"
-    :loading="loading"
-    :is-empty="filteredCompanies.length === 0"
-    description="Timeline of companies and projects"
-    empty-title="No companies found"
-    empty-description="Try searching for something else"
-    max-width="max-w-7xl"
-  >
-    <template #actions>
+  <div class="mx-auto flex w-full max-w-300 flex-col gap-12 px-7 pt-16 pb-24">
+    <div class="flex flex-wrap items-end justify-between gap-6">
+      <PageHeader
+        eyebrow="Companies"
+        title="Timeline of companies and projects"
+        lede="Companies I've worked with, and the projects I delivered at each."
+      />
       <ClientOnly>
-        <FormButton
+        <NuxtLink
           v-if="isAuthenticated"
-          label="Add Company"
-          icon="heroicons:plus"
-          type="primary"
-          size="sm"
-          href="/companies/new"
-          :disabled="loading"
-          class="shadow-lg shadow-primary/20"
-        />
+          to="/companies/new"
+          class="flex items-center gap-2 rounded-full bg-accent px-4 py-2.25 text-sm font-medium text-accent-ink hover:text-accent-ink"
+        >
+          <Icon name="heroicons:plus" />
+          New company
+        </NuxtLink>
       </ClientOnly>
-    </template>
+    </div>
 
-    <template #filters>
-      <div class="group relative">
-        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-          <Icon name="heroicons:magnifying-glass" class="h-5 w-5 text-base-content/40 group-hover:text-primary" />
-        </div>
-        <TextInput
-          v-model="search"
-          class="w-full md:max-w-64"
-          size="sm"
-          placeholder="Search companies..."
-          :disabled="loading"
-        />
-      </div>
-    </template>
-
-    <CompanyTimeline :companies="filteredCompanies" :projects="projects" />
-  </ListLayout>
+    <LoadError
+      v-if="companyStore.companiesError && !companyStore.companiesLoading"
+      message="Couldn't load companies. Check your connection and try again."
+      @retry="load"
+    />
+    <CompanyTimeline v-else :companies="companyStore.companies" :projects="projectStore.projects" :loading="loading" />
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { isEmpty } from 'lodash-es'
-import { useQuerySync } from '~/composables/useQuerySync'
+import { computed, onMounted } from 'vue'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useProjectStore } from '~/store/ProjectStore'
-import type { Company } from '@api'
 import useAuth from '~/composables/useAuth'
-import ListLayout from '~/components/ui/layout/ListLayout.vue'
-import TextInput from '~/components/ui/input/TextInput.vue'
-import FormButton from '~/components/ui/form/FormButton.vue'
+import PageHeader from '~/components/ui/layout/PageHeader.vue'
+import LoadError from '~/components/feedback/LoadError.vue'
 import CompanyTimeline from '~/components/company/timeline/CompanyTimeline.vue'
 
 const { isAuthenticated } = useAuth()
 const companyStore = useCompanyStore()
 const projectStore = useProjectStore()
 
-const initialLoad = ref(true)
-const search = ref('')
+const loading = computed(
+  () => companyStore.companiesLoading || (!companyStore.companiesForm.data && !companyStore.companiesError),
+)
 
-useQuerySync(search, { key: 'search', initialValue: '' })
+function load() {
+  companyStore.getCompanies()
+  if (!projectStore.projectsForm.data) projectStore.getProjects()
+}
 
-const companies = computed((): Company[] => {
-  return companyStore.companies
-})
-
-const projects = computed(() => {
-  return projectStore.projects
-})
-
-const loading = computed((): boolean => {
-  return companyStore.companiesLoading || initialLoad.value
-})
-
-const filteredCompanies = computed((): Company[] => {
-  let companiesFiltered = companies.value
-
-  if (!isEmpty(search.value)) {
-    companiesFiltered = companiesFiltered.filter((company) => company.name.toLowerCase().includes(search.value.toLowerCase()))
-  }
-
-  return companiesFiltered
-})
-
-onMounted(async () => {
-  await Promise.all([
-    companyStore.getCompanies(),
-    projectStore.getProjects(),
-  ])
-})
-
-
-watch(companies, () => {
-  initialLoad.value = false
-})
+onMounted(load)
 </script>

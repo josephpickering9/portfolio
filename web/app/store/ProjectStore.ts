@@ -1,16 +1,17 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { getProject, getProjectById, getProjectBySlug, postProject, putProjectById, deleteProjectById, getProjectByIdRelated } from '@api'
+import { getProject, getProjectById, getProjectBySlug, postProject, putProjectById, deleteProjectById } from '@api'
 import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 import type { Project, CreateProject } from '@api'
 import { serializeToFormData } from '~/utils/form-data'
+
+let latestProjectRequest = 0
 
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({
     projectsForm: asyncForm<Project[]>(),
     projectForm: asyncForm<Project>(),
     projectCreateForm: asyncForm<Project>(),
-    relatedProjectsForm: asyncForm<Project[]>(),
   }),
   getters: {
     projects: (state) => state.projectsForm.data ?? [],
@@ -21,8 +22,6 @@ export const useProjectStore = defineStore('projectStore', {
     projectError: (state) => state.projectForm.error,
     projectCreating: (state) => state.projectCreateForm.loading,
     projectCreateError: (state) => state.projectCreateForm.error,
-    relatedProjects: (state) => state.relatedProjectsForm.data ?? [],
-    relatedProjectsLoading: (state) => state.relatedProjectsForm.loading,
   },
   actions: {
     async getProjects(search?: string): Promise<Project[]> {
@@ -40,46 +39,63 @@ export const useProjectStore = defineStore('projectStore', {
       })
     },
     async getProjectBySlug(slug: string): Promise<Project | undefined> {
-      if (!slug || this.projectForm.loading) return
+      if (!slug) return
 
-      return await tryCatchFinally(ref(this.projectForm), async () => {
+      const request = ++latestProjectRequest
+      const form = ref({ ...asyncForm<Project>(), data: this.projectForm.data })
+      this.projectForm.loading = true
+      const loaded = await tryCatchFinally(form, async () => {
         return (await getProjectBySlug({ path: { slug } })).data
       })
-    },
-    async getRelatedProjects(id: string): Promise<Project[]> {
-      if (!id || this.relatedProjectsForm.loading) return []
+      if (request !== latestProjectRequest) return
 
-      return await tryCatchFinally(ref(this.relatedProjectsForm), async () => {
-        return (await getProjectByIdRelated({ path: { id } })).data
-      }) || []
+      this.projectForm = form.value
+      return loaded
     },
     async createProject(project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreateForm.loading) return
 
-      return await tryCatchFinally(ref(this.projectCreateForm), async () => {
+      const created = await tryCatchFinally(ref(this.projectCreateForm), async () => {
         return (await postProject({
           body: { createProject: project },
           bodySerializer: serializeToFormData,
         })).data
       })
+      if (created) this.cacheProject(created)
+      return created
     },
     async updateProject(id: string, project: CreateProject): Promise<Project | undefined> {
       if (!project || this.projectCreateForm.loading) return
 
-      return await tryCatchFinally(ref(this.projectCreateForm), async () => {
+      const updated = await tryCatchFinally(ref(this.projectCreateForm), async () => {
         return (await putProjectById({
           path: { id },
           body: { createProject: project },
           bodySerializer: serializeToFormData,
         })).data
       })
+      if (updated) this.cacheProject(updated)
+      return updated
     },
     async deleteProject(id: string): Promise<undefined> {
       if (!id || this.projectCreateForm.loading) return
 
       await tryCatchFinally(ref(this.projectCreateForm), async () => {
         await deleteProjectById({ path: { id } })
+        return undefined
       })
+      if (this.projectCreateForm.error) return
+
+      if (this.projectsForm.data) this.projectsForm.data = this.projectsForm.data.filter((item) => item.id !== id)
+      if (this.projectForm.data?.id === id) this.projectForm.data = undefined
+    },
+    cacheProject(project: Project) {
+      this.projectForm.data = project
+      const cached = this.projectsForm.data
+      if (!cached) return
+
+      const index = cached.findIndex((item) => item.id === project.id)
+      this.projectsForm.data = index === -1 ? [...cached, project] : cached.map((item, i) => (i === index ? project : item))
     },
   },
 })

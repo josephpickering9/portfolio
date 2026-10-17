@@ -12,7 +12,6 @@ export default function useMeta() {
       ogTitle: fullTitle,
       description,
       ogDescription: description,
-      image: image || defaultMeta,
       ogImage: image || defaultMeta,
       twitterImage: image || defaultMeta,
       twitterCard: 'summary_large_image',

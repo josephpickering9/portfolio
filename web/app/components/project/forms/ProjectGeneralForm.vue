@@ -1,99 +1,80 @@
 <template>
-  <div v-if="form" class="flex flex-col gap-6 pb-4">
-    <div class="flex flex-col gap-4 md:flex-row">
-      <FormGroup :errors="v$['form']?.title?.$errors" name="Title" class="w-full">
-        <TextInput v-model="form.title" label="Title" :disabled="loading" />
-      </FormGroup>
-    </div>
-    
-    <div class="flex flex-col gap-4 md:flex-row">
-      <FormGroup :errors="v$['form']?.startDate?.$errors" name="Start Date" class="md:w-1/2">
-        <DatePicker v-model="form.startDate" label="Start Date" :disabled="loading" />
-      </FormGroup>
-      <FormGroup :errors="v$['form']?.endDate?.$errors" name="End Date" class="md:w-1/2">
-        <DatePicker v-model="form.endDate" label="End Date" :disabled="loading" />
-      </FormGroup>
-    </div>
-
-    <FormGroup :errors="v$['form']?.shortDescription?.$errors" name="Short Description">
-      <TextInput v-model="form.shortDescription" label="Short Description" :disabled="loading" />
+  <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,280px),1fr))] gap-5.5">
+    <FormGroup label="Title" required :errors="v$.form.title.$errors" class="col-span-full">
+      <TextInput v-model="form.title" placeholder="Project title" :disabled="disabled" />
     </FormGroup>
-    <div class="flex flex-col gap-4 md:flex-row">
-      <FormGroup :errors="v$['form']?.companyId?.$errors" name="Company" class="md:w-2/5">
-        <CompanyAutoComplete v-model="form.companyId" label="Company" :disabled="loading" />
-      </FormGroup>
-      <FormGroup :errors="v$['form']?.website?.$errors" name="Website" class="md:w-3/5">
-        <TextInput v-model="form.website" label="Website" :disabled="loading" />
-      </FormGroup>
-    </div>
-    <FormGroup :errors="v$['form']?.tags?.$errors" name="Technologies">
-      <TagAutoComplete v-model="form.tags" label="Technologies" placeholder="Search by tag name" />
+    <FormGroup label="Start date" required :errors="v$.form.startDate.$errors">
+      <DatePicker v-model="form.startDate" :disabled="disabled" />
+    </FormGroup>
+    <FormGroup label="End date" helper="Leave empty for ongoing work">
+      <DatePicker v-model="form.endDate" :disabled="disabled" />
+    </FormGroup>
+    <FormGroup label="Short description" required :errors="v$.form.shortDescription.$errors" class="col-span-full">
+      <TextInput v-model="form.shortDescription" placeholder="One line shown on cards and search results" :disabled="disabled" />
+    </FormGroup>
+    <FormGroup label="Company">
+      <SelectList v-model="form.companyId" :options="companyOptions" placeholder="No company" :disabled="disabled" />
+    </FormGroup>
+    <FormGroup label="Website" :errors="v$.form.website.$errors">
+      <TextInput v-model="form.website" placeholder="https://" :disabled="disabled" />
+    </FormGroup>
+    <FormGroup label="Technologies" required :errors="v$.form.tags.$errors" class="col-span-full">
+      <TagAutoComplete v-model="tags" :disabled="disabled" />
     </FormGroup>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
-import { required, url } from '@vuelidate/validators'
-import { cloneDeep } from 'lodash-es'
+import { helpers, required } from '@vuelidate/validators'
 import type { CreateProject } from '@api'
-import { useProjectStore } from '~/store/ProjectStore'
-import useValidation from '~/composables/useValidation'
-import { defaultProjectForm } from '~/utils/default-helper'
+import { useCompanyStore } from '~/store/CompanyStore'
+import { sortCompaniesNewestFirst } from '~/utils/company-helper'
+import { isHttpUrl, URL_MESSAGE } from '~/utils/validation-helper'
 import FormGroup from '~/components/ui/form/FormGroup.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
 import DatePicker from '~/components/ui/input/DatePicker.vue'
-import CompanyAutoComplete from '~/components/company/form/CompanyAutoComplete.vue'
+import SelectList from '~/components/ui/input/SelectList.vue'
 import TagAutoComplete from '~/components/tag/form/TagAutoComplete.vue'
 
-interface Props {
-  modelValue?: CreateProject
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => cloneDeep(defaultProjectForm),
-})
-
-
-const emit = defineEmits<{
-  'update:modelValue': [value: CreateProject]
+defineProps<{
+  disabled?: boolean
 }>()
 
-const projectStore = useProjectStore()
-const validation = useValidation()
+const form = defineModel<CreateProject>({ required: true })
 
-const form = ref<CreateProject>(props.modelValue)
+const companyStore = useCompanyStore()
+
+const tags = computed({
+  get: () => form.value.tags ?? [],
+  set: (value: string[]) => {
+    form.value.tags = value
+  },
+})
+
+const companyOptions = computed(() =>
+  sortCompaniesNewestFirst(companyStore.companies).map((company) => ({ value: company.id, label: company.name })),
+)
 
 const rules = {
   form: {
     title: { required },
     startDate: { required },
     shortDescription: { required },
-    website: { url },
-    tags: { required },
+    website: { url: helpers.withMessage(URL_MESSAGE, (value: string | null | undefined) => isHttpUrl(value)) },
+    tags: { required: helpers.withMessage('Add at least one technology', (value?: string[]) => Boolean(value?.length)) },
   },
 }
 
 const v$ = useVuelidate(rules, { form })
 
-const loading = computed((): boolean => {
-  return projectStore.projectCreating || projectStore.projectLoading
-})
-
-async function validate(): Promise<boolean> {
-  return await validation.validate(v$.value)
-}
-
 defineExpose({
-  validate,
+  validate: () => v$.value.$validate(),
+  hasErrors: computed(() => v$.value.$error),
 })
 
-watch(() => props.modelValue, (newValue) => {
-  form.value = newValue
-}, { immediate: true })
-
-watch(form, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
+onMounted(() => {
+  if (!companyStore.companies.length) companyStore.getCompanies()
+})
 </script>

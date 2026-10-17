@@ -1,24 +1,17 @@
 <template>
-  <div class="flex w-full flex-col items-center px-4">
-    <ProjectForm :slug="slug" />
-  </div>
+  <ProjectForm :slug="slug" />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import useMeta from '~/composables/useMeta'
 import ProjectForm from '~/components/project/forms/ProjectForm.vue'
 
 definePageMeta({ middleware: 'auth' })
 
-const { updateMeta } = useMeta()
 const route = useRoute()
+const slug = String(route.params['slug'])
 
-const slug = computed(() => {
-  const param = route.params.slug
-  return Array.isArray(param) ? param[0] : param
-})
-
-updateMeta({ title: 'Update Project', description: 'Update an existing project' })
+const { updateMeta } = useMeta()
+updateMeta({ title: 'Update project' })
 </script>

@@ -1,7 +1,5 @@
 <template>
-  <div class="flex w-full flex-col items-center px-4">
-    <CompanyList />
-  </div>
+  <CompanyList />
 </template>
 
 <script setup lang="ts">
@@ -10,5 +8,5 @@ import CompanyList from '~/components/company/list/CompanyList.vue'
 
 const { updateMeta } = useMeta()
 
-updateMeta({ title: 'Companies', description: "View all of the companies that I've done work for" })
+updateMeta({ title: 'Companies', description: "Companies I've worked with, and the projects I delivered at each." })
 </script>

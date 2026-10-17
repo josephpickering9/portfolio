@@ -1,40 +1,45 @@
 <template>
-  <div :class="{ error: error }" class="relative w-full">
-    <slot />
-    <div v-if="error" class="input-errors">
-      <div class="error-msg">{{ error }}</div>
+  <div class="flex min-w-0 flex-col gap-2">
+    <div v-if="label || $slots['aside']" class="flex items-baseline justify-between gap-3">
+      <component :is="labelTag" :for="labelTag === 'label' ? context.id : undefined" class="eyebrow tracking-[0.05em] text-muted">
+        {{ label }}<template v-if="required"> *</template>
+      </component>
+      <slot name="aside" />
     </div>
+    <slot />
+    <span v-if="error" class="text-[13px] text-danger" role="alert">{{ error }}</span>
+    <span v-else-if="helper" class="text-[13px] text-muted">{{ helper }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { ErrorObject } from '@vuelidate/core'
+import { provideFormField } from '~/composables/useFormField'
 
 interface Props {
+  label?: string
+  required?: boolean
+  helper?: string
   errors?: ErrorObject[]
-  name?: string | undefined
+  name?: string
+  labelTag?: 'label' | 'span'
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
+  required: false,
+  helper: undefined,
   errors: () => [],
   name: undefined,
+  labelTag: 'label',
 })
 
 const error = computed((): string | undefined => {
-  if (!props.errors.length) return undefined
-
-  return props.errors[0]?.$message.toString().replace('Value', props.name ?? 'Value')
+  const message = props.errors[0]?.$message
+  if (!message) return undefined
+  return message.toString().replace('Value', props.name ?? props.label ?? 'Value')
 })
-</script>
 
-<style scoped>
-.error-msg {
-  position: absolute;
-  bottom: -22px;
-  left: 0.25rem;
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-  color: rgb(239 68 68);
-}
-</style>
+const context = provideFormField(computed(() => Boolean(error.value)))
+</script>

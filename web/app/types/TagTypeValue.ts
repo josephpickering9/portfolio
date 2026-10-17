@@ -4,5 +4,4 @@ export interface TagTypeValue {
     value: TagType
     label: string
     icon: string
-    color: string
 }

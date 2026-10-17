@@ -86,4 +86,15 @@ describe('tryCatchFinally', () => {
 
     expect(form.value.loading).toBe(false)
   })
+
+  it('records the HTTP status of a failed request', async () => {
+    const form = ref(asyncForm<string>())
+
+    await tryCatchFinally(form, async () => {
+      throw { isAxiosError: true, response: { status: 404, data: 'Not found' } }
+    })
+
+    expect(form.value.status).toBe(404)
+    expect(form.value.error).toBe('Not found')
+  })
 })

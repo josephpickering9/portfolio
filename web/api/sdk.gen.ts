@@ -4,7 +4,7 @@ import { type Client, formDataBodySerializer, type Options as Options2, type TDa
 import { client } from './client.gen';
 import type { DeleteCompanyByIdData, DeleteCompanyByIdResponses, DeleteProjectByIdData, DeleteProjectByIdResponses, DeleteTagByIdData, DeleteTagByIdResponses, GetCompanyByIdData, GetCompanyByIdResponses, GetCompanyBySlugData, GetCompanyBySlugResponses, GetCompanyData, GetCompanyResponses, GetMediaUploadsByFileNameData, GetMediaUploadsByFileNameResponses, GetProjectByIdData, GetProjectByIdRelatedData, GetProjectByIdRelatedResponses, GetProjectByIdResponses, GetProjectBySlugData, GetProjectBySlugResponses, GetProjectData, GetProjectResponses, GetTagByIdData, GetTagByIdResponses, GetTagBySlugData, GetTagBySlugResponses, GetTagData, GetTagResponses, PostCompanyData, PostCompanyResponses, PostProjectData, PostProjectResponses, PostTagData, PostTagResponses, PostVertexIngestData, PostVertexIngestResponses, PostVertexProjectsByIdDescriptionSuggestData, PostVertexProjectsByIdDescriptionSuggestResponses, PostVertexQueryData, PostVertexQueryResponses, PutCompanyByIdData, PutCompanyByIdResponses, PutProjectByIdData, PutProjectByIdResponses, PutProjectimageOptimiseData, PutProjectimageOptimiseResponses, PutTagByIdData, PutTagByIdResponses } from './types.gen';
 
-export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
+export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
      * You can provide a client instance returned by `createClient()` instead of
      * individual options. This might be also useful if you want to implement a

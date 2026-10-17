@@ -1,61 +1,54 @@
 <template>
-  <component
-    :is="preview ? 'div' : NuxtLink"
-    v-if="tag"
-    :to="preview ? undefined : `/projects?tag=${tag.id}`"
-    class="card group relative flex flex-col justify-between overflow-hidden border border-base-200 bg-base-100 p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md"
-    :class="{ 'cursor-default hover:translate-y-0 hover:shadow-sm': preview }"
-  >
-    <div
-      class="absolute -right-12 -top-12 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-10"
-      :style="{ backgroundColor: tag.customColour || 'currentColor' }"
-      :class="{ 'opacity-5': preview }"
-    />
-
-    <div class="z-10 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div
-          class="flex h-10 w-10 items-center justify-center rounded-lg bg-base-200 text-xl shadow-inner"
-          :style="{ color: tag.customColour || undefined }"
-        >
-          <Icon v-if="tag.icon" :name="tag.icon" />
-          <Icon v-else name="heroicons:tag" />
-        </div>
-        <div class="flex flex-col">
-          <span class="font-bold text-base-content">{{ tag.title || 'Tag Title' }}</span>
-          <span class="text-xs text-base-content/60">{{ tag.type }}</span>
-        </div>
-      </div>
-      <NuxtLink :to="`/technologies/${tag.id}/update`">
-        <FormButton
-          v-if="isAuthenticated && !preview"
-          size="xs"
-          label="Edit"
-          icon="material-symbols:edit"
-          class="opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-          variant="ghost"
-        />
+  <div class="group relative">
+    <component
+      :is="preview ? 'div' : NuxtLink"
+      :to="preview ? undefined : { path: '/projects', query: { q: tag.title } }"
+      class="flex h-full items-center gap-3 rounded-xl border bg-surface p-4 text-text transition-[border-color,box-shadow] duration-200"
+      :class="[
+        highlighted ? 'border-accent shadow-[0_16px_40px_-20px_var(--glow)]' : 'border-line',
+        { 'hover:border-accent hover:text-text hover:shadow-[0_16px_40px_-20px_var(--glow)]': !preview },
+      ]"
+    >
+      <Icon :name="icon" size="22" class="shrink-0" />
+      <span class="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+        <span class="font-medium break-words">{{ tag.title || 'Technology' }}</span>
+        <span class="ml-auto font-mono text-xs whitespace-nowrap text-muted">{{ count }} {{ count === 1 ? 'project' : 'projects' }}</span>
+      </span>
+    </component>
+    <ClientOnly>
+      <NuxtLink
+        v-if="isAuthenticated && !preview"
+        :to="`/technologies/${tag.id}/update`"
+        class="absolute -top-2 -right-2 flex size-7 items-center justify-center rounded-full border border-line bg-surface2 text-muted opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100"
+        :aria-label="`Edit ${tag.title}`"
+      >
+        <Icon name="heroicons:pencil" size="14" />
       </NuxtLink>
-    </div>
-  </component>
+    </ClientOnly>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { resolveComponent } from 'vue'
+import { computed, resolveComponent } from 'vue'
 import type { Tag } from '@api'
+import { tagTypes } from '~/data/TagTypes'
 import useAuth from '~/composables/useAuth'
-import FormButton from '~/components/ui/form/FormButton.vue'
 
 interface Props {
-  tag?: Tag
+  tag: Pick<Tag, 'id' | 'title' | 'type' | 'icon'>
+  count?: number
   preview?: boolean
+  highlighted?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  tag: undefined,
+const props = withDefaults(defineProps<Props>(), {
+  count: 0,
   preview: false,
+  highlighted: false,
 })
 
 const { isAuthenticated } = useAuth()
 const NuxtLink = resolveComponent('NuxtLink')
+
+const icon = computed(() => props.tag.icon || tagTypes.find((type) => type.value === props.tag.type)?.icon || 'heroicons:tag')
 </script>

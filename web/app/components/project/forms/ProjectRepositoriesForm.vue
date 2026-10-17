@@ -1,50 +1,36 @@
 <template>
-  <div v-if="form" class="flex flex-col gap-4 pb-4">
-    <FormGroup :errors="v$.form?.repositories?.$errors" name="Repositories">
-      <RepositoryInput v-model="form.repositories" />
-    </FormGroup>
-  </div>
+  <FormGroup label="Repositories" label-tag="span">
+    <RepositoryInput v-model="repositories" :errors="errors" />
+  </FormGroup>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { cloneDeep } from 'lodash-es'
-import type { CreateProject } from '@api'
-import { defaultProjectForm } from '~/utils/default-helper'
+import { computed, ref } from 'vue'
+import type { CreateProject, CreateProjectRepository } from '@api'
+import { validateRepositories } from '~/utils/validation-helper'
 import FormGroup from '~/components/ui/form/FormGroup.vue'
 import RepositoryInput from '~/components/repository/RepositoryInput.vue'
 
-interface Props {
-  modelValue?: CreateProject
-}
+const form = defineModel<CreateProject>({ required: true })
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => cloneDeep(defaultProjectForm),
+const submitted = ref(false)
+
+const repositories = computed({
+  get: () => form.value.repositories ?? [],
+  set: (value: CreateProjectRepository[]) => {
+    form.value.repositories = value
+  },
 })
 
-
-const emit = defineEmits<{
-  'update:modelValue': [value: CreateProject]
-}>()
-
-const form = ref<CreateProject>(props.modelValue)
-
-const v$ = useVuelidate()
+const errors = computed(() => (submitted.value ? validateRepositories(repositories.value) : {}))
 
 async function validate(): Promise<boolean> {
-  return true
+  submitted.value = true
+  return Object.keys(validateRepositories(repositories.value)).length === 0
 }
 
 defineExpose({
   validate,
+  hasErrors: computed(() => Object.keys(errors.value).length > 0),
 })
-
-watch(() => props.modelValue, (newValue) => {
-  form.value = newValue
-}, { immediate: true })
-
-watch(form, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
 </script>

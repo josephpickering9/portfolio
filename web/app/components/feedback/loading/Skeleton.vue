@@ -1,19 +1,16 @@
 <template>
-  <div v-if="type === typeProfile" class="flex w-full max-w-5xl flex-col gap-4">
-    <div class="flex items-center gap-4">
-      <div class="skeleton h-16 w-16 shrink-0 rounded-full"/>
-      <div class="flex flex-col gap-4">
-        <div class="skeleton h-4 w-20"/>
-        <div class="skeleton h-4 w-28"/>
-      </div>
-    </div>
-    <div class="skeleton h-40 w-full"/>
+  <div v-if="type === LoadingType.CARD" class="flex flex-col gap-4" aria-hidden="true">
+    <div class="skeleton-pulse aspect-16/10 rounded-card border border-line bg-surface" />
+    <div class="skeleton-pulse h-5.5 w-[45%] rounded-md bg-surface2" />
+    <div class="skeleton-pulse h-3.5 w-[85%] rounded-md bg-surface2" />
   </div>
-  <div v-else-if="type === typeCard" class="flex w-full flex-col gap-4">
-    <div class="skeleton h-40 w-full"/>
-    <div class="skeleton h-4 w-28"/>
-    <div class="skeleton h-4 w-full"/>
-    <div class="skeleton h-4 w-full"/>
+  <div v-else class="flex flex-col gap-3.5" aria-hidden="true">
+    <div class="flex items-center gap-4">
+      <div class="skeleton-pulse size-12 shrink-0 rounded-full bg-surface2" />
+      <div class="skeleton-pulse h-7 w-55 max-w-full rounded-md bg-surface2" />
+    </div>
+    <div class="skeleton-pulse h-3.5 w-4/5 max-w-150 rounded-md bg-surface2" />
+    <div class="skeleton-pulse h-3.5 w-3/5 max-w-115 rounded-md bg-surface2" />
   </div>
 </template>
 
@@ -27,7 +24,4 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   type: LoadingType.PROFILE,
 })
-
-const typeCard = LoadingType.CARD
-const typeProfile = LoadingType.PROFILE
 </script>

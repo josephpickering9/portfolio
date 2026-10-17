@@ -1,134 +1,101 @@
 <template>
-  <div class="flex flex-grow justify-center overflow-hidden">
-    <Skeleton v-if="loading" />
-    <div v-else-if="project" class="relative flex w-full flex-grow flex-col gap-2 overflow-hidden">
-      <ProjectHeader :project="project" :company="company" />
-
-      <div class="prose mx-auto flex w-full max-w-7xl flex-col justify-center gap-10 overflow-hidden px-6 py-8 md:mt-0 md:px-8">
-        <ProjectTags :tags="project.tags" />
-
-        <div class="divider m-0"/>
-
-        <h2 class="m-0 text-2xl font-light italic leading-relaxed text-base-content/80">{{ project.shortDescription }}</h2>
-        <div class="project-description text-lg leading-relaxed" v-html="project.description" />
-
-        <ProjectGallery
-          v-model:desktop-images="desktopImages"
-          v-model:mobile-images="mobileImages"
-        />
-
-        <ProjectMockup
-          v-if="project.showMockup"
-          :website-url="project.website || undefined"
-        />
+  <div class="mx-auto flex w-full max-w-300 flex-col gap-16 px-7 pt-16 pb-24">
+    <template v-if="loading">
+      <div class="flex flex-col gap-5.5" aria-hidden="true">
+        <div class="skeleton-pulse h-3.5 w-28 rounded-md bg-surface2" />
+        <div class="skeleton-pulse h-20 w-3/4 rounded-md bg-surface2" />
+        <div class="skeleton-pulse h-5 w-1/2 rounded-md bg-surface2" />
       </div>
-      <RelatedProjects :projects="relatedProjects" />
-    </div>
+      <div class="skeleton-pulse aspect-video rounded-2xl border border-line bg-surface" />
+    </template>
+
+    <LoadError v-else-if="projectStore.projectError && !project" message="Couldn't load this project. Check your connection and try again." @retry="load" />
+
+    <template v-else-if="project">
+      <ProjectHeader
+        :project="project"
+        :eyebrow="eyebrow"
+        :back-to="isThisSite ? '/' : '/projects'"
+        :back-label="isThisSite ? 'Selected work' : 'All projects'"
+      />
+      <ProjectMockup :project="project" />
+
+      <WorkExperienceCaseStudy v-if="isThisSite" />
+      <ProjectCaseStudy v-else :project="project" />
+
+      <NuxtLink v-if="isThisSite" to="/" class="self-start text-[15px] text-accent">← Back to selected work</NuxtLink>
+      <NextProject v-else-if="nextProject" :project="nextProject" />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { sortBy } from 'lodash-es'
-import { ImageType } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
 import { useCompanyStore } from '~/store/CompanyStore'
 import useMeta from '~/composables/useMeta'
 import { getImageUrl } from '~/utils/image-helper'
-import Skeleton from '~/components/feedback/loading/Skeleton.vue'
+import { formatDateRange } from '~/utils/date-helper'
+import { getNextProject } from '~/utils/project-helper'
+import LoadError from '~/components/feedback/LoadError.vue'
 import ProjectHeader from '~/components/project/details/ProjectHeader.vue'
-import ProjectTags from '~/components/project/details/ProjectTags.vue'
-import ProjectGallery from '~/components/project/details/ProjectGallery.vue'
 import ProjectMockup from '~/components/project/details/ProjectMockup.vue'
-import RelatedProjects from '~/components/project/details/RelatedProjects.vue'
+import ProjectCaseStudy from '~/components/project/details/ProjectCaseStudy.vue'
+import WorkExperienceCaseStudy from '~/components/project/details/WorkExperienceCaseStudy.vue'
+import NextProject from '~/components/project/details/NextProject.vue'
+
+const THIS_SITE_SLUG = 'work-experience'
+const PERSONAL_COMPANY = 'Personal'
+const HTTP_NOT_FOUND = 404
 
 const route = useRoute()
 const projectStore = useProjectStore()
 const companyStore = useCompanyStore()
 const { updateMeta } = useMeta()
 
-const slug = computed(() => route.params.slug as string)
+const slug = computed(() => route.params['slug'] as string)
+const project = computed(() => (projectStore.project?.slug === slug.value ? projectStore.project : undefined))
+const loading = computed(() => projectStore.projectLoading || (!project.value && !projectStore.projectError))
+const isThisSite = computed(() => slug.value === THIS_SITE_SLUG)
+const nextProject = computed(() => getNextProject(projectStore.projects, slug.value))
 
-const project = computed(() => projectStore.project)
-const loading = computed(() => projectStore.projectLoading)
-const relatedProjects = computed(() => projectStore.relatedProjects)
-const companies = computed(() => companyStore.companies)
+const eyebrow = computed(() => {
+  const current = project.value
+  if (!current) return ''
 
-const company = computed(() => {
-  if (!project.value?.companyId) return undefined
-  return companies.value.find((c) => c.id === project.value?.companyId)
+  const companyName = companyStore.companies.find((company) => company.id === current.companyId)?.name
+  const owner = !companyName || companyName === PERSONAL_COMPANY ? 'Personal project' : companyName
+  if (isThisSite.value) return `Case study / ${owner}`
+  return [owner, formatDateRange(current.startDate, current.endDate)].filter(Boolean).join(' / ')
 })
 
-const desktopImages = computed({
-  get: () => {
-    if (!project.value) return []
-    return sortBy(
-      project.value.images.filter((image) => image.type === ImageType.DESKTOP),
-      'order',
-    ).map((image) => image.image)
-  },
-  set: () => {
-    // Read-only computed for now as we don't update images from here
+async function load() {
+  const loaded = await projectStore.getProjectBySlug(slug.value)
+  if (projectStore.projectForm.status === HTTP_NOT_FOUND) {
+    showError({ statusCode: HTTP_NOT_FOUND, statusMessage: 'Project not found' })
+    return
   }
+  if (!loaded || projectStore.projectError) return
+
+  updateMeta({
+    title: loaded.title,
+    description: loaded.shortDescription,
+    image: loaded.cardUrl ? getImageUrl(loaded.cardUrl) : undefined,
+  })
+}
+
+onMounted(() => {
+  if (!project.value) load()
+  if (!projectStore.projectsForm.data) projectStore.getProjects()
+  if (!companyStore.companies.length) companyStore.getCompanies()
 })
 
-const mobileImages = computed({
-  get: () => {
-    if (!project.value) return []
-    return sortBy(
-      project.value.images.filter((image) => image.type === ImageType.MOBILE),
-      'order',
-    ).map((image) => image.image)
-  },
-  set: () => {
-    // Read-only computed for now as we don't update images from here
-  }
-})
-
-
-
-onMounted(async () => {
-  if (!slug.value) return
-
-  if (!project.value || project.value.slug !== slug.value) {
-    await projectStore.getProjectBySlug(slug.value)
-  }
-
-  if (project.value) {
-    await projectStore.getRelatedProjects(project.value.id)
-
-    updateMeta({
-      title: project.value.title,
-      description: project.value.shortDescription,
-      image: project.value.cardUrl ? getImageUrl(project.value.cardUrl) : undefined,
-    })
-  }
-
-  if (!companies.value.length) {
-    await companyStore.getCompanies()
-  }
+watch(slug, (value) => {
+  if (value) load()
 })
 
 onBeforeUnmount(() => {
-  projectStore.project = undefined
+  projectStore.projectForm.data = undefined
 })
 </script>
-
-<style>
-.project-description p {
-  margin-top: 0;
-  margin-bottom: 1rem;
-}
-
-.project-description li p,
-.project-description ul ul,
-.project-description ol ol {
-  margin: 0;
-  margin-bottom: 1rem;
-}
-
-.project-description ul ul li {
-  margin-top: 0.25rem;
-}
-</style>

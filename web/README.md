@@ -1,6 +1,6 @@
 # Work Experience (Frontend)
 
-A Nuxt 4 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it has evolved into a full portfolio with AI-powered search, company timelines, and a CMS for managing content.
+A Nuxt 4 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it's now a full portfolio with AI search, company timelines, and a CMS for managing content.
 
 Linked to the [Work Experience API](https://github.com/josephpickering9/work_experience_api).
 
@@ -29,14 +29,14 @@ Linked to the [Work Experience API](https://github.com/josephpickering9/work_exp
 - **Progressive Web App** — installable with offline support via `@vite-pwa/nuxt`
 - **Auth0 Authentication** — secure login with token-based API access
 - **OpenAPI TypeScript Generation** — types and API client auto-generated from the backend Swagger spec
-- **Theme Switching** — multiple daisyUI themes with persisted preference
+- **Theme Switching** — four themes (Midnight, Ember, Moss, Daylight) persisted in a cookie and applied during SSR
 
 ## Tech Stack
 
 | Layer | Technology |
 |---|---|
 | Framework | Nuxt 4, Vue 3, TypeScript |
-| Styling | Tailwind CSS v4, daisyUI |
+| Styling | Tailwind CSS v4 with custom design tokens |
 | State | Pinia (with persisted state) |
 | Auth | Auth0 (`@auth0/auth0-vue`) |
 | API Client | `@hey-api/client-axios` (OpenAPI generated) |

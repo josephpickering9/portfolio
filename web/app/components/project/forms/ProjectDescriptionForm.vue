@@ -1,103 +1,61 @@
 <template>
-  <div v-if="form" class="flex flex-col gap-4 pb-4">
-    <FormGroup :errors="v$['form']?.description?.$errors" name="Description">
-      <TextEditor v-model="form.description" label="Description" :disabled="loading" />
+  <div class="flex flex-col gap-4">
+    <FormGroup label="Description" label-tag="span" helper="Shown as the Overview section of the case study.">
+      <TextEditor v-model="form.description" placeholder="Describe the project, your role and the stack…" :disabled="disabled || suggesting" />
     </FormGroup>
-    <div v-if="project?.id" class="flex justify-end items-center gap-2">
-      <TextInput
-        v-model="extraDescription"
-        placeholder="Extra Description"
-        :disabled="loading || aiLoading"
-        size="sm"
-      />
+    <div v-if="projectId" class="flex flex-wrap items-center gap-2.5">
+      <div class="min-w-0 flex-[1_1_260px]">
+        <TextInput v-model="extraContext" placeholder="Extra context for the AI (optional)" :disabled="disabled || suggesting" />
+      </div>
       <FormButton
-        label="Suggest Description"
-        type="secondary"
-        size="sm"
-        icon="material-symbols:smart-toy-outline"
-        :loading="aiLoading"
-        :disabled="loading || aiLoading"
-        @click="suggestDescription"
+        label="Suggest with AI"
+        variant="outline"
+        icon="mdi:robot-happy-outline"
+        :loading="suggesting"
+        :disabled="disabled"
+        @click="suggest"
       />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { useVuelidate } from '@vuelidate/core'
-import { required } from '@vuelidate/validators'
-import { cloneDeep } from 'lodash-es'
-import type { CreateProject, Project } from '@api'
-import { useProjectStore } from '~/store/ProjectStore'
+import { computed, ref } from 'vue'
+import type { CreateProject } from '@api'
 import { useAiStore } from '~/store/AiStore'
-import useValidation from '~/composables/useValidation'
-import { defaultProjectForm } from '~/utils/default-helper'
+import { useNotificationStore } from '~/store/NotificationStore'
 import FormGroup from '~/components/ui/form/FormGroup.vue'
 import TextEditor from '~/components/ui/input/TextEditor.vue'
-import FormButton from '~/components/ui/form/FormButton.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
+import FormButton from '~/components/ui/form/FormButton.vue'
 
-interface Props {
-  modelValue?: CreateProject
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: () => cloneDeep(defaultProjectForm),
-})
-
-const emit = defineEmits<{
-  'update:modelValue': [value: CreateProject]
+const props = defineProps<{
+  projectId?: string
+  disabled?: boolean
 }>()
 
-const projectStore = useProjectStore()
+const form = defineModel<CreateProject>({ required: true })
+
 const aiStore = useAiStore()
-const validation = useValidation()
+const notificationStore = useNotificationStore()
+const extraContext = ref('')
 
-const form = ref<CreateProject>(props.modelValue)
-const extraDescription = ref<string>('')
+const suggesting = computed(() => aiStore.aiForm.loading ?? false)
 
-const rules = {
-  form: {
-    description: { required },
-  },
-}
-
-const v$ = useVuelidate(rules, { form })
-
-const loading = computed((): boolean => {
-  return projectStore.projectCreating || projectStore.projectLoading || false
-})
-
-const aiLoading = computed((): boolean => {
-  return aiStore.aiForm.loading || false
-})
-
-const project = computed((): Project | undefined => {
-  return projectStore.project
-})
-
-async function validate(): Promise<boolean> {
-  return await validation.validate(v$.value)
-}
-
-async function suggestDescription() {
-  if (!project.value?.id) return
-
-  await aiStore.getSuggestedDescription(project.value.id, extraDescription.value, null, null)
-
-  if (aiStore.aiForm.data) form.value.description = aiStore.aiForm.data.suggestedDescription ?? ''
+async function suggest() {
+  const projectId = props.projectId
+  if (!projectId) return
+  await aiStore.getSuggestedDescription(projectId, extraContext.value || null, null, null)
+  const suggestion = aiStore.aiForm.data?.suggestedDescription
+  if (aiStore.aiForm.error || !suggestion) {
+    notificationStore.displayErrorNotification("Couldn't get a suggestion right now")
+    return
+  }
+  form.value.description = suggestion
 }
 
 defineExpose({
-  validate,
+  validate: async () => true,
+  hasErrors: computed(() => false),
 })
-
-watch(() => props.modelValue, (newValue) => {
-  form.value = newValue
-}, { immediate: true })
-
-watch(form, (newValue) => {
-  emit('update:modelValue', newValue)
-}, { deep: true })
 </script>

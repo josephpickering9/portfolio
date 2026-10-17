@@ -41,8 +41,8 @@ export const useAiStore = defineStore('aiStore', {
                 })).data
             })
         },
-        async query(query: string) {
-            await tryCatchFinally(ref(this.queryForm), async () => {
+        async query(query: string): Promise<PostVertexQueryResponse | undefined> {
+            return await tryCatchFinally(ref(this.queryForm), async () => {
                 return (await postVertexQuery({
                     body: {
                         query

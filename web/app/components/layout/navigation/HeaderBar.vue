@@ -1,165 +1,68 @@
 <template>
-  <header class="navbar bg-base-100">
-    <div class="flex-1 flex items-center gap-2">
-      <NuxtLink to="/" class="btn btn-ghost text-xl px-1">Joseph Pickering</NuxtLink>
-      <ClientOnly>
+  <header class="sticky top-0 z-20 border-b border-line bg-[color-mix(in_oklch,var(--bg)_78%,transparent)] backdrop-blur-[14px]">
+    <div class="mx-auto flex max-w-300 items-center gap-6 px-7 py-4">
+      <NuxtLink to="/" class="font-display text-[26px] tracking-[-0.01em] text-text">Joseph Pickering</NuxtLink>
+
+      <nav class="hidden flex-1 flex-wrap gap-6 text-sm min-[860px]:flex" aria-label="Main">
         <NuxtLink
-          v-if="isAuthenticated"
-          to="/projects/new"
-          class="flex h-11 w-11 items-center justify-center rounded-full border border-dashed border-base-content/30"
-          aria-label="Create new project"
+          v-for="item in navItems"
+          :key="item.to"
+          :to="item.to"
+          class="border-b pb-0.5"
+          :class="isActive(item.to) ? 'border-accent text-text' : 'border-transparent text-muted'"
+          :aria-current="isActive(item.to) ? 'page' : undefined"
         >
-          <Icon name="mdi:plus" />
+          {{ item.label }}
         </NuxtLink>
-      </ClientOnly>
-    </div>
-    <div class="hidden flex-none gap-2 lg:flex lg:items-center">
-      <ul class="menu menu-horizontal px-1">
-        <li>
-          <NuxtLink to="/search">
-            <Icon name="mdi:robot-happy-outline" size="1.2em" />
-            AI Search
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink to="/projects">
-            <Icon name="heroicons:rectangle-stack" size="1.2em" />
-            Projects
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink to="/companies">
-            <Icon name="heroicons:building-office" size="1.2em" />
-            Companies
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink to="/technologies">
-            <Icon name="heroicons:code-bracket" size="1.2em" />
-            Technologies
-          </NuxtLink>
-        </li>
-      </ul>
-      <ThemeController />
-      <UserDropdown
-        :linked-in-url="linkedInUrl"
-        :is-authenticated="isAuthenticated ?? false"
-        :optimising="optimising"
-        :optimise-error="optimiseError"
-        @login="login"
-        @logout="logout"
-        @install-pwa="installPwa"
-        @optimise-images="optimiseImages"
-      />
-    </div>
-    <div class="flex-none lg:hidden">
+      </nav>
+
+      <div class="hidden items-center gap-3 min-[860px]:flex">
+        <ThemeController />
+        <CvButton />
+        <ClientOnly>
+          <AdminMenu v-if="isAuthenticated" @logout="logout?.()" />
+        </ClientOnly>
+      </div>
+
       <button
-        class="btn btn-square btn-ghost"
-        :aria-label="showMobileMenu ? 'Close navigation menu' : 'Open navigation menu'"
-        :aria-expanded="showMobileMenu"
+        type="button"
+        class="ml-auto flex size-11 items-center justify-center rounded-full border border-line text-[22px] text-text min-[860px]:hidden"
+        :aria-label="menuOpen ? 'Close navigation menu' : 'Open navigation menu'"
+        :aria-expanded="menuOpen"
         aria-controls="mobile-menu"
-        @click="toggleMobileMenu"
+        @click="menuOpen = !menuOpen"
       >
-        <Icon v-if="!showMobileMenu" name="mdi:hamburger-menu" size="2em" />
-        <Icon v-else name="mdi:close" size="2em" />
+        <Icon :name="menuOpen ? 'mdi:close' : 'mdi:menu'" />
       </button>
     </div>
 
-    <MobileMenu
-      v-if="showMobileMenu"
-      :linked-in-url="linkedInUrl"
-      :is-authenticated="isAuthenticated ?? false"
-      :optimising="optimising"
-      :optimise-error="optimiseError"
-      @close="toggleMobileMenu"
-      @login="login"
-      @logout="logout"
-      @install-pwa="installPwa"
-      @optimise-images="optimiseImages"
-    />
+    <MobileMenu v-if="menuOpen" :is-active="isActive" />
   </header>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import useAuth from '~/composables/useAuth'
-import { useProjectImageStore } from '~/store/ProjectImageStore'
-import { useNotificationStore } from '~/store/NotificationStore'
-import { NotificationPosition } from '~/types/NotificationPosition'
+import { navItems } from '~/data/NavItems'
 import ThemeController from '~/components/layout/ThemeController.vue'
-import UserDropdown from '~/components/layout/navigation/UserDropdown.vue'
+import CvButton from '~/components/layout/navigation/CvButton.vue'
+import AdminMenu from '~/components/layout/navigation/AdminMenu.vue'
 import MobileMenu from '~/components/layout/navigation/MobileMenu.vue'
 
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[]
-  readonly userChoice: Promise<{
-    outcome: 'accepted' | 'dismissed'
-    platform: string
-  }>
-  prompt(): Promise<void>
-}
-
 const route = useRoute()
-const { isAuthenticated, login, logout } = useAuth()
-const projectImageStore = useProjectImageStore()
-const notificationStore = useNotificationStore()
-const runtimeConfig = useRuntimeConfig()
+const { isAuthenticated, logout } = useAuth()
 
-const showMobileMenu = ref(false)
-const installPrompt = ref<BeforeInstallPromptEvent | undefined>(undefined)
+const menuOpen = ref(false)
 
-const linkedInUrl = computed((): string => {
-  return runtimeConfig.public.linkedInUrl ?? 'https://www.linkedin.com/in/josephpickering'
-})
-
-const optimising = computed((): boolean => {
-  return projectImageStore.optimising ?? false
-})
-
-const optimiseError = computed((): string | undefined => {
-  return projectImageStore.optimiseError
-})
-
-function toggleMobileMenu() {
-  showMobileMenu.value = !showMobileMenu.value
+function isActive(to: string): boolean {
+  return route.path === to || route.path.startsWith(`${to}/`)
 }
 
-async function installPwa() {
-  if (installPrompt.value) {
-    installPrompt.value.prompt()
-    await installPrompt.value.userChoice
-    installPrompt.value = undefined
-  }
-}
-
-async function optimiseImages() {
-  await projectImageStore.optimiseImages()
-
-  if (optimiseError.value) {
-    notificationStore.displayErrorNotification(optimiseError.value, NotificationPosition.TOP_LEFT)
-  } else {
-    notificationStore.displaySuccessNotification('Images optimised', NotificationPosition.TOP_LEFT)
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault()
-    installPrompt.value = e as BeforeInstallPromptEvent
-  })
-})
-
-
-watch(() => route.path, () => {
-  showMobileMenu.value = false
-})
-
-watch(showMobileMenu, (newValue) => {
-  if (newValue) {
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.body.style.overflow = 'auto'
-  }
-})
+watch(
+  () => route.fullPath,
+  () => {
+    menuOpen.value = false
+  },
+)
 </script>

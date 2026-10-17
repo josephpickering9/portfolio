@@ -1,159 +1,125 @@
 <template>
   <FormLayout
-    :title="isUpdate ? 'Update Company' : 'New Company'"
+    :eyebrow="id ? 'Update company' : 'New company'"
+    :title="form.name || (id ? 'Untitled company' : 'New company')"
+    :save-label="id ? 'Save changes' : 'Create company'"
+    delete-title="Delete this company?"
+    :show-delete="Boolean(id)"
     :loading="loading"
-    :show-delete="isUpdate"
+    :saving="companyStore.companyCreating"
     @save="save"
-    @delete="remove"
+    @delete="id && remove(id)"
   >
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-      <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10 lg:col-span-2">
-        <div class="card-body gap-4">
-          <h2 class="card-title text-base font-semibold opacity-60">General Information</h2>
-          <TextInput v-model="name" label="Name" :disabled="loading" placeholder="Company Name" />
-          <TextInput v-model="website" label="Website" :disabled="loading" placeholder="https://example.com" />
-          <TextEditor 
-            v-model="description" 
-            label="Description"
-            placeholder="Brief description of the company..."
-            :disabled="loading"
-          />
-        </div>
-      </div>
-
-      <div class="space-y-6">
-        <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10">
-          <div class="card-body gap-4">
-            <h2 class="card-title text-base font-semibold opacity-60">Branding</h2>
-            <div class="flex flex-col items-center justify-center p-4">
-               <div class="mb-4 flex h-32 w-32 items-center justify-center rounded-lg border-2 border-dashed border-base-content/20 bg-base-200">
-                  <NuxtImg v-if="logoUrl" :src="logoUrl" alt="Preview" placeholder format="webp" class="h-full w-full object-contain p-2" />
-                  <Icon v-else name="mdi:image-outline" class="h-12 w-12 opacity-20" />
-               </div>
-               <FileInput label="Upload Logo" :disabled="loading" @update:file="logo = $event" />
-            </div>
-          </div>
-        </div>
-
-        <div class="card bg-base-100 shadow-sm ring-1 ring-base-content/10">
-          <div class="card-body gap-4">
-            <h2 class="card-title text-base font-semibold opacity-60">Timeline</h2>
-            <TextInput v-model="startDate" label="Start Date" type="date" :disabled="loading" />
-            <TextInput v-model="endDate" label="End Date" type="date" :disabled="loading" />
-          </div>
-        </div>
+    <div v-if="companyStore.companyLoading" class="skeleton-pulse h-120 rounded-panel border border-line bg-surface" aria-hidden="true" />
+    <div v-else class="grid items-start gap-5 lg:grid-cols-3">
+      <section class="flex min-w-0 flex-col gap-5 rounded-panel border border-line bg-surface p-6.5 lg:col-span-2">
+        <h2 class="m-0 font-display text-[26px] font-normal">General</h2>
+        <FormGroup label="Name" required :errors="v$.form.name.$errors">
+          <TextInput v-model="form.name" placeholder="Company name" :disabled="loading" />
+        </FormGroup>
+        <FormGroup label="Website" :errors="v$.form.website.$errors">
+          <TextInput v-model="form.website" placeholder="https://example.com" :disabled="loading" />
+        </FormGroup>
+        <FormGroup label="Description" label-tag="span">
+          <TextEditor v-model="form.description" placeholder="Brief description of the company…" :min-height="260" :disabled="loading" />
+        </FormGroup>
+      </section>
+      <div class="flex min-w-0 flex-col gap-5">
+        <section class="flex flex-col gap-4 rounded-panel border border-line bg-surface p-6.5">
+          <h2 class="m-0 font-display text-[26px] font-normal">Branding</h2>
+          <FormGroup helper="Square image, shown filling a circle in the timeline. Use a transparent background so it sits on the theme colour.">
+            <FileInput v-model="logo" round empty-label="Upload logo" :disabled="loading" />
+          </FormGroup>
+        </section>
+        <section class="flex flex-col gap-4 rounded-panel border border-line bg-surface p-6.5">
+          <h2 class="m-0 font-display text-[26px] font-normal">Timeline</h2>
+          <FormGroup label="Start date">
+            <DatePicker v-model="form.startDate" :disabled="loading" />
+          </FormGroup>
+          <FormGroup label="End date" helper="Leave empty if you still work here">
+            <DatePicker v-model="form.endDate" :disabled="loading" />
+          </FormGroup>
+        </section>
       </div>
     </div>
   </FormLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useVuelidate } from '@vuelidate/core'
+import { helpers, required } from '@vuelidate/validators'
+import type { Company, CreateCompany } from '@api'
 import { useCompanyStore } from '~/store/CompanyStore'
-import { useNotificationStore } from '~/store/NotificationStore'
-import type { CreateCompany, Company  } from '@api'
+import { useEntityForm } from '~/composables/useEntityForm'
 import { getImageUrl } from '~/utils/image-helper'
-import { format, parseISO } from 'date-fns'
-import TextInput from '~/components/ui/input/TextInput.vue'
-import FileInput from '~/components/ui/input/FileInput.vue'
-import TextEditor from '~/components/ui/input/TextEditor.vue'
+import { isHttpUrl, URL_MESSAGE } from '~/utils/validation-helper'
+import type { UploadItem } from '~/types/UploadItem'
 import FormLayout from '~/components/ui/layout/FormLayout.vue'
+import FormGroup from '~/components/ui/form/FormGroup.vue'
+import TextInput from '~/components/ui/input/TextInput.vue'
+import TextEditor from '~/components/ui/input/TextEditor.vue'
+import FileInput from '~/components/ui/input/FileInput.vue'
+import DatePicker from '~/components/ui/input/DatePicker.vue'
+
+const DATE_LENGTH = 10
 
 interface Props {
-  id?: string | null
+  id?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  id: null,
+  id: undefined,
 })
 
-const router = useRouter()
 const companyStore = useCompanyStore()
-const notificationStore = useNotificationStore()
 
-const name = ref('')
-const description = ref('')
-const logo = ref<FileList | null | undefined>(undefined)
-const logoUrl = ref<string | undefined>(undefined)
-const website = ref<string | undefined>(undefined)
-const startDate = ref<string | undefined>(undefined)
-const endDate = ref<string | undefined>(undefined)
+const form = ref<CreateCompany>({ name: '', description: '', website: '', startDate: undefined, endDate: undefined })
+const logo = ref<UploadItem | null>(null)
 
-const isUpdate = computed((): boolean => {
-  return props.id !== null
+const loading = computed(() => (companyStore.companyCreating || companyStore.companyLoading) ?? false)
+
+const rules = {
+  form: {
+    name: { required },
+    website: { url: helpers.withMessage(URL_MESSAGE, (value: string | null | undefined) => isHttpUrl(value)) },
+  },
+}
+const v$ = useVuelidate(rules, { form })
+
+const entityForm = useEntityForm<Company, CreateCompany>({
+  entityName: 'company',
+  redirectRoute: '/companies',
+  actions: {
+    get: companyStore.getCompany,
+    create: companyStore.createCompany,
+    update: companyStore.updateCompany,
+    delete: companyStore.deleteCompany,
+  },
+  state: {
+    loadError: () => companyStore.companyError,
+    saveError: () => companyStore.companyCreateError,
+  },
 })
-
-const company = computed((): Company | undefined => {
-  return companyStore.company
-})
-
-const companyError = computed((): string | undefined => {
-  return companyStore.companyError
-})
-
-const loading = computed((): boolean => {
-  return companyStore.companyCreating || companyStore.companyLoading || false
-})
-
-const error = computed((): string | undefined => {
-  return companyStore.companyCreateError
-})
-
-const createCompanyValue = computed((): CreateCompany => {
-  return {
-    name: name.value,
-    description: description.value,
-    logo: logo.value ? (logo.value.item(0) as Blob) : undefined,
-    website: website.value,
-    startDate: startDate.value,
-    endDate: endDate.value,
-  }
-})
+const { remove } = entityForm
 
 async function save() {
-  const id = props.id
-  const response = id
-    ? await companyStore.updateCompany(id, createCompanyValue.value)
-    : await companyStore.createCompany(createCompanyValue.value)
-
-  if (!error.value && response) {
-    router.push(`/companies`)
-    notificationStore.displaySuccessNotification(`Company ${isUpdate.value ? 'updated' : 'created'} successfully`)
-  } else {
-    notificationStore.displayErrorNotification(error.value || 'An error occurred')
-  }
-}
-
-async function remove() {
-  const id = props.id
-  if (!id) return
-
-  await companyStore.deleteCompany(id)
-
-  if (!error.value) {
-    router.push(`/companies`)
-    notificationStore.displaySuccessNotification('Company deleted successfully')
-  } else {
-    notificationStore.displayErrorNotification(error.value || 'An error occurred')
-  }
+  if (!(await v$.value.$validate())) return entityForm.invalid()
+  await entityForm.save(props.id, { ...form.value, logo: logo.value?.file })
 }
 
 onMounted(async () => {
-  const id = props.id
-  if (id) {
-    await companyStore.getCompany(id)
+  if (!props.id) return
+  const company = await entityForm.fetch(props.id)
+  if (!company) return
 
-    if (!companyError.value && company.value) {
-      name.value = company.value.name
-      description.value = company.value.description
-      logoUrl.value = company.value.logo ? getImageUrl(company.value.logo) : undefined
-      website.value = company.value.website ?? ''
-      startDate.value = company.value.startDate ? format(parseISO(company.value.startDate), 'yyyy-MM-dd') : undefined
-      endDate.value = company.value.endDate ? format(parseISO(company.value.endDate), 'yyyy-MM-dd') : undefined
-    } else {
-      notificationStore.displayErrorNotification(companyError.value || 'An error occurred')
-    }
+  form.value = {
+    name: company.name,
+    description: company.description,
+    website: company.website ?? '',
+    startDate: company.startDate?.substring(0, DATE_LENGTH),
+    endDate: company.endDate?.substring(0, DATE_LENGTH),
   }
+  logo.value = company.logo ? { key: company.logo, previewUrl: getImageUrl(company.logo) } : null
 })
 </script>

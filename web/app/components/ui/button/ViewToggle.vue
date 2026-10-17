@@ -1,24 +1,16 @@
 <template>
-  <div class="join">
+  <div class="flex rounded-xl border border-line p-1" role="group" aria-label="View">
     <button
+      v-for="option in options"
+      :key="option.value"
       type="button"
-      class="btn btn-sm join-item"
-      :class="{ 'btn-active': modelValue === ViewMode.CARD }"
-      :disabled="disabled"
-      @click="$emit('update:modelValue', ViewMode.CARD)"
+      class="flex size-10 items-center justify-center rounded-lg text-lg"
+      :class="modelValue === option.value ? 'bg-surface2 text-text' : 'text-muted hover:text-text'"
+      :aria-label="option.label"
+      :aria-pressed="modelValue === option.value"
+      @click="emit('update:modelValue', option.value)"
     >
-      <Icon name="heroicons:squares-2x2" class="h-4 w-4" />
-      <span class="sr-only">Card View</span>
-    </button>
-    <button
-      type="button"
-      class="btn btn-sm join-item hidden md:flex"
-      :class="{ 'btn-active': modelValue === ViewMode.TABLE }"
-      :disabled="disabled"
-      @click="$emit('update:modelValue', ViewMode.TABLE)"
-    >
-      <Icon name="heroicons:list-bullet" class="h-4 w-4" />
-      <span class="sr-only">Table View</span>
+      <Icon :name="option.icon" />
     </button>
   </div>
 </template>
@@ -28,14 +20,14 @@ import { ViewMode } from '~/types/ViewMode'
 
 interface Props {
   modelValue: ViewMode
-  disabled?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
-  disabled: false,
-})
+defineProps<Props>()
 
-defineEmits<{
-  'update:modelValue': [value: ViewMode]
-}>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: ViewMode): void }>()
+
+const options = [
+  { value: ViewMode.CARD, label: 'Grid view', icon: 'heroicons:squares-2x2' },
+  { value: ViewMode.TABLE, label: 'List view', icon: 'heroicons:list-bullet' },
+]
 </script>

@@ -1,16 +1,26 @@
 <template>
-  <dialog ref="dialog" class="modal" @cancel="emit('update:open', false)">
-    <div class="modal-box">
-      <h3 class="text-lg font-bold">{{ title }}</h3>
-      <p class="py-4 text-base-content/70">{{ message }}</p>
-      <div class="modal-action">
-        <FormButton label="Cancel" type="ghost" size="sm" :disabled="loading" @click="cancel" />
-        <FormButton :label="confirmLabel" type="error" size="sm" :loading="loading" @click="confirm" />
+  <dialog
+    ref="dialog"
+    class="m-auto w-[min(100%-48px,440px)] rounded-[18px] border border-line bg-surface p-7 text-text shadow-[0_40px_120px_-30px_oklch(0_0_0/0.8)] backdrop:bg-[oklch(0_0_0/0.6)] backdrop:backdrop-blur-xs"
+    @cancel.prevent="cancel"
+    @click.self="cancel"
+  >
+    <div class="flex flex-col gap-3.5">
+      <h2 class="m-0 font-display text-3xl leading-[1.1] font-normal">{{ title }}</h2>
+      <p class="m-0 leading-[1.6] text-muted">{{ message }}</p>
+      <div class="flex justify-end gap-2.5 pt-2">
+        <FormButton label="Cancel" variant="outline" :disabled="loading" @click="cancel" />
+        <button
+          type="button"
+          class="flex items-center gap-2 rounded-full bg-danger px-4.5 py-2.5 text-sm font-medium text-[oklch(0.14_0.03_25)] disabled:opacity-60"
+          :disabled="loading"
+          @click="emit('confirm')"
+        >
+          <Icon v-if="loading" name="mdi:loading" class="animate-spin" />
+          {{ confirmLabel }}
+        </button>
       </div>
     </div>
-    <form method="dialog" class="modal-backdrop">
-      <button @click="cancel">close</button>
-    </form>
   </dialog>
 </template>
 
@@ -28,30 +38,27 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   title: 'Are you sure?',
-  message: 'This action cannot be undone.',
+  message: "This can't be undone.",
   confirmLabel: 'Delete',
   loading: false,
 })
 
 const emit = defineEmits<{
-  'update:open': [value: boolean]
-  'confirm': []
-  'cancel': []
+  (e: 'update:open', value: boolean): void
+  (e: 'confirm'): void
 }>()
 
 const dialog = ref<HTMLDialogElement | null>(null)
 
-function confirm() {
-  emit('confirm')
-}
-
 function cancel() {
   emit('update:open', false)
-  emit('cancel')
 }
 
-watch(() => props.open, (isOpen) => {
-  if (isOpen) dialog.value?.showModal()
-  else dialog.value?.close()
-})
+watch(
+  () => props.open,
+  (isOpen) => {
+    if (isOpen) dialog.value?.showModal()
+    else dialog.value?.close()
+  },
+)
 </script>

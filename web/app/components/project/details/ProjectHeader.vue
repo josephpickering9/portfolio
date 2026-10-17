@@ -1,73 +1,58 @@
 <template>
-  <div class="flex flex-col gap-8">
-    <div v-if="project.bannerUrl" class="h-64 md:h-96 w-full overflow-hidden rounded-xl shadow-sm">
-      <NuxtImg
-        :src="getImageUrl(project.bannerUrl)"
-        :alt="`${project.title} banner`"
-        format="webp"
-        loading="eager"
-        class="h-full w-full object-cover object-center"
-      />
+  <div class="flex flex-col gap-5.5">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <NuxtLink :to="backTo" class="text-sm text-muted">← {{ backLabel }}</NuxtLink>
+      <ClientOnly>
+        <NuxtLink v-if="isAuthenticated" :to="`/projects/${project.slug}/update`" class="flex items-center gap-1.5 text-sm text-muted">
+          <Icon name="heroicons:pencil-square" />
+          Edit project
+        </NuxtLink>
+      </ClientOnly>
     </div>
-
-    <div class="flex flex-col gap-4 px-6 md:px-0">
-      <div class="flex flex-col gap-x-4 gap-y-2 md:flex-row md:items-center justify-between">
-        <div class="flex items-center gap-4">
-          <NuxtImg
-            v-if="project.logoUrl"
-            :src="getImageUrl(project.logoUrl)"
-            :alt="`${project.title} Logo`"
-            placeholder
-            format="webp"
-            class="h-16 w-16 rounded-full shadow-sm ring-1 ring-base-content/10"
-          />
-          <div class="flex flex-col gap-2">
-            <h1 class="text-3xl font-extrabold tracking-tight md:text-4xl lg:text-5xl">{{ project.title }}</h1>
-            <p class="text-lg font-medium text-base-content/60">{{ dateRange }}</p>
-          </div>
-        </div>
-
-        <div class="flex items-center gap-4">
-          <ProjectLinks :project="project" :company="company" />
-
-          <ClientOnly>
-            <NuxtLink
-              v-if="isAuthenticated"
-              :to="`/projects/${project.slug}/update`"
-              class="btn btn-sm btn-ghost"
-          >
-            Edit Project
-          </NuxtLink>
-        </ClientOnly>
-        </div>
-      </div>
+    <span class="eyebrow text-accent">{{ eyebrow }}</span>
+    <h1 class="m-0 font-display text-[clamp(48px,7vw,88px)] leading-[0.95] font-normal tracking-[-0.02em]">{{ project.title }}</h1>
+    <p class="m-0 max-w-180 text-xl leading-[1.55] text-muted">{{ project.shortDescription }}</p>
+    <div v-if="project.website || project.repositories.length" class="flex flex-wrap gap-3">
+      <a
+        v-if="project.website"
+        :href="project.website"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-2 rounded-full bg-accent px-4.5 py-2.5 text-sm font-medium text-accent-ink hover:text-accent-ink hover:opacity-90"
+      >
+        <Icon name="mdi:open-in-new" />
+        Live site
+      </a>
+      <a
+        v-for="repository in project.repositories"
+        :key="repository.id"
+        :href="repository.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-center gap-2 rounded-full border border-line px-4.5 py-2.5 text-sm font-medium text-text"
+      >
+        <Icon name="mdi:github" />
+        {{ repository.title }}
+      </a>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { format, parseISO } from 'date-fns'
-import type { Company, Project } from '@api'
-import { getImageUrl } from '~/utils/image-helper'
+import type { Project } from '@api'
 import useAuth from '~/composables/useAuth'
-import ProjectLinks from './ProjectLinks.vue';
 
-const props = defineProps<{
+interface Props {
   project: Project
-  company?: Company
-}>()
+  eyebrow: string
+  backTo?: string
+  backLabel?: string
+}
+
+withDefaults(defineProps<Props>(), {
+  backTo: '/projects',
+  backLabel: 'All projects',
+})
 
 const { isAuthenticated } = useAuth()
-
-const dateRange = computed(() => {
-  if (!props.project.startDate) return ''
-  
-  const start = format(parseISO(props.project.startDate), 'MMM yyyy')
-  const end = props.project.endDate 
-    ? format(parseISO(props.project.endDate), 'MMM yyyy') 
-    : 'Present'
-    
-  return `${start} - ${end}`
-})
 </script>

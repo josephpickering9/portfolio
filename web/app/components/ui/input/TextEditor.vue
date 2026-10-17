@@ -1,226 +1,165 @@
 <template>
-  <div>
-    <FormElementContainer :label="label" />
-    <div class="textarea textarea-bordered min-h-[20rem] w-full space-y-4">
-      <div v-if="editor" class="flex flex-wrap gap-2">
-        <button
-          :disabled="!editor.can().chain().focus().toggleBold().run()"
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('bold') }"
-          @click="editor.chain().focus().toggleBold().run()"
-        >
-          bold
-        </button>
-        <button
-          :disabled="!editor.can().chain().focus().toggleItalic().run()"
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('italic') }"
-          @click="editor.chain().focus().toggleItalic().run()"
-        >
-          italic
-        </button>
-        <button class="btn btn-outline btn-xs" :class="{ 'btn-active': editor.isActive('paragraph') }" @click="editor.chain().focus().setParagraph().run()">
-          paragraph
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 1 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 1 }).run()"
-        >
-          h1
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 2 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 2 }).run()"
-        >
-          h2
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 3 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 3 }).run()"
-        >
-          h3
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 4 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 4 }).run()"
-        >
-          h4
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 5 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 5 }).run()"
-        >
-          h5
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('heading', { level: 6 }) }"
-          @click="editor.chain().focus().toggleHeading({ level: 6 }).run()"
-        >
-          h6
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('bulletList') }"
-          @click="editor.chain().focus().toggleBulletList().run()"
-        >
-          bullet list
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('orderedList') }"
-          @click="editor.chain().focus().toggleOrderedList().run()"
-        >
-          ordered list
-        </button>
-        <button
-          :disabled="!editor.can().chain().focus().toggleCode().run()"
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('code') }"
-          @click="editor.chain().focus().toggleCode().run()"
-        >
-          code
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('codeBlock') }"
-          @click="editor.chain().focus().toggleCodeBlock().run()"
-        >
-          code block
-        </button>
-        <button
-          class="btn btn-outline btn-xs"
-          :class="{ 'btn-active': editor.isActive('blockquote') }"
-          @click="editor.chain().focus().toggleBlockquote().run()"
-        >
-          blockquote
-        </button>
-        <button class="btn btn-outline btn-xs" @click="editor.chain().focus().setHorizontalRule().run()">horizontal rule</button>
-      </div>
-      <EditorContent :editor="editor" />
+  <div class="overflow-hidden rounded-xl border bg-bg" :class="invalid ? 'border-danger' : 'border-line'">
+    <div v-if="editor" class="flex flex-wrap gap-0.5 border-b border-line p-1.5" role="toolbar" aria-label="Formatting">
+      <button
+        v-for="action in actions"
+        :key="action.label"
+        type="button"
+        class="flex size-9 items-center justify-center rounded-lg text-lg hover:bg-surface2"
+        :class="action.active?.() ? 'bg-surface2 text-accent' : 'text-text'"
+        :title="action.label"
+        :aria-label="action.label"
+        :aria-pressed="action.active?.() ?? undefined"
+        :disabled="disabled"
+        @mousedown.prevent="action.run()"
+      >
+        <Icon :name="action.icon" />
+      </button>
     </div>
+    <form v-if="linkOpen" class="flex items-center gap-2 border-b border-line p-2" @submit.prevent="applyLink">
+      <input
+        ref="linkInput"
+        v-model="linkUrl"
+        type="url"
+        placeholder="https://"
+        aria-label="Link URL"
+        class="min-w-0 flex-1 rounded-lg border border-line bg-surface px-3 py-2 text-sm text-text outline-none focus:border-accent"
+      >
+      <button type="submit" class="rounded-full bg-accent px-3.5 py-2 text-sm font-medium text-accent-ink">Apply</button>
+      <button type="button" class="rounded-full border border-line px-3.5 py-2 text-sm" @click="linkOpen = false">Cancel</button>
+    </form>
+    <EditorContent :id="id" :editor="editor" class="rich-text-editor" :style="{ minHeight: `${minHeight}px` }" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { Editor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
+import { Placeholder } from '@tiptap/extensions'
+import { useFormField } from '~/composables/useFormField'
 
 interface Props {
-  label?: string | null
   modelValue: string
-  placeholder?: string | null
+  placeholder?: string
   disabled?: boolean
+  minHeight?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  label: undefined,
-  placeholder: undefined,
+  placeholder: '',
+  disabled: false,
+  minHeight: 320,
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
 
-const editor = ref<Editor | undefined>(undefined)
+const { id, invalid } = useFormField()
+const editor = ref<Editor>()
+const linkOpen = ref(false)
+const linkUrl = ref('')
+const linkInput = ref<HTMLInputElement | null>(null)
+
+const chain = () => editor.value?.chain().focus()
+
+const actions = [
+  { label: 'Bold', icon: 'mdi:format-bold', run: () => chain()?.toggleBold().run(), active: () => editor.value?.isActive('bold') },
+  { label: 'Italic', icon: 'mdi:format-italic', run: () => chain()?.toggleItalic().run(), active: () => editor.value?.isActive('italic') },
+  {
+    label: 'Bullet list',
+    icon: 'mdi:format-list-bulleted',
+    run: () => chain()?.toggleBulletList().run(),
+    active: () => editor.value?.isActive('bulletList'),
+  },
+  {
+    label: 'Numbered list',
+    icon: 'mdi:format-list-numbered',
+    run: () => chain()?.toggleOrderedList().run(),
+    active: () => editor.value?.isActive('orderedList'),
+  },
+  { label: 'Link', icon: 'mdi:link-variant', run: openLink, active: () => editor.value?.isActive('link') },
+  { label: 'Clear formatting', icon: 'mdi:format-clear', run: () => chain()?.unsetAllMarks().clearNodes().run() },
+]
+
+async function openLink() {
+  linkUrl.value = editor.value?.getAttributes('link')['href'] ?? ''
+  linkOpen.value = true
+  await nextTick()
+  linkInput.value?.focus()
+}
+
+function applyLink() {
+  const href = linkUrl.value.trim()
+  if (href) chain()?.extendMarkRange('link').setLink({ href }).run()
+  else chain()?.extendMarkRange('link').unsetLink().run()
+  linkOpen.value = false
+}
 
 onMounted(() => {
   editor.value = new Editor({
     content: props.modelValue,
-    extensions: [StarterKit],
     editable: !props.disabled,
-    onUpdate: ({ editor }) => {
-      emit('update:modelValue', editor.getHTML())
-    },
+    extensions: [StarterKit.configure({ link: { openOnClick: false } }), Placeholder.configure({ placeholder: props.placeholder })],
+    onUpdate: ({ editor: instance }) => emit('update:modelValue', instance.getHTML()),
   })
 })
 
-onBeforeUnmount(() => {
-  if (editor.value) {
-    editor.value.destroy()
-    editor.value = undefined
-  }
-})
+onBeforeUnmount(() => editor.value?.destroy())
 
+watch(
+  () => props.modelValue,
+  (value) => {
+    if (editor.value && !editor.value.isFocused && value !== editor.value.getHTML()) editor.value.commands.setContent(value)
+  },
+)
 
-watch(() => props.modelValue, (value) => {
-  if (editor.value && !editor.value.isFocused) {
-    editor.value.commands.setContent(value)
-  }
-})
+watch(
+  () => props.disabled,
+  (disabled) => editor.value?.setEditable(!disabled),
+)
 </script>
 
-<style scoped>
-.tiptap > * + * {
-  margin-top: 0.75em;
-}
-
-.tiptap ul,
-.tiptap ol {
-  padding: 0 1rem;
-}
-
-.tiptap h1,
-.tiptap h2,
-.tiptap h3,
-.tiptap h4,
-.tiptap h5,
-.tiptap h6 {
-  line-height: 1.1;
-}
-
-.tiptap p {
-  margin: 1em 0;
-}
-
-.tiptap code {
-  background-color: oklch(var(--bc) / 0.1);
-  color: oklch(var(--bc) / 0.7);
-  border-radius: 0.25rem;
-  padding: 0.1em 0.3em;
-}
-
-.tiptap pre {
-  background: oklch(var(--n));
-  color: oklch(var(--nc));
-  font-family: 'JetBrainsMono', monospace;
-  padding: 0.75rem 1rem;
-  border-radius: 0.5rem;
-}
-
-.tiptap pre code {
-  color: inherit;
-  padding: 0;
-  background: none;
-  font-size: 0.8rem;
-}
-
-.tiptap img {
-  max-width: 100%;
-  height: auto;
-}
-
-.tiptap blockquote {
-  padding-left: 1rem;
-  border-left: 2px solid oklch(var(--bc) / 0.15);
-}
-
-.tiptap hr {
-  border: none;
-  border-top: 2px solid oklch(var(--bc) / 0.15);
-  margin: 2rem 0;
-}
-</style>
-
 <style>
-.ProseMirror-focused {
+.rich-text-editor .ProseMirror {
+  min-height: inherit;
+  padding: 18px 20px;
   outline: none;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rich-text-editor .ProseMirror p {
+  margin: 0;
+}
+
+.rich-text-editor .ProseMirror ul,
+.rich-text-editor .ProseMirror ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.rich-text-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.rich-text-editor .ProseMirror ol {
+  list-style: decimal;
+}
+
+.rich-text-editor .ProseMirror a {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+.rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  float: left;
+  height: 0;
+  pointer-events: none;
 }
 </style>

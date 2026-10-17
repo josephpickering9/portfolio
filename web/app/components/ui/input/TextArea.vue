@@ -1,51 +1,34 @@
 <template>
-  <FormElementContainer :label="label">
-    <textarea
-      v-model="value"
-      :type="type"
-      :placeholder="placeholder"
-      :required="required"
-      :disabled="disabled"
-      class="textarea textarea-bordered w-full"
-    />
-  </FormElementContainer>
+  <textarea
+    :id="id"
+    :value="modelValue ?? ''"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    :rows="rows"
+    :aria-invalid="invalid"
+    :class="[fieldClass, 'resize-y leading-[1.6]']"
+    @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import FormElementContainer from '~/components/ui/form/FormElementContainer.vue'
+import { useFormField } from '~/composables/useFormField'
 
 interface Props {
-  label?: string | null
   modelValue?: string | null
-  placeholder?: string | null
-  type?: string
-  required?: boolean
+  placeholder?: string
   disabled?: boolean
+  rows?: number
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  label: undefined,
+withDefaults(defineProps<Props>(), {
   modelValue: undefined,
   placeholder: undefined,
-  type: 'text',
-  required: false,
   disabled: false,
+  rows: 4,
 })
 
+const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
-
-const value = ref(props.modelValue)
-
-
-watch(() => props.modelValue, (newValue) => {
-  value.value = newValue
-})
-
-watch(value, (newValue) => {
-  emit('update:modelValue', newValue ?? '')
-})
+const { id, invalid, fieldClass } = useFormField()
 </script>

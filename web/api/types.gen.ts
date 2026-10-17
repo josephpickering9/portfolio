@@ -28,14 +28,18 @@ export type CreateProject = {
     title: string;
     shortDescription: string;
     description: string;
+    problemStatement?: string | null;
+    keyDecision?: string | null;
+    outcome?: string | null;
     companyId?: string | null;
-    startDate: string;
+    startDate?: string;
     endDate?: string | null;
     website?: string | null;
-    showMockup: boolean;
+    showMockup?: boolean;
     images?: Array<CreateProjectImage>;
-    tags: Array<string>;
+    tags?: Array<string>;
     repositories?: Array<CreateProjectRepository>;
+    stats?: Array<CreateProjectStat>;
 };
 
 export type CreateProjectImage = {
@@ -49,6 +53,13 @@ export type CreateProjectRepository = {
     id?: string | null;
     title: string;
     url: string;
+    order?: number | null;
+};
+
+export type CreateProjectStat = {
+    id?: string | null;
+    label: string;
+    value: string;
     order?: number | null;
 };
 
@@ -72,6 +83,9 @@ export type Project = {
     title: string;
     shortDescription: string;
     description: string;
+    problemStatement?: string | null;
+    keyDecision?: string | null;
+    outcome?: string | null;
     companyId?: string | null;
     company?: Company;
     startDate: string;
@@ -82,6 +96,7 @@ export type Project = {
     images: Array<ProjectImage>;
     repositories: Array<ProjectRepository>;
     tags: Array<Tag>;
+    stats: Array<ProjectStat>;
     relatedProjects?: Array<Project>;
     logo?: ProjectImage;
     readonly logoUrl?: string | null;
@@ -111,6 +126,14 @@ export type ProjectRepository = {
     id: string;
     title: string;
     url: string;
+    order?: number | null;
+    projectId?: string;
+};
+
+export type ProjectStat = {
+    id: string;
+    label: string;
+    value: string;
     order?: number | null;
     projectId?: string;
 };
@@ -173,6 +196,9 @@ export type ProjectWritable = {
     title: string;
     shortDescription: string;
     description: string;
+    problemStatement?: string | null;
+    keyDecision?: string | null;
+    outcome?: string | null;
     companyId?: string | null;
     company?: Company;
     startDate: string;
@@ -183,6 +209,7 @@ export type ProjectWritable = {
     images: Array<ProjectImage>;
     repositories: Array<ProjectRepository>;
     tags: Array<Tag>;
+    stats: Array<ProjectStat>;
     relatedProjects?: Array<ProjectWritable>;
     logo?: ProjectImage;
     card?: ProjectImage;

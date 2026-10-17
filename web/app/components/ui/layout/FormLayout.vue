@@ -1,46 +1,26 @@
 <template>
-  <div class="flex w-full max-w-5xl flex-col gap-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold">{{ title }}</h1>
-      <div class="flex items-center space-x-2">
-        <slot name="actions-start" />
-        
+  <div class="mx-auto flex w-full max-w-300 flex-col gap-7 px-7 pt-10 pb-30">
+    <div class="flex flex-wrap items-end justify-between gap-5">
+      <div class="flex min-w-0 flex-col gap-2.5">
+        <span class="eyebrow text-accent">{{ eyebrow }}</span>
+        <h1 class="m-0 font-display text-[clamp(40px,5vw,60px)] leading-none font-normal tracking-[-0.02em]">{{ title }}</h1>
+      </div>
+      <div class="flex flex-wrap items-center gap-2.5">
         <FormButton
           v-if="showDelete"
           label="Delete"
-          type="error"
-          size="sm"
-          icon="material-symbols:delete"
+          variant="danger"
+          icon="heroicons:trash"
           :disabled="loading"
-          @click="showDeleteConfirm = true"
+          @click="confirmOpen = true"
         />
-        
-        <slot name="actions-middle" />
-
-        <FormButton 
-          :label="saveLabel" 
-          type="primary" 
-          size="sm" 
-          :disabled="loading" 
-          :loading="loading"
-          @click="$emit('save')" 
-        />
-        
-        <slot name="actions-end" />
+        <FormButton :label="saveLabel" :loading="saving" :disabled="loading" @click="emit('save')" />
       </div>
     </div>
 
-    <div class="w-full">
-      <slot />
-    </div>
+    <slot />
 
-    <ConfirmDialog
-      v-model:open="showDeleteConfirm"
-      title="Delete this?"
-      message="This action cannot be undone."
-      confirm-label="Delete"
-      @confirm="confirmDelete"
-    />
+    <ConfirmDialog v-model:open="confirmOpen" :title="deleteTitle" :loading="saving" @confirm="confirmDelete" />
   </div>
 </template>
 
@@ -50,27 +30,28 @@ import FormButton from '~/components/ui/form/FormButton.vue'
 import ConfirmDialog from '~/components/ui/layout/ConfirmDialog.vue'
 
 interface Props {
+  eyebrow: string
   title: string
-  loading?: boolean
+  saveLabel: string
+  deleteTitle?: string
   showDelete?: boolean
-  saveLabel?: string
+  loading?: boolean
+  saving?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  loading: false,
+  deleteTitle: 'Delete this?',
   showDelete: false,
-  saveLabel: 'Save',
+  loading: false,
+  saving: false,
 })
 
-const emit = defineEmits<{
-  'save': []
-  'delete': []
-}>()
+const emit = defineEmits<{ (e: 'save' | 'delete'): void }>()
 
-const showDeleteConfirm = ref(false)
+const confirmOpen = ref(false)
 
 function confirmDelete() {
-  showDeleteConfirm.value = false
+  confirmOpen.value = false
   emit('delete')
 }
 </script>

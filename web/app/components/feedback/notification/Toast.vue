@@ -1,62 +1,31 @@
 <template>
-  <div v-if="notification" class="alert" :class="typeClass">
+  <div
+    role="status"
+    class="flex items-center gap-2.5 rounded-full border bg-surface2 px-4.5 py-3 text-sm whitespace-nowrap text-text shadow-[0_20px_60px_-20px_oklch(0_0_0/0.7)]"
+    :class="isError ? 'border-danger' : 'border-ok'"
+  >
+    <Icon :name="isError ? 'heroicons:exclamation-triangle' : 'heroicons:check-circle'" size="20" :class="isError ? 'text-danger' : 'text-ok'" />
     <span>{{ notification.message }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { formatDistanceToNow } from 'date-fns'
+import { computed, onMounted } from 'vue'
 import { NotificationType } from '~/types/NotificationType'
 import type { Notification } from '~/types/Notification'
 import { useNotificationStore } from '~/store/NotificationStore'
 
-interface Props {
-  notification?: Notification | null
-}
+const MS_PER_SECOND = 1000
 
-const props = withDefaults(defineProps<Props>(), {
-  notification: null,
-})
+const props = defineProps<{
+  notification: Notification
+}>()
 
-const createdAt = ref<Date | null>(new Date())
-const timeSinceCreated = ref('Just now')
+const notificationStore = useNotificationStore()
 
-const typeClass = computed((): string => {
-  if (!props.notification) return 'alert-info'
-
-  switch (props.notification.type) {
-    case NotificationType.SUCCESS:
-      return 'alert-success'
-    case NotificationType.ERROR:
-      return 'alert-error'
-    case NotificationType.WARNING:
-      return 'alert-warning'
-    case NotificationType.INFO:
-      return 'alert-info'
-    default:
-      return 'alert-info'
-  }
-})
-
-function close() {
-  if (props.notification) {
-    useNotificationStore().removeNotification(props.notification.id)
-  }
-}
+const isError = computed(() => [NotificationType.ERROR, NotificationType.WARNING].includes(props.notification.type))
 
 onMounted(() => {
-  if (!props.notification) return
-
-  const thirtySeconds = 30 * 1000
-  setTimeout(
-    () => () =>
-        setInterval(() => (timeSinceCreated.value = `${formatDistanceToNow(createdAt.value as Date)} ago`), thirtySeconds),
-    thirtySeconds,
-  )
-
-  if (props.notification.seconds) {
-    setTimeout(() => close(), props.notification.seconds * 1000)
-  }
+  setTimeout(() => notificationStore.removeNotification(props.notification.id), props.notification.seconds * MS_PER_SECOND)
 })
 </script>

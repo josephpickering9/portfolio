@@ -1,204 +1,146 @@
 <template>
-  <div class="flex w-full max-w-5xl flex-col gap-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold">{{ isUpdate ? 'Update' : 'New' }} Project</h1>
-      <div class="flex items-center space-x-2">
-        <FormButton
-          v-if="isUpdate"
-          label="Delete"
-          type="error"
-          size="sm"
-          icon="material-symbols:delete"
-          :disabled="loading"
-          @click="showDeleteConfirm = true"
-        />
-        <FormButton label="Save" type="primary" size="sm" :disabled="loading" @click="save" />
+  <FormLayout
+    :eyebrow="isUpdate ? 'Update project' : 'New project'"
+    :title="form.title || (isUpdate ? 'Untitled project' : 'New project')"
+    :save-label="isUpdate ? 'Save changes' : 'Create project'"
+    delete-title="Delete this project?"
+    :show-delete="isUpdate"
+    :loading="loading"
+    :saving="projectStore.projectCreating"
+    @save="save"
+    @delete="remove"
+  >
+    <div v-if="projectStore.projectLoading" class="skeleton-pulse h-130 rounded-panel border border-line bg-surface" aria-hidden="true" />
+    <div v-else class="rounded-panel border border-line bg-surface">
+      <Tabs v-model:active-tab="activeTab" :tabs="tabItems" />
+      <div class="p-7">
+        <div v-show="activeTab === 0" id="tab-panel-0" role="tabpanel" aria-labelledby="tab-0">
+          <ProjectGeneralForm ref="general" v-model="form" :disabled="loading" />
+        </div>
+        <div v-show="activeTab === 1" id="tab-panel-1" role="tabpanel" aria-labelledby="tab-1">
+          <ProjectDescriptionForm ref="description" v-model="form" :project-id="projectId" :disabled="loading" />
+        </div>
+        <div v-show="activeTab === 2" id="tab-panel-2" role="tabpanel" aria-labelledby="tab-2">
+          <ProjectCaseStudyForm ref="caseStudy" v-model="form" :disabled="loading" />
+        </div>
+        <div v-show="activeTab === 3" id="tab-panel-3" role="tabpanel" aria-labelledby="tab-3">
+          <ProjectImagesForm ref="images" v-model="form" v-model:images="imageSlots" :disabled="loading" />
+        </div>
+        <div v-show="activeTab === 4" id="tab-panel-4" role="tabpanel" aria-labelledby="tab-4">
+          <ProjectRepositoriesForm ref="repositories" v-model="form" />
+        </div>
       </div>
     </div>
-
-    <div class="rounded-box w-full bg-base-100 p-6 shadow-xl">
-      <Tabs v-model:active-tab="activeTab" :tabs="['General', 'Description', 'Images', 'Repositories']">
-        <template #default="{ index }">
-          <ProjectGeneralForm v-if="index === 0" ref="projectGeneralForm" v-model="form" />
-          <ProjectDescriptionForm v-if="index === 1" ref="projectDescriptionForm" v-model="form" />
-          <ProjectImagesForm v-if="index === 2" ref="projectImagesForm" v-model="form" />
-          <ProjectRepositoriesForm v-if="index === 3" ref="projectRepositoriesForm" v-model="form" />
-        </template>
-      </Tabs>
-    </div>
-
-    <ConfirmDialog
-      v-model:open="showDeleteConfirm"
-      title="Delete this project?"
-      message="This action cannot be undone."
-      confirm-label="Delete"
-      @confirm="remove"
-    />
-  </div>
+  </FormLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { computed, onMounted, ref, useTemplateRef } from 'vue'
 import { useRouter } from 'vue-router'
-import { useVuelidate } from '@vuelidate/core'
 import { cloneDeep } from 'lodash-es'
+import type { CreateProject } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
 import { useNotificationStore } from '~/store/NotificationStore'
-import type { CreateProject, Project  } from '@api'
 import { defaultProjectForm } from '~/utils/default-helper'
-import FormButton from '~/components/ui/form/FormButton.vue'
-import ConfirmDialog from '~/components/ui/layout/ConfirmDialog.vue'
+import { toProjectImages } from '~/utils/upload-helper'
+import type { ProjectImageSlots } from '~/utils/upload-helper'
+import { projectToForm, projectToImageSlots } from '~/utils/project-form-helper'
+import { getImageUrl } from '~/utils/image-helper'
+import FormLayout from '~/components/ui/layout/FormLayout.vue'
 import Tabs from '~/components/layout/Tabs.vue'
 import ProjectGeneralForm from './ProjectGeneralForm.vue'
+import ProjectDescriptionForm from './ProjectDescriptionForm.vue'
+import ProjectCaseStudyForm from './ProjectCaseStudyForm.vue'
 import ProjectImagesForm from './ProjectImagesForm.vue'
 import ProjectRepositoriesForm from './ProjectRepositoriesForm.vue'
-import ProjectDescriptionForm from './ProjectDescriptionForm.vue'
+
+const TABS = ['General', 'Description', 'Case Study', 'Images', 'Repositories']
 
 interface Props {
-  slug?: string | null
+  slug?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  slug: null,
+  slug: undefined,
 })
 
 const router = useRouter()
 const projectStore = useProjectStore()
 const notificationStore = useNotificationStore()
 
+const sections = [
+  useTemplateRef<InstanceType<typeof ProjectGeneralForm>>('general'),
+  useTemplateRef<InstanceType<typeof ProjectDescriptionForm>>('description'),
+  useTemplateRef<InstanceType<typeof ProjectCaseStudyForm>>('caseStudy'),
+  useTemplateRef<InstanceType<typeof ProjectImagesForm>>('images'),
+  useTemplateRef<InstanceType<typeof ProjectRepositoriesForm>>('repositories'),
+]
+
 const activeTab = ref(0)
 const form = ref<CreateProject>(cloneDeep(defaultProjectForm))
-const validated = ref(false)
-const showDeleteConfirm = ref(false)
+const imageSlots = ref<ProjectImageSlots>({ banner: null, card: null, logo: null, desktop: [], mobile: [] })
 
-// Template Refs
-const projectGeneralForm = ref<InstanceType<typeof ProjectGeneralForm> | null>(null)
-const projectDescriptionForm = ref<InstanceType<typeof ProjectDescriptionForm> | null>(null)
-const projectImagesForm = ref<InstanceType<typeof ProjectImagesForm> | null>(null)
-const projectRepositoriesForm = ref<InstanceType<typeof ProjectRepositoriesForm> | null>(null)
+const isUpdate = computed(() => Boolean(props.slug))
+const projectId = computed(() => (isUpdate.value ? projectStore.project?.id : undefined))
+const loading = computed(() => projectStore.projectCreating || projectStore.projectLoading)
+const tabItems = computed(() => TABS.map((label, index) => ({ label, hasError: sections[index]?.value?.hasErrors ?? false })))
 
+async function validateAll(): Promise<boolean> {
+  const results = await Promise.all(sections.map((section) => section.value?.validate() ?? true))
+  const firstInvalid = results.findIndex((valid) => !valid)
+  if (firstInvalid === -1) return true
 
-const v$ = useVuelidate()
-
-const isUpdate = computed((): boolean => {
-  return props.slug !== null
-})
-
-const project = computed((): Project | undefined => {
-  return projectStore.project
-})
-
-const projectError = computed((): string | undefined => {
-  return projectStore.projectError
-})
-
-const loading = computed((): boolean => {
-  return projectStore.projectCreating || projectStore.projectLoading
-})
-
-const error = computed((): string | undefined => {
-  return projectStore.projectCreateError
-})
-
-async function validate(tab: number): Promise<boolean> {
-  switch (tab) {
-    case 0:
-      return (await projectGeneralForm.value?.validate()) ?? false
-    case 1:
-      return (await projectDescriptionForm.value?.validate()) ?? false
-    case 2:
-      return (await projectImagesForm.value?.validate()) ?? false
-    case 3:
-      return (await projectRepositoriesForm.value?.validate()) ?? false
-    default:
-      return false
-  }
+  activeTab.value = firstInvalid
+  notificationStore.displayErrorNotification('Fix the highlighted fields')
+  return false
 }
 
 async function save() {
-  for (let tab = 0; tab < 4; tab++) {
-    const isValid = await validate(tab)
-    if (!isValid) {
-      activeTab.value = tab
-      return
-    }
+  if (!(await validateAll())) return
+
+  const payload = { ...form.value, images: toProjectImages(imageSlots.value) }
+  const id = projectId.value
+  if (isUpdate.value && !id) {
+    notificationStore.displayErrorNotification("Couldn't save: the project didn't load. Reload and try again.")
+    return
   }
 
-  let response: Project | undefined
+  const saved = id ? await projectStore.updateProject(id, payload) : await projectStore.createProject(payload)
 
-  if (isUpdate.value) {
-    if (!project.value) return notificationStore.displayErrorNotification('Project not found')
-
-    response = await projectStore.updateProject(project.value.id, form.value)
-  } else {
-    response = await projectStore.createProject(form.value)
+  if (projectStore.projectCreateError || !saved) {
+    notificationStore.displayErrorNotification(projectStore.projectCreateError || "Couldn't save the project")
+    return
   }
 
-  if (!error.value && response) {
-    await projectStore.getProjectBySlug(response.slug)
-    router.push(`/projects/${response.slug}`)
-    notificationStore.displaySuccessNotification(`Project ${isUpdate.value ? 'updated' : 'created'} successfully`)
-  } else {
-    notificationStore.displayErrorNotification(error.value || 'An error occurred')
-  }
+  notificationStore.displaySuccessNotification(`Project ${isUpdate.value ? 'updated' : 'created'} successfully`)
+  router.push(`/projects/${saved.slug}`)
 }
 
 async function remove() {
-  showDeleteConfirm.value = false
-  if (!project.value) return notificationStore.displayErrorNotification('Project not found')
+  const id = projectId.value
+  if (!id) return
 
-  await projectStore.deleteProject(project.value.id)
-
-  if (!error.value) {
-    router.push(`/projects`)
-    notificationStore.displaySuccessNotification(`Project deleted successfully`)
-  } else {
-    notificationStore.displayErrorNotification(error.value || 'An error occurred')
+  await projectStore.deleteProject(id)
+  if (projectStore.projectCreateError) {
+    notificationStore.displayErrorNotification(projectStore.projectCreateError)
+    return
   }
+
+  notificationStore.displaySuccessNotification('Project deleted')
+  router.push('/projects')
 }
 
 onMounted(async () => {
   const slug = props.slug
-  if (slug) {
-    await projectStore.getProjectBySlug(slug)
+  if (!slug) return
 
-    if (!projectError.value && project.value) {
-      form.value.title = project.value.title
-      form.value.shortDescription = project.value.shortDescription
-      form.value.description = project.value.description
-      form.value.companyId = project.value.companyId ?? undefined
-      form.value.startDate = project.value.startDate?.substring(0, 10)
-      form.value.endDate = project.value.endDate?.substring(0, 10)
-      form.value.website = project.value.website ?? ''
-      form.value.showMockup = project.value.showMockup
-      form.value.tags = project.value.tags.map((tag) => tag.title) ?? []
-      form.value.repositories = project.value.repositories ?? []
-      form.value.images = project.value.images.map((image) => {
-        return {
-          id: image.id,
-          type: image.type,
-          image: undefined,
-          order: image.order,
-        }
-      })
-    } else {
-      notificationStore.displayErrorNotification(projectError.value || 'An error occurred')
-    }
-  }
-})
-
-
-watch(activeTab, async (newValue: number, oldValue: number) => {
-  if (oldValue === newValue) return
-  if (validated.value) {
-    validated.value = false
+  const project = await projectStore.getProjectBySlug(slug)
+  if (!project || projectStore.projectError) {
+    notificationStore.displayErrorNotification(projectStore.projectError || "Couldn't load the project")
     return
   }
 
-  const isValid = await validate(oldValue)
-  if (!isValid) {
-    validated.value = true
-    activeTab.value = oldValue
-  }
+  form.value = projectToForm(project)
+  imageSlots.value = projectToImageSlots(project, getImageUrl)
 })
 </script>

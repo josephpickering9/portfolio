@@ -1,15 +1,22 @@
 <template>
-  <div class="flex mx-auto flex-col items-center justify-center gap-12 px-4 pt-8 pb-16 min-h-[85vh] bg-gradient-to-b from-transparent to-base-200/50">
+  <div>
     <HeroSection />
-    <NavigationCards />
+    <FeaturedProjects />
+    <ThisSiteCard />
+    <ContactCta />
   </div>
 </template>
 
 <script setup lang="ts">
 import useMeta from '~/composables/useMeta'
-import NavigationCards from '~/components/home/NavigationCards.vue'
 import HeroSection from '~/components/home/HeroSection.vue'
+import FeaturedProjects from '~/components/home/FeaturedProjects.vue'
+import ThisSiteCard from '~/components/home/ThisSiteCard.vue'
+import ContactCta from '~/components/home/ContactCta.vue'
 
 const { updateMeta } = useMeta()
-updateMeta({ title: 'Home', description: "Welcome to my work experience portfolio." })
+updateMeta({
+  title: 'Home',
+  description: 'Joseph Pickering, full stack developer. Selected work, case studies and an AI search over my projects.',
+})
 </script>

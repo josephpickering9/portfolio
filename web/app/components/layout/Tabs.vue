@@ -1,40 +1,35 @@
 <template>
-  <div class="tabs tabs-lifted">
-    <template v-for="(tab, index) in tabs" :key="index">
-      <input
-        type="radio"
-        role="tab"
-        class="tab [--tab-border-color:#4B5563]"
-        :class="{ 'tab-active': index === activeTab }"
-        :aria-label="tab"
-        :checked="index === activeTab"
-        @click="setActiveTab(index)"
-      >
-
-      <div role="tabpanel" class="tab-content w-full overflow-x-hidden rounded-box border-gray-600 p-6">
-        <slot :index="index" />
-      </div>
-    </template>
+  <div role="tablist" class="flex gap-1 overflow-x-auto border-b border-line p-2">
+    <button
+      v-for="(tab, index) in tabs"
+      :id="`tab-${index}`"
+      :key="tab.label"
+      type="button"
+      role="tab"
+      :aria-selected="index === activeTab"
+      :aria-controls="`tab-panel-${index}`"
+      class="flex items-center gap-2 rounded-[10px] px-4 py-2.5 text-sm font-medium whitespace-nowrap"
+      :class="index === activeTab ? 'bg-surface2 text-text' : 'text-muted hover:text-text'"
+      @click="emit('update:activeTab', index)"
+    >
+      {{ tab.label }}
+      <span v-if="tab.hasError" class="size-1.75 rounded-full bg-danger" aria-label="Has errors" />
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
+export interface TabItem {
+  label: string
+  hasError?: boolean
+}
+
 interface Props {
-  tabs?: string[]
-  activeTab?: number
+  tabs: TabItem[]
+  activeTab: number
 }
 
-withDefaults(defineProps<Props>(), {
-  tabs: () => [],
-  activeTab: 0,
-})
+defineProps<Props>()
 
-
-const emit = defineEmits<{
-  'update:activeTab': [value: number]
-}>()
-
-function setActiveTab(index: number) {
-  emit('update:activeTab', index)
-}
+const emit = defineEmits<{ (e: 'update:activeTab', value: number): void }>()
 </script>

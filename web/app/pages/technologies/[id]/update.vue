@@ -1,16 +1,17 @@
 <template>
-  <div class="flex w-full flex-col items-center px-4">
-    <TagForm :id="$route.params.id" />
-  </div>
+  <TagForm :id="id" />
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
 import useMeta from '~/composables/useMeta'
 import TagForm from '~/components/tag/form/TagForm.vue'
 
 definePageMeta({ middleware: 'auth' })
 
-const { updateMeta } = useMeta()
+const route = useRoute()
+const id = String(route.params['id'])
 
-updateMeta({ title: 'Update Tag', description: 'Update an existing tag' })
+const { updateMeta } = useMeta()
+updateMeta({ title: 'Update technology' })
 </script>

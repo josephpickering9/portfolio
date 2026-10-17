@@ -1,122 +1,83 @@
 <template>
-  <ul class="timeline timeline-vertical timeline-snap-icon max-md:timeline-compact">
-    <li v-for="(company, index) in sortedCompanies" :key="company.id" v-reveal="{ delay: index * 30 }" class="reveal">
-      <div class="timeline-middle">
-        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-base-100 p-1 shadow-sm ring-1 ring-base-content/10">
-          <NuxtImg v-if="company.logo" :src="getImageUrl(company.logo)" :alt="`${company.name} Logo`" placeholder format="webp" class="h-full w-full object-contain" />
-          <Icon v-else name="mdi:domain" class="h-4 w-4 text-base-content/50" />
-        </div>
-      </div>
-      <div
-        class="mb-10 px-4"
-        :class="[
-          index % 2 === 0 ? 'timeline-start' : 'timeline-end',
-          'timeline-box text-base w-full border-base-content/10 bg-base-100 shadow-sm'
-        ]"
-      >
-        <div class="flex flex-col gap-2 p-3">
-          <div class="flex items-start justify-between gap-2">
-            <div class="flex flex-col gap-0.5">
-              <h3 class="text-lg font-bold text-primary leading-tight">
-                <a v-if="company.website" :href="company.website" target="_blank" class="hover:underline">{{ company.name }}</a>
-                <span v-else>{{ company.name }}</span>
-              </h3>
-              <div class="flex items-center gap-1.5 flex-wrap">
-                <time class="font-mono text-sm text-base-content/50">{{ getDateRange(company) }}</time>
-                <span v-if="getDuration(company)" class="text-sm font-mono text-base-content/50">({{ getDuration(company) }})</span>
-              </div>
-            </div>
-            <FormButton
-              v-if="isAuthenticated"
-              size="xs"
-              label="Edit"
-              icon="material-symbols:edit"
-              :href="`/companies/${company.id}/update`"
-            />
-          </div>
-
-          <div
-            class="company-description prose max-w-none
-                   prose-p:text-base-content/80 prose-p:leading-relaxed prose-p:mb-2
-                   prose-ul:mt-1 prose-ul:text-base-content/75
-                   prose-li:my-0.5 prose-li:leading-relaxed"
-            v-html="company.description"
+  <ol class="m-0 ml-1.5 list-none border-l border-line p-0 pt-1">
+    <template v-if="loading">
+      <li v-for="n in SKELETON_COUNT" :key="n" class="pb-13 pl-9">
+        <Skeleton />
+      </li>
+    </template>
+    <li v-for="company in sortedCompanies" v-else :key="company.id" class="relative flex flex-col gap-3.5 pb-13 pl-9">
+      <span
+        class="absolute top-4 -left-1.75 size-3.25 rounded-full border-2 border-accent bg-bg shadow-[0_0_16px_var(--glow)]"
+        aria-hidden="true"
+      />
+      <div class="flex flex-wrap items-center gap-4">
+        <div class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-surface2">
+          <NuxtImg
+v-if="company.logo"
+            format="webp"
+            :src="getImageUrl(company.logo)"
+            :alt="company.name"
+            width="48"
+            height="48"
+            fit="cover"
+            class="size-full object-cover"
           />
-
-          <div v-if="getCompanyProjects(company.id).length" class="mt-1 flex flex-wrap gap-1.5">
-            <NuxtLink
-              v-for="project in getCompanyProjects(company.id)"
-              :key="project.id"
-              :to="`/projects/${project.slug}`"
-              class="badge badge-neutral badge-sm gap-1 no-underline hover:badge-primary"
-            >
-              {{ project.title }}
-            </NuxtLink>
-            <NuxtLink
-              :to="`/projects?company=${company.id}`"
-              class="badge badge-ghost badge-sm gap-1 no-underline hover:badge-primary opacity-60 hover:opacity-100"
-            >
-              View all
-            </NuxtLink>
-          </div>
+          <Icon v-else name="mdi:domain" size="22" class="text-muted" />
         </div>
+        <div class="flex flex-col gap-1">
+          <component
+            :is="company.website ? 'a' : 'span'"
+            :href="company.website || undefined"
+            :target="company.website ? '_blank' : undefined"
+            :rel="company.website ? 'noopener noreferrer' : undefined"
+            class="font-display text-[32px] leading-none text-text"
+          >
+            {{ company.name }}
+          </component>
+          <span class="font-mono text-[13px] text-muted">{{ formatDateRange(company.startDate, company.endDate) || UNDATED_LABEL }}</span>
+        </div>
+        <ClientOnly>
+          <NuxtLink v-if="isAuthenticated" :to="`/companies/${company.id}/update`" class="ml-auto text-sm text-muted">Edit</NuxtLink>
+        </ClientOnly>
       </div>
-      <hr v-if="index !== sortedCompanies.length - 1" class="bg-base-content/10" >
+      <div class="rich-text max-w-170 leading-[1.7]" v-html="company.description" />
+      <div v-if="projectsByCompany(company.id).length" class="flex flex-wrap gap-2">
+        <NuxtLink
+          v-for="project in projectsByCompany(company.id)"
+          :key="project.id"
+          :to="`/projects/${project.slug}`"
+          class="rounded-full bg-surface2 px-3 py-1.5 text-[13px] text-text transition-colors duration-200 hover:bg-accent hover:text-accent-ink"
+        >
+          {{ project.title }}
+        </NuxtLink>
+      </div>
     </li>
-  </ul>
+  </ol>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { compareDesc, parseISO } from 'date-fns'
-import type { Company, Project  } from '@api'
+import type { Company, Project } from '@api'
 import { getImageUrl } from '~/utils/image-helper'
-import { getDateRange, getDuration } from '~/utils/date-helper'
+import { formatDateRange } from '~/utils/date-helper'
+import { sortCompaniesNewestFirst } from '~/utils/company-helper'
 import useAuth from '~/composables/useAuth'
-import FormButton from '~/components/ui/form/FormButton.vue'
+import Skeleton from '~/components/feedback/loading/Skeleton.vue'
+
+const SKELETON_COUNT = 3
+const UNDATED_LABEL = 'Side projects and freelance work'
 
 const props = defineProps<{
   companies: Company[]
   projects: Project[]
+  loading: boolean
 }>()
 
 const { isAuthenticated } = useAuth()
 
-const sortedCompanies = computed(() => {
-  return [...props.companies].sort((a, b) => {
-    // Sort by start date descending (newest first)
-    // Handle null dates by placing them at the end
-    if (!a.startDate && !b.startDate) return 0
-    if (!a.startDate) return 1
-    if (!b.startDate) return -1
-    return compareDesc(parseISO(a.startDate), parseISO(b.startDate))
-  })
-})
+const sortedCompanies = computed(() => sortCompaniesNewestFirst(props.companies))
 
-function getCompanyProjects(companyId: string): Project[] {
-  return props.projects.filter(p => p.companyId === companyId)
+function projectsByCompany(companyId: string): Project[] {
+  return props.projects.filter((project) => project.companyId === companyId)
 }
-
 </script>
-
-<style scoped>
-.company-description {
-  text-align: left;
-}
-
-.company-description :deep(ul) {
-  border-top: 1px solid oklch(var(--bc) / 0.1);
-  padding-top: 0.5rem;
-  margin-top: 0.5rem;
-  padding-left: 1.25rem;
-  list-style-type: disc;
-}
-
-.company-description :deep(li) {
-  padding-left: 0.25rem;
-}
-
-.company-description :deep(p:has(+ ul)) {
-  margin-bottom: 0;
-}
-</style>

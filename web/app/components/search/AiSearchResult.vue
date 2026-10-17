@@ -1,205 +1,137 @@
 <template>
-  <div class="w-full animate-fade-in-up">
-    <div v-if="loading" class="w-full flex flex-col items-center gap-6 py-12">
-      <div class="relative w-20 h-20">
-          <div class="absolute inset-0 border-4 border-base-content/10 rounded-full"/>
-          <div class="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"/>
-          <div class="absolute inset-0 flex items-center justify-center">
-              <Icon name="heroicons:sparkles" class="w-8 h-8 text-primary animate-pulse" />
-          </div>
-      </div>
-      <p class="text-lg font-medium text-base-content/60 animate-pulse">Generating answer...</p>
+  <div class="relative flex flex-col gap-5.5 rounded-[18px] border border-line bg-surface p-6.5 [view-transition-name:ai-search-answer]">
+    <div class="flex flex-wrap items-baseline justify-between gap-3">
+      <span class="flex-[1_1_300px] font-display text-[28px] leading-[1.15] text-balance">{{ question }}</span>
+      <button type="button" class="rounded-full border border-line px-3 py-1.75 text-[13px] text-muted hover:text-text" @click="emit('reset')">
+        New search
+      </button>
     </div>
 
-    <div v-else-if="result" class="grid gap-6">
-      <div class="card bg-base-100 shadow-xl border border-base-content/5 overflow-hidden">
-        <div class="h-2 w-full bg-gradient-to-r from-primary via-secondary to-primary bg-size-200 animate-gradient"/>
-        <div class="card-body p-5 md:p-10">
-          <div class="flex items-start gap-4 md:gap-6">
-            <div class="flex-shrink-0">
-              <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Icon name="heroicons:chat-bubble-bottom-center-text" class="!w-6 !h-6 !text-primary" />
-              </div>
+    <div v-if="thinking" class="flex flex-col gap-3.5" aria-live="polite">
+      <div class="flex items-center gap-3 text-sm text-muted">
+        <span class="flex gap-1.5" aria-hidden="true">
+          <span
+            v-for="dot in 3"
+            :key="dot"
+            class="size-2 rounded-full bg-accent"
+            :style="{ animation: `pf-dot 1.2s ${(dot - 1) * 0.15}s ease-in-out infinite` }"
+          />
+        </span>
+        <span>Searching my projects…</span>
+      </div>
+      <div v-for="width in SHIMMER_WIDTHS" :key="width" class="skeleton-pulse h-3.5 rounded-md bg-surface2" :style="{ width }" />
+    </div>
+
+    <div
+      v-else-if="error"
+      class="flex flex-wrap items-center justify-between gap-3.5 rounded-xl border border-line bg-surface2 px-4.5 py-4"
+      role="alert"
+    >
+      <div class="flex items-center gap-2.5">
+        <Icon name="heroicons:exclamation-triangle" size="20" class="text-accent" />
+        <span>AI search is unavailable right now.</span>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" class="rounded-full bg-accent px-3.5 py-2 text-sm font-medium text-accent-ink" @click="emit('retry')">
+          Try again
+        </button>
+        <NuxtLink to="/projects" class="rounded-full border border-line px-3.5 py-2 text-sm">Browse projects</NuxtLink>
+      </div>
+    </div>
+
+    <template v-else-if="answer">
+      <div class="rich-text text-[17px] leading-[1.7]" aria-live="polite">
+        <div class="contents" v-html="renderedAnswer" />
+        <span v-if="revealing" class="text-accent" aria-hidden="true">▍</span>
+      </div>
+
+      <div v-if="!revealing && citations.length" class="flex flex-col gap-3 border-t border-line pt-5">
+        <span class="eyebrow text-muted">{{ citations.length }} cited {{ citations.length === 1 ? 'project' : 'projects' }}</span>
+        <div class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,220px),1fr))] gap-3">
+          <NuxtLink
+            v-for="project in citations"
+            :key="project.slug"
+            :to="`/projects/${project.slug}`"
+            class="flex flex-col overflow-hidden rounded-xl border border-line bg-bg text-text transition-[border-color,transform] duration-300 hover:-translate-y-0.75 hover:border-accent hover:text-text"
+          >
+            <NuxtImg
+v-if="getCardImage(project)"
+              format="webp"
+              :src="getImageUrl(getCardImage(project))"
+              :alt="project.title"
+              sizes="100vw sm:50vw md:260px"
+              loading="lazy"
+              class="block aspect-video w-full bg-surface2 object-cover object-left-top"
+            />
+            <div v-else class="aspect-video bg-surface2" />
+            <div class="flex flex-col gap-1 px-3.5 py-3">
+              <span class="font-semibold">{{ project.title }}</span>
+              <span class="text-[13px] leading-[1.45] text-muted">{{ project.shortDescription }}</span>
             </div>
-            <div class="flex-1 min-w-0 space-y-4">
-              <div class="flex items-baseline justify-between">
-                <h3 class="font-bold text-xl">Answer</h3>
-                <div class="badge badge-ghost gap-1">
-                  <Icon name="heroicons:check-circle" class="w-3 h-3 text-success" />
-                  Generated by AI
-                </div>
-              </div>
-              <div
-                  class="prose prose-lg max-w-none w-full min-w-0 break-words prose-headings:text-base-content prose-p:text-base-content/90 prose-strong:text-primary"
-                  v-html="parsedAnswer"
-              />
-              <div v-if="!isTyping" class="flex justify-between items-center pt-2 border-t border-base-content/10">
-                <button class="btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-base-content" @click="$emit('reset')">
-                  <Icon name="heroicons:arrow-path" class="w-4 h-4" />
-                  Ask another question
-                </button>
-                <button class="btn btn-sm btn-ghost rounded-full transition-all duration-200" :class="{ 'copy-pulse': copied }" :title="copied ? 'Copied!' : 'Copy'" @click="copyToClipboard">
-                  <Icon :name="copied ? 'heroicons:check' : 'heroicons:clipboard'" class="w-4 h-4" :class="copied ? 'text-success' : ''" />
-                </button>
-              </div>
-            </div>
-          </div>
+          </NuxtLink>
         </div>
       </div>
-
-      <div v-if="!isTyping && (citations?.length || citationsLoading)" class="mt-4 space-y-4">
-          <h4 class="font-bold text-lg flex items-center gap-2">
-              <Icon name="heroicons:document-text" class="w-5 h-5 text-primary" />
-              Referenced Projects
-          </h4>
-          
-          <div v-if="citationsLoading" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div v-for="i in 2" :key="i" class="card bg-base-100 shadow-xl h-64 animate-pulse">
-                  <div class="h-48 bg-base-200"/>
-                  <div class="card-body p-4 space-y-2">
-                      <div class="h-4 bg-base-200 rounded w-3/4"/>
-                      <div class="h-3 bg-base-200 rounded w-full"/>
-                  </div>
-              </div>
-          </div>
-          
-          <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up" style="animation-delay: 200ms;">
-              <ProjectListItem 
-                  v-for="project in citations" 
-                  :key="project.id" 
-                  :project="project"
-              />
-          </div>
-      </div>
-
-    </div>
-    
-    <div v-if="error" class="alert alert-error shadow-lg rounded-2xl mt-6 animate-shake">
-      <Icon name="heroicons:exclamation-circle" class="w-6 h-6" />
-      <div class="flex-1">
-          <h3 class="font-bold">Error</h3>
-          <div class="text-xs">{{ error }}</div>
-      </div>
-      <button class="btn btn-sm btn-ghost" @click="$emit('dismiss-error')">Dismiss</button>
-    </div>
+      <span v-else-if="!revealing && !citationsLoading" class="text-sm text-muted">No projects were cited for this answer.</span>
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
-import { marked } from 'marked'
-import ProjectListItem from '~/components/project/list/ProjectListItem.vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { Project } from '@api'
+import { getImageUrl } from '~/utils/image-helper'
+import { getCardImage } from '~/utils/project-helper'
+import { renderBasicMarkdown } from '~/utils/markdown-helper'
+
+const SHIMMER_WIDTHS = ['92%', '78%', '64%']
+const CHARS_PER_TICK = 7
+const TICK_MS = 16
 
 const props = defineProps<{
-  loading: boolean
-  result: string | null
-  error: string | undefined | null
+  question: string
+  thinking: boolean
+  error: boolean
+  answer: string
   citations: Project[]
   citationsLoading: boolean
 }>()
 
 const emit = defineEmits<{
-  (e: 'reset' | 'dismiss-error'): void
+  (e: 'reset' | 'retry'): void
 }>()
 
-const displayedAnswer = ref('')
-const isTyping = ref(false)
-const copied = ref(false)
-let typeInterval: NodeJS.Timeout | null = null
+const shown = ref(0)
+let timer: ReturnType<typeof setInterval> | undefined
 
-const parsedAnswer = computed(() => {
-    const text = displayedAnswer.value
-    const textWithCursor = isTyping.value ? text + '<span class="inline-block w-2 h-4 bg-primary ml-1 animate-pulse" style="vertical-align: middle;"></span>' : text
-    return marked.parse(textWithCursor)
-})
+const revealing = computed(() => shown.value < props.answer.length)
+const renderedAnswer = computed(() => renderBasicMarkdown(props.answer.slice(0, shown.value)))
 
-watch(() => props.result, (newVal) => {
-  if (newVal) {
-    typeAnswer(newVal)
-  } else {
-    displayedAnswer.value = ''
-    if (typeInterval) clearInterval(typeInterval)
+function stopReveal() {
+  if (timer) clearInterval(timer)
+  timer = undefined
+}
+
+function startReveal() {
+  stopReveal()
+  shown.value = 0
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shown.value = props.answer.length
+    return
   }
-})
-
-function typeAnswer(text: string) {
-  isTyping.value = true
-  displayedAnswer.value = ''
-  let i = 0
-
-  if (typeInterval) clearInterval(typeInterval)
-
-  const CHARS_PER_TICK = 4
-  const TICK_MS = 30
-
-  typeInterval = setInterval(() => {
-    if (i < text.length) {
-      i = Math.min(i + CHARS_PER_TICK, text.length)
-      displayedAnswer.value = text.slice(0, i)
-    } else {
-      displayedAnswer.value = text
-      if (typeInterval) clearInterval(typeInterval)
-      isTyping.value = false
-    }
+  timer = setInterval(() => {
+    shown.value = Math.min(props.answer.length, shown.value + CHARS_PER_TICK)
+    if (!revealing.value) stopReveal()
   }, TICK_MS)
 }
 
-function copyToClipboard() {
-    if (props.result) {
-        navigator.clipboard.writeText(props.result)
-        copied.value = true
-        setTimeout(() => { copied.value = false }, 2000)
-    }
-}
+watch(
+  () => props.answer,
+  (answer) => {
+    if (answer) startReveal()
+    else stopReveal()
+  },
+  { immediate: true },
+)
 
-onUnmounted(() => {
-  if (typeInterval) clearInterval(typeInterval)
-})
+onBeforeUnmount(stopReveal)
 </script>
-
-<style scoped>
-.bg-size-200 {
-  background-size: 200% 200%;
-}
-
-@keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.animate-gradient {
-  animation: gradient 3s ease infinite;
-}
-
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in-up {
-  opacity: 0;
-  animation: fadeInUp 0.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  75% { transform: translateX(5px); }
-}
-
-.animate-shake {
-  animation: shake 0.4s ease-in-out;
-}
-
-@keyframes copy-bounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.3); }
-  100% { transform: scale(1); }
-}
-
-.copy-pulse {
-  animation: copy-bounce 0.35s cubic-bezier(0.25, 1, 0.5, 1);
-}
-</style>

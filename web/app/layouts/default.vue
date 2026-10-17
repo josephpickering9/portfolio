@@ -1,15 +1,14 @@
 <template>
-  <div class="flex min-h-dvh flex-col">
-    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-primary focus:text-primary-content focus:font-semibold">
+  <div class="flex min-h-dvh flex-col bg-bg text-text">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:font-medium focus:text-accent-ink"
+    >
       Skip to content
     </a>
     <HeaderBar />
-    <main id="main-content" class="flex flex-grow overflow-hidden overflow-y-auto">
-      <div class="container mx-auto flex flex-grow flex-col overflow-hidden">
-        <div class="relative flex w-full flex-grow">
-          <slot />
-        </div>
-      </div>
+    <main id="main-content" class="flex grow flex-col">
+      <slot />
     </main>
     <FooterBar />
   </div>

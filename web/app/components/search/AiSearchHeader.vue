@@ -1,34 +1,30 @@
 <template>
-  <div 
-    class="text-center pt-2 space-y-2 md:space-y-4 transition-all duration-500 delay-100"
-    :class="[hasSearched ? 'opacity-0 h-0 overflow-hidden' : 'opacity-100 h-auto']"
-  >
-    <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-3xl mb-4 animate-float">
-      <Icon name="heroicons:sparkles" class="w-12 h-12 text-primary" />
-    </div>
-    <h1 class="text-3xl md:text-5xl font-bold text-primary">
-      Ask my AI Assistant
+  <div class="relative flex flex-col items-center gap-4 text-center">
+    <span
+      v-if="!compact"
+      class="flex size-16 items-center justify-center rounded-full border border-line bg-surface text-[30px] text-accent shadow-[0_0_40px_var(--glow)]"
+      aria-hidden="true"
+    >
+      <Icon name="mdi:robot-happy-outline" />
+    </span>
+    <h1
+      class="m-0 font-display font-normal [view-transition-name:ai-search-title]"
+      :class="compact ? 'text-[44px] leading-none tracking-[-0.01em]' : 'text-[clamp(48px,7vw,88px)] leading-[0.95] tracking-[-0.02em]'"
+    >
+      Ask about my work
     </h1>
-    <p class="text-lg text-base-content/60 max-w-md mx-auto">
-      Explore my experience, projects &amp; skills.
+    <p v-if="!compact" class="m-0 max-w-160 text-[19px] leading-[1.55] text-muted">
+      Ask questions about my work experience, projects and skills
     </p>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  hasSearched: boolean
-}>()
+interface Props {
+  compact?: boolean
+}
+
+withDefaults(defineProps<Props>(), {
+  compact: false,
+})
 </script>
-
-<style scoped>
-@keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
-  100% { transform: translateY(0px); }
-}
-
-.animate-float {
-  animation: float 6s ease-in-out infinite;
-}
-</style>
