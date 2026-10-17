@@ -5,13 +5,12 @@ import { asyncForm, tryCatchFinally } from '~/utils/async-helper'
 import type { Project, CreateProject } from '@api'
 import { serializeToFormData } from '~/utils/form-data'
 
-let latestProjectRequest = 0
-
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({
     projectsForm: asyncForm<Project[]>(),
     projectForm: asyncForm<Project>(),
     projectCreateForm: asyncForm<Project>(),
+    latestProjectRequest: 0,
   }),
   getters: {
     projects: (state) => state.projectsForm.data ?? [],
@@ -41,13 +40,13 @@ export const useProjectStore = defineStore('projectStore', {
     async getProjectBySlug(slug: string): Promise<Project | undefined> {
       if (!slug) return
 
-      const request = ++latestProjectRequest
+      const request = ++this.latestProjectRequest
       const form = ref({ ...asyncForm<Project>(), data: this.projectForm.data })
       this.projectForm.loading = true
       const loaded = await tryCatchFinally(form, async () => {
         return (await getProjectBySlug({ path: { slug } })).data
       })
-      if (request !== latestProjectRequest) return
+      if (request !== this.latestProjectRequest) return
 
       this.projectForm = form.value
       return loaded

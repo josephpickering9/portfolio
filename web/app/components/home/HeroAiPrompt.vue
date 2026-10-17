@@ -15,7 +15,7 @@
       >
       <button type="submit" class="rounded-[10px] bg-accent px-5 py-3 text-[15px] font-medium text-accent-ink">Ask</button>
     </form>
-    <div class="flex min-h-8.25 flex-wrap gap-2">
+    <div class="flex min-h-8.25 flex-wrap gap-2" role="group" aria-label="Suggested questions">
       <button
         v-for="prompt in prompts"
         :key="prompt.text"
@@ -40,13 +40,16 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { ref } from 'vue'
+import { useState } from '#imports'
 import { sampleSize } from 'lodash-es'
 import { aiPrompts, SUGGESTED_PROMPT_COUNT } from '~/data/AiPrompts'
 import type { AiPrompt } from '~/data/AiPrompts'
 
+const PROMPTS_STATE_KEY = 'hero-prompts'
+
 const query = ref('')
-const prompts = ref<AiPrompt[]>([])
+const prompts = useState<AiPrompt[]>(PROMPTS_STATE_KEY, () => sampleSize(aiPrompts, SUGGESTED_PROMPT_COUNT))
 
 function ask(text: string) {
   const question = text.trim()
@@ -57,6 +60,4 @@ function ask(text: string) {
 function shufflePrompts() {
   prompts.value = sampleSize(aiPrompts, SUGGESTED_PROMPT_COUNT)
 }
-
-onMounted(shufflePrompts)
 </script>

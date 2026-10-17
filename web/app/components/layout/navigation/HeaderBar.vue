@@ -19,9 +19,7 @@
       <div class="hidden items-center gap-3 min-[860px]:flex">
         <ThemeController />
         <CvButton />
-        <ClientOnly>
-          <AdminMenu v-if="isAuthenticated" @logout="logout?.()" />
-        </ClientOnly>
+        <AdminMenu v-if="mounted && isAuthenticated" @logout="logout?.()" />
       </div>
 
       <button
@@ -41,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import useAuth from '~/composables/useAuth'
 import { navItems } from '~/data/NavItems'
@@ -54,6 +52,9 @@ const route = useRoute()
 const { isAuthenticated, logout } = useAuth()
 
 const menuOpen = ref(false)
+const mounted = ref(false)
+
+onMounted(() => (mounted.value = true))
 
 function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(`${to}/`)

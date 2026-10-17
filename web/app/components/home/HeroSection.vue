@@ -23,8 +23,8 @@
       </h1>
 
       <p class="m-0 max-w-155 text-[19px] leading-[1.6] text-muted">
-        I work across the stack, from <span class="text-text">Vue, React &amp; TypeScript</span> to
-        <span class="text-text">.NET, C# &amp; Kotlin</span>.
+        {{ yearsExperience }} years working across the stack, from
+        <span class="text-text">Vue, React &amp; TypeScript</span> to <span class="text-text">.NET, C# &amp; Kotlin</span>.
       </p>
 
       <HeroAiPrompt />
@@ -52,5 +52,10 @@ import useLinkedInUrl from '~/composables/useLinkedInUrl'
 import { EMAIL, GITHUB_URL } from '~/data/NavItems'
 import HeroAiPrompt from '~/components/home/HeroAiPrompt.vue'
 
+const CAREER_START = new Date(2016, 6)
+
 const linkedInUrl = useLinkedInUrl()
+const now = new Date()
+const hasReachedAnniversary = now.getMonth() >= CAREER_START.getMonth()
+const yearsExperience = now.getFullYear() - CAREER_START.getFullYear() - (hasReachedAnniversary ? 0 : 1)
 </script>

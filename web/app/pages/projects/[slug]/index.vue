@@ -9,7 +9,7 @@
       <div class="skeleton-pulse aspect-video rounded-2xl border border-line bg-surface" />
     </template>
 
-    <LoadError v-else-if="projectStore.projectError && !project" message="Couldn't load this project. Check your connection and try again." @retry="load" />
+    <LoadError v-else-if="projectStore.projectError && !project" message="Couldn't load this project. Check your connection and try again." @retry="refresh" />
 
     <template v-else-if="project">
       <ProjectHeader
@@ -30,11 +30,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, watch } from 'vue'
+import type { Project } from '@api'
+import { createError, showError, useAsyncData, useRoute } from '#imports'
 import { useProjectStore } from '~/store/ProjectStore'
 import { useCompanyStore } from '~/store/CompanyStore'
 import useMeta from '~/composables/useMeta'
+import useProjectsData from '~/composables/useProjectsData'
+import useCompaniesData from '~/composables/useCompaniesData'
 import { getImageUrl } from '~/utils/image-helper'
 import { formatDateRange } from '~/utils/date-helper'
 import { getNextProject } from '~/utils/project-helper'
@@ -70,32 +73,33 @@ const eyebrow = computed(() => {
   return [owner, formatDateRange(current.startDate, current.endDate)].filter(Boolean).join(' / ')
 })
 
-async function load() {
+async function loadProject(): Promise<Project | null> {
   const loaded = await projectStore.getProjectBySlug(slug.value)
   if (projectStore.projectForm.status === HTTP_NOT_FOUND) {
-    showError({ statusCode: HTTP_NOT_FOUND, statusMessage: 'Project not found' })
-    return
+    throw createError({ statusCode: HTTP_NOT_FOUND, statusMessage: 'Project not found' })
   }
-  if (!loaded || projectStore.projectError) return
-
-  updateMeta({
-    title: loaded.title,
-    description: loaded.shortDescription,
-    image: loaded.cardUrl ? getImageUrl(loaded.cardUrl) : undefined,
-  })
+  return loaded ?? null
 }
 
-onMounted(() => {
-  if (!project.value) load()
-  if (!projectStore.projectsForm.data) projectStore.getProjects()
-  if (!companyStore.companies.length) companyStore.getCompanies()
-})
+useProjectsData()
+useCompaniesData()
+const { error, refresh } = await useAsyncData(() => `project:${slug.value}`, loadProject)
 
-watch(slug, (value) => {
-  if (value) load()
-})
+watch(
+  error,
+  (value) => {
+    if (value?.statusCode === HTTP_NOT_FOUND) showError(value)
+  },
+  { immediate: true },
+)
+
+updateMeta(() => ({
+  title: project.value?.title,
+  description: project.value?.shortDescription,
+  image: project.value?.cardUrl ? getImageUrl(project.value.cardUrl) : undefined,
+}))
 
 onBeforeUnmount(() => {
-  projectStore.projectForm.data = undefined
+  if (projectStore.project?.slug === slug.value) projectStore.projectForm.data = undefined
 })
 </script>

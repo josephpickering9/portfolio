@@ -22,6 +22,8 @@ Nuxt 4 (compatibility v4, `app/` source dir), Vue 3, TypeScript, Tailwind CSS v4
 ## Async / store pattern
 Stores use the `asyncForm<T>()` + `tryCatchFinally` helper pair (`app/utils/async-helper.ts`) to standardize `loading`/`error`/`data` state per action — don't manage those as separate manual refs with try/catch/finally. Stores call the generated API client functions directly (`getProject`, `postProject`, imported `from '@api'`); components and composables never call the generated client directly, only store actions.
 
+Public pages load their data during SSR so crawlers and link unfurlers get real content and meta: shared lists go through `useProjectsData()` / `useCompaniesData()` (lazy `useAsyncData` wrappers around the store actions), and the project page awaits `useAsyncData` keyed by slug. Don't load public-page data in `onMounted` — it only runs in the browser. Pass reactive meta to `updateMeta(() => ({ ... }))` rather than calling it after a fetch. Admin/auth-gated pages stay client-loaded.
+
 Stores are **options-style Pinia stores** (`defineStore(name, { state, getters, actions })`), not setup stores — match this when adding a new store, don't introduce the other style.
 
 ## Directory layout
@@ -44,6 +46,8 @@ Stores are **options-style Pinia stores** (`defineStore(name, { state, getters, 
 
 ## Testing
 Vitest for unit tests (`app/**/*.test.ts`, config in `vitest.config.ts`, run with `yarn test` / `yarn test:watch`) and Playwright for E2E (`e2e/*.spec.ts`, config in `playwright.config.ts`, run with `yarn test:e2e`). Playwright's `webServer` starts `yarn dev` automatically — no need to have the dev server running first, though `E2E_BASE_URL` can point it at an already-running instance. E2E is capped to a single worker (`workers: 1`) because Nuxt's dev-mode SSR serializes under concurrent load and produces flaky timeouts otherwise; if this ever moves to testing a production build, revisit that cap.
+
+Public pages are server-rendered, so markup is visible before Vue attaches event handlers — tests that click or type must navigate with `gotoHydrated` (`e2e/support/navigation.ts`, which waits for the `data-hydrated` mark set by `app/plugins/hydration-marker.client.ts`), not bare `page.goto`.
 
 Auth-gated flows (anything behind `definePageMeta({ middleware: 'auth' })` — the CRUD `new`/`update` pages) redirect to a real Auth0 login with no bypass in this codebase, so they aren't covered by the current E2E suite — only that the redirect itself happens. Covering the authenticated flows would need a test Auth0 tenant/user; treat that as a follow-up, not a gap to silently ignore.
 

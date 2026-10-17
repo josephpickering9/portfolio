@@ -1,4 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
+import { gotoHydrated } from './support/navigation'
 
 function projectLinks(page: Page) {
   return page.locator('[data-testid="project-grid"] a, [data-testid="project-list"] a')
@@ -6,7 +7,7 @@ function projectLinks(page: Page) {
 
 test.describe('Project search & filter', () => {
   test('lists projects and lets a visitor open one', async ({ page }) => {
-    await page.goto('/projects')
+    await gotoHydrated(page, '/projects')
 
     await expect(page.getByRole('heading', { name: 'All projects' })).toBeVisible()
 
@@ -18,7 +19,7 @@ test.describe('Project search & filter', () => {
   })
 
   test('filters the project list by search term and clears back to the full list', async ({ page }) => {
-    await page.goto('/projects')
+    await gotoHydrated(page, '/projects')
 
     await expect(projectLinks(page).first()).toBeVisible()
     const initialCount = await projectLinks(page).count()
@@ -34,7 +35,7 @@ test.describe('Project search & filter', () => {
   })
 
   test('reflects the search term in the URL query string', async ({ page }) => {
-    await page.goto('/projects')
+    await gotoHydrated(page, '/projects')
     await expect(projectLinks(page).first()).toBeVisible()
 
     await page.getByPlaceholder('Search projects').fill('portfolio')
@@ -43,14 +44,14 @@ test.describe('Project search & filter', () => {
   })
 
   test('applies a search term from the URL', async ({ page }) => {
-    await page.goto('/projects?q=this-will-not-match-anything-12345')
+    await gotoHydrated(page, '/projects?q=this-will-not-match-anything-12345')
 
     await expect(page.getByPlaceholder('Search projects')).toHaveValue('this-will-not-match-anything-12345')
     await expect(page.getByText('No projects match.')).toBeVisible()
   })
 
   test('clears the search and type filters from the URL together', async ({ page }) => {
-    await page.goto('/projects?q=this-will-not-match-anything-12345&type=Mobile')
+    await gotoHydrated(page, '/projects?q=this-will-not-match-anything-12345&type=Mobile')
 
     await expect(page.getByText('No projects match.')).toBeVisible()
     await page.getByRole('button', { name: 'Clear filters' }).click()

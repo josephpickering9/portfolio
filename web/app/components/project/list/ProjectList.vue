@@ -52,9 +52,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useProjectStore } from '~/store/ProjectStore'
 import { usePreferencesStore } from '~/store/PreferencesStore'
+import useProjectsData from '~/composables/useProjectsData'
 import { LoadingType } from '~/types/LoadingType'
 import { ViewMode } from '~/types/ViewMode'
 import useAuth from '~/composables/useAuth'
@@ -87,7 +88,5 @@ function load() {
   projectStore.getProjects()
 }
 
-onMounted(() => {
-  if (!projectStore.projectsForm.data) load()
-})
+useProjectsData()
 </script>

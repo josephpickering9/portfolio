@@ -50,9 +50,10 @@ v-if="getCardImage(project)"
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import type { Project } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
+import useProjectsData from '~/composables/useProjectsData'
 import { LoadingType } from '~/types/LoadingType'
 import { getImageUrl } from '~/utils/image-helper'
 import { getCardImage, getTagSummary, padNumber, pickBySlug } from '~/utils/project-helper'
@@ -76,7 +77,5 @@ function load() {
   projectStore.getProjects()
 }
 
-onMounted(() => {
-  if (!projectStore.projectsForm.data) load()
-})
+useProjectsData()
 </script>

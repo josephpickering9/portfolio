@@ -28,10 +28,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useProjectStore } from '~/store/ProjectStore'
 import useAuth from '~/composables/useAuth'
+import useCompaniesData from '~/composables/useCompaniesData'
+import useProjectsData from '~/composables/useProjectsData'
 import PageHeader from '~/components/ui/layout/PageHeader.vue'
 import LoadError from '~/components/feedback/LoadError.vue'
 import CompanyTimeline from '~/components/company/timeline/CompanyTimeline.vue'
@@ -49,5 +51,6 @@ function load() {
   if (!projectStore.projectsForm.data) projectStore.getProjects()
 }
 
-onMounted(load)
+useCompaniesData()
+useProjectsData()
 </script>

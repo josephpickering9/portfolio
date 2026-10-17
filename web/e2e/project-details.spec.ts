@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { gotoHydrated } from './support/navigation'
 
 test.describe('Project details page', () => {
   test('loads a project case study without a console error', async ({ page }) => {
@@ -7,7 +8,7 @@ test.describe('Project details page', () => {
       if (message.type() === 'error') consoleErrors.push(message.text())
     })
 
-    await page.goto('/projects')
+    await gotoHydrated(page, '/projects')
 
     const firstProject = page.locator('[data-testid="project-grid"] a, [data-testid="project-list"] a').first()
     const hasProject = (await firstProject.count()) > 0
@@ -26,12 +27,32 @@ test.describe('Project details page', () => {
     expect(consoleErrors, `console errors on project details page: ${consoleErrors.join('; ')}`).toEqual([])
   })
 
+  test('keeps each project\'s title when navigating to the next project and back', async ({ page }) => {
+    await gotoHydrated(page, '/projects')
+
+    const projectLinks = page.locator('[data-testid="project-grid"] a, [data-testid="project-list"] a')
+    test.skip((await projectLinks.count()) < 2, 'Needs at least two projects seeded')
+    await projectLinks.first().click()
+    const nextProject = page.getByRole('link').filter({ hasText: 'Next project' })
+    await expect(nextProject).toBeVisible()
+    const firstTitle = await page.title()
+    expect(firstTitle).toMatch(/^.+ \| Joseph Pickering$/)
+
+    await nextProject.click()
+    await expect(page).not.toHaveTitle(firstTitle)
+    await expect(page).toHaveTitle(/^.+ \| Joseph Pickering$/)
+
+    await page.goBack()
+    await expect(page).toHaveTitle(firstTitle)
+  })
+
   test('opens screenshots in a lightbox that can be stepped through and closed', async ({ page }) => {
-    await page.goto('/projects')
+    await gotoHydrated(page, '/projects')
 
     const firstProject = page.locator('[data-testid="project-grid"] a, [data-testid="project-list"] a').first()
     test.skip((await firstProject.count()) === 0, 'No projects seeded in this environment')
     await firstProject.click()
+    await expect(page.getByRole('link', { name: '← All projects' })).toBeVisible()
 
     const galleryImages = page.getByTestId('gallery-image')
     const imageCount = await galleryImages.count()

@@ -72,9 +72,9 @@
   --color-glow: var(--glow);
   --color-danger: var(--danger);
   --color-ok: var(--ok);
-  --font-display: 'Instrument Serif', Georgia, serif;
-  --font-sans: 'Geist', system-ui, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --font-display: 'Instrument Serif', 'Instrument Serif Fallback', Georgia, serif;
+  --font-sans: 'Geist', 'Geist Fallback', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Geist Mono Fallback', ui-monospace, monospace;
   --radius-tag: 8px;
   --radius-field: 10px;
   --radius-card: 14px;
@@ -88,6 +88,10 @@
 @font-face { font-family: 'Instrument Serif'; src: url('/fonts/InstrumentSerif-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap; }
 @font-face { font-family: 'Geist'; src: url('/fonts/Geist-Variable.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
 @font-face { font-family: 'Geist Mono'; src: url('/fonts/GeistMono-Variable.woff2') format('woff2'); font-weight: 100 900; font-style: normal; font-display: swap; }
+
+@font-face { font-family: 'Instrument Serif Fallback'; src: local('Georgia'); size-adjust: 76.49%; ascent-override: 129.43%; descent-override: 40.53%; line-gap-override: 0%; }
+@font-face { font-family: 'Geist Fallback'; src: local('Arial'); size-adjust: 105.88%; ascent-override: 86.89%; descent-override: 20.78%; line-gap-override: 9.44%; }
+@font-face { font-family: 'Geist Mono Fallback'; src: local('Courier New'); size-adjust: 99.98%; ascent-override: 92.01%; descent-override: 22%; line-gap-override: 10%; }
 
 @layer base {
   html, body { background: var(--bg); color: var(--text); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
