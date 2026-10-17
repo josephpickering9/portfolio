@@ -43,6 +43,14 @@ jobs:
       - name: Build and Publish
         run: |
           dotnet publish -c Release
+
+      # Self-contained migrations bundle so the server never has to restore/build
+      - name: Build migrations bundle
+        run: |
+          dotnet tool install --global dotnet-ef --version 8.0.22
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          dotnet restore WorkExperienceSearch -r linux-x64
+          dotnet ef migrations bundle --project WorkExperienceSearch --configuration Release --runtime linux-x64 --self-contained -o efbundle
           
       - name: Prepare files for archiving
         run: |
@@ -162,8 +170,10 @@ jobs:
           command_timeout: 30m
           envs: GITHUB_SHA,RELEASE_PATH,RELEASE_BIN_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,DATABASE_CONNECTION_STRING,ROOT_PATH,VERTEX_AI_CREDENTIALS_JSON
           script: |
+            set -e
+
             exec 9>/tmp/work-experience-deploy.lock
-            flock -x -w 1500 9
+            flock -x -w 1500 9 || { echo "Timed out waiting for deploy lock." >&2; exit 1; }
 
             cd "$RELEASE_PATH"
 
@@ -223,7 +233,8 @@ jobs:
 
             export DOTNET_ROOT=/usr/share/dotnet
             export PATH="$PATH:$DOTNET_ROOT:$HOME/.dotnet/tools"
-            dotnet ef database update
+            chmod +x ../efbundle
+            ../efbundle --connection "$DATABASE_CONNECTION_STRING"
 
             # Stop any currently running instance to avoid port conflicts and stale configs
             port_pid=$(lsof -t -i:5000 -sTCP:LISTEN 2>/dev/null | head -n1)
@@ -242,7 +253,8 @@ jobs:
             cd "$RELEASE_BIN_PATH"
             LOG_PATH="${BASE_PATH}/logs"
             mkdir -p "$LOG_PATH"
-            nohup dotnet "WorkExperienceSearch.dll" > "$LOG_PATH/api.log" /dev/null 2>&1 &
+            # Close fd 9 so the long-running API doesn't hold the deploy lock, and detach stdin so SSH can exit
+            nohup dotnet "WorkExperienceSearch.dll" > "$LOG_PATH/api.log" 2>&1 < /dev/null 9>&- &
   
   run-after-hooks:
     name: '${{ matrix.server.name }}: After hook'
