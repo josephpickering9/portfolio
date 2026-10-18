@@ -54,7 +54,8 @@ re-application of the Pulse checklist.
    exactly the drift risk the Pulse ticket calls out.
 
 ### Explicitly decided NOT to do (ticket items considered and rejected for this repo)
-- **Centralized `ErrorCodes.cs` constants file** — backend already models errors
+- ~~**Centralized `ErrorCodes.cs` constants file**~~ — *reversed in the 2026-10-19
+  audit below.* Original reasoning: backend already models errors
   via a typed `ErrorType` enum + free-text messages. This satisfies the ticket's
   actual intent (avoid scattered magic error strings) without adding a redundant
   second layer of error identity. Revisit only if free-text messages start
@@ -189,8 +190,7 @@ mode — this is why the verification step (grep for write-path reuse before
 applying) is mandatory, not optional, in Phase 2.
 
 ## NOT in scope
-- Centralized `ErrorCodes.cs` — explicitly rejected above, revisit only if a real
-  magic-string problem emerges.
+- ~~Centralized `ErrorCodes.cs`~~ — done in the 2026-10-19 audit.
 - Any `docs/engineering/`, `docs/design/`, `docs/product/` documentation work from
   the original Pulse ticket — those trees don't exist in this repo.
 - Re-auditing the ~10 already-satisfied checklist items — covered with evidence
@@ -291,3 +291,53 @@ coverage (behind Auth0) is a real, documented gap rather than a deferred
 TODO — it needs a test Auth0 tenant/user before it can be picked up, which is
 an infrastructure decision for the user to make, not a backlog item to track
 here.
+
+---
+
+## Audit 2 (2026-10-19) — extended Pulse checklist
+
+Re-audited against the full Pulse refactor checklist (7 sections, ~45 items — a
+superset of the 14 items above), using Pulse's `docs/engineering/CODING_STANDARDS.md`
+as the definition of each rule. Branch `refactor/code-quality-audit-2`.
+
+### Reversed decision: error codes
+The extended checklist requires `ErrorCodes.cs` and a frontend `types/errors.ts`, and
+the old contract had a real problem the first audit missed: the frontend displayed
+raw server `ProblemDetails.Detail` text and branched on HTTP status. Now every
+failure body is `{ "error": "<code>" }` (Result failures, validation, 401/403, 429,
+framework client errors, unhandled exceptions), codes live in `Types/ErrorCodes.cs`
+with status mapping in `Extensions/ErrorStatusCodes.cs`, and the frontend maps codes
+to copy in `app/types/errors.ts`. `web/tests/types/errors-contract.spec.ts` fails if
+the two lists drift.
+
+### Backend — fixed
+- `Program.cs` 170 → 39 lines; registrations in `Extensions/*Extensions.cs`; `Utils/` folded into `Extensions/`.
+- `Result<T>` rewritten Pulse-style (`ToOk()` / `ToFail()` / `ToResultOrFail()`); upstream Vertex failures are Results (`upstream_unavailable`, 502), not exceptions; `VertexController` no longer returns `Ok(...)` directly.
+- Every concrete class `sealed` — **enforced** by `ArchitectureTests.ConcreteClasses_ShouldBeSealed`.
+- `is null`, records for DTOs, `IReadOnlyList<T>` returns, primary constructors throughout, `CancellationToken` plumbed controller → repository, no inline fully-qualified types, validator messages are codes.
+- Tracked reads renamed `*TrackedAsync`; all others `AsNoTracking()`. Fixed a real bug: `GET /tag/{slug}` always 500'd after the first audit's AsNoTracking change (include cycle) — now `AsNoTrackingWithIdentityResolution()`.
+- Single typed `HttpClient` (`VertexGenerateContentClient`) via `IHttpClientFactory`.
+- Tests 100 → 205: empty/not-found/401/upstream-failure/rate-limit cases per endpoint group, stubbed Vertex upstream, `ErrorContractTests` pinning code → status.
+
+### Frontend — fixed
+- `unwrap()` on every store call (the generated client returns `{ data, error }`); `tryCatchFinally` catches `unknown` and records `errorCode`.
+- Auto-imports off (`imports: { autoImport: false }`) — explicit imports **enforced** by `vue-tsc`.
+- `no-explicit-any` / `no-non-null-assertion` are ESLint errors — **enforced**.
+- All public pages SSR via `useAsyncData` + `{ lazy: true }` + server-only await (technologies was `onMounted`).
+- Tests moved to `tests/**/*.spec.ts`; 79 → 192 unit tests; E2E selectors → `data-testid`, new specs for home, AI search (mocked upstream), companies, theme/mobile menu.
+- One source for lookup data (`data/TagTypes.ts` keyed by the generated `TagType` enum), shared formatting helpers, `AiStore` split by concern, `<NuxtImg>` in the lightbox, inline styles reduced to CSS-custom-property bindings, Pulse `<script setup>` order.
+- `yarn typecheck` used to always exit 0 (`… | grep -v node_modules || echo`); it is now plain `vue-tsc --noEmit`, and the Web Lint & Test workflow runs typecheck and unit tests (it previously ran only lint).
+
+### Kept as-is, deliberately
+- **Stores and composables stay flat** (`app/store/*Store.ts`) — the documented layout here is one store per domain; one-file subfolders would add nothing.
+- **Formatting helpers stay in `app/utils/*-helper.ts`** rather than a `utils/format/` folder — the rule's intent (no ad-hoc formatting in components) is met.
+- **`VertexCredentialFactory` still throws** on invalid credentials JSON — deploy misconfiguration should fail loudly.
+- **No non-generic `Result`** — the only no-value operation (`OptimiseImagesAsync`) would change its success response from 200 to 204.
+- **Not applicable here:** Hangfire jobs, admin app, `docs/engineering|design|product/*`, `docs/INDEX.md`.
+
+### Open — needs a decision or a separate PR
+- **DESIGN.md mismatches** (reported, not changed — design changes need approval): featured slug list differs from DESIGN.md (glasgow-retina vs Asurafin); confirm-dialog Delete text is a hardcoded oklch with no `--danger-ink` token; FileInput overlays use `text-white` / raw black oklch; hover lifts beyond the one authored moment (gallery tiles, citation cards, list rows); hero AI prompt and search field are rounded rectangles, not pills; company timeline lacks the "View all →" link; accent used more than once per view (TagList group icons, LoadError icon + Retry).
+- **Dependency audit (separate PR):** yarn prod deps have 7 advisories (high: `@vue/server-renderer` <3.5.42, `source-map-js` <1.2.2; moderate: `postcss-selector-parser` <7.1.6); 62 across all deps. Outdated majors: pinia 4 / @pinia/nuxt 1, typescript 7, @nuxtjs/sitemap 9, lint-staged 17. `typescript` and `@types/node` sit in `dependencies` and belong in `devDependencies`. NuGet: no known vulnerabilities; **.NET 8 reaches end of support in November 2026** — the 8 → 10 upgrade (EF Core, Npgsql, ASP.NET packages, Swashbuckle 6 → 10) is the priority.
+- **E2E against local data:** 4 console-error checks fail locally because `_ipx` 404s on upload images missing from the local `wwwroot/uploads`; they need the real uploads.
+- **Auth-gated CRUD E2E** — still needs a test Auth0 tenant/user.
+- `VertexAiOptions.QueryDataStoreSuffix` is unused but still set by workflows/Dockerfile/README; `Models/Project.cs` uses Newtonsoft `[JsonIgnore]`, so System.Text.Json still serialises `Logo`/`Card`/`Banner` (fixing changes the success response).
