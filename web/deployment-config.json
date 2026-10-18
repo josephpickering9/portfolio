@@ -1,0 +1,9 @@
+[
+  {
+    "name": "DigitalOcean",
+    "ip": "134.209.176.250",
+    "username": "root",
+    "password": "",
+    "path": "/var/www/experience/web"
+  }
+]
