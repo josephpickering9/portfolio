@@ -1,21 +1,21 @@
 <template>
   <div class="flex flex-col gap-6">
-    <div v-if="desktopImages.length" class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-5">
+    <div v-if="desktopShots.length" class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] gap-5">
       <button
-        v-for="(image, index) in desktopImages"
-        :key="image"
+        v-for="(shot, index) in desktopShots"
+        :key="shot.src"
         type="button"
         class="block cursor-zoom-in text-left transition-transform duration-300 hover:-translate-y-1"
         :class="{ 'overflow-hidden rounded-xl border border-line bg-surface': !framed }"
-        :aria-label="`View ${title} screenshot ${index + 1} full size`"
+        :aria-label="`View ${shot.alt} full size`"
         data-testid="gallery-image"
         @click="openAt(index)"
       >
         <component :is="framed ? MockupBrowser : 'div'" v-bind="framed ? { size: 'sm' } : {}">
           <NuxtImg
             format="webp"
-            :src="getImageUrl(image)"
-            :alt="`${title} screenshot ${index + 1}`"
+            :src="shot.src"
+            :alt="shot.alt"
             width="560"
             height="350"
             fit="cover"
@@ -27,17 +27,17 @@
         </component>
       </button>
     </div>
-    <div v-if="mobileImages.length" class="flex gap-4 overflow-x-auto pb-2">
+    <div v-if="mobileShots.length" class="flex gap-4 overflow-x-auto pb-2">
       <button
-        v-for="(image, index) in mobileImages"
-        :key="image"
+        v-for="(shot, index) in mobileShots"
+        :key="shot.src"
         type="button"
         class="block shrink-0 cursor-zoom-in rounded-3xl"
-        :aria-label="`View ${title} mobile screenshot ${index + 1} full size`"
+        :aria-label="`View ${shot.alt} full size`"
         data-testid="gallery-image"
-        @click="openAt(desktopImages.length + index)"
+        @click="openAt(desktopShots.length + index)"
       >
-        <MockupPhone :src="getImageUrl(image)" :alt="`${title} mobile screenshot ${index + 1}`" :framed="framed" />
+        <MockupPhone :src="shot.src" :alt="shot.alt" :framed="framed" />
       </button>
     </div>
     <ProjectLightbox v-model:index="openIndex" :images="lightboxImages" />
@@ -46,7 +46,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { getImageUrl } from '~/utils/image-helper'
+import { useImageUrl } from '~/composables/useImageUrl'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 import MockupPhone from '~/components/mockup/MockupPhone.vue'
 import type { LightboxImage } from '~/types/LightboxImage'
@@ -61,20 +61,25 @@ interface Props {
 
 const props = defineProps<Props>()
 
+const { getImageUrl } = useImageUrl()
+
 const openIndex = ref<number | null>(null)
 
-const lightboxImages = computed<LightboxImage[]>(() => [
-  ...props.desktopImages.map((image, i) => ({
+const desktopShots = computed<LightboxImage[]>(() =>
+  props.desktopImages.map((image, index) => ({
     src: getImageUrl(image),
-    alt: `${props.title} screenshot ${i + 1}`,
-    kind: 'desktop' as const,
+    alt: `${props.title} screenshot ${index + 1}`,
+    kind: 'desktop',
   })),
-  ...props.mobileImages.map((image, i) => ({
+)
+const mobileShots = computed<LightboxImage[]>(() =>
+  props.mobileImages.map((image, index) => ({
     src: getImageUrl(image),
-    alt: `${props.title} mobile screenshot ${i + 1}`,
-    kind: 'mobile' as const,
+    alt: `${props.title} mobile screenshot ${index + 1}`,
+    kind: 'mobile',
   })),
-])
+)
+const lightboxImages = computed(() => [...desktopShots.value, ...mobileShots.value])
 
 function openAt(index: number) {
   openIndex.value = index

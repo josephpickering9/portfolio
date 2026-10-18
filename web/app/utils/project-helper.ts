@@ -1,5 +1,7 @@
 import { ImageType } from '@api'
-import type { Project, ProjectImage, Tag, TagType } from '@api'
+import type { Company, Project, ProjectImage, Tag, TagType } from '@api'
+import { formatDateRange } from '~/utils/date-helper'
+import { includesSearch } from '~/utils/string-helper'
 
 const TAG_SUMMARY_COUNT = 4
 
@@ -20,23 +22,14 @@ export function getTagSummary(project: Project): string {
     .join(', ')
 }
 
-export function padNumber(value: number): string {
-  return String(value).padStart(2, '0')
-}
-
 export function pickBySlug(projects: Project[], slugs: string[]): Project[] {
   return slugs.map((slug) => projects.find((project) => project.slug === slug)).filter((project) => project !== undefined)
 }
 
 export function filterProjects(projects: Project[], search: string, type?: TagType): Project[] {
-  const query = search.trim().toLowerCase()
-
   return projects.filter((project) => {
     if (type && !project.tags.some((tag) => tag.type === type)) return false
-    if (!query) return true
-
-    const haystack = [project.title, project.shortDescription, ...project.tags.map((tag) => tag.title)].join(' ').toLowerCase()
-    return haystack.includes(query)
+    return includesSearch([project.title, project.shortDescription, ...project.tags.map((tag) => tag.title)].join(' '), search)
   })
 }
 
@@ -68,29 +61,27 @@ export function countProjectsByTag(projects: Project[]): TagUsage[] {
 }
 
 export function filterTagUsages(usages: TagUsage[], search: string, type?: TagType): TagUsage[] {
-  const query = search.trim().toLowerCase()
-  return usages.filter((usage) => (!type || usage.tag.type === type) && usage.tag.title.toLowerCase().includes(query))
+  return usages.filter((usage) => (!type || usage.tag.type === type) && includesSearch(usage.tag.title, search))
 }
 
 export function getImagesByType(project: Project, type: ImageType): ProjectImage[] {
   return project.images.filter((image) => image.type === type).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 }
 
-export function getHost(url?: string | null): string {
-  return (url ?? '').replace(/^https?:\/\//, '').replace(/\/$/, '')
+export function countProjectsUsingTag(projects: Project[], tagId?: string): number {
+  return projects.filter((project) => project.tags.some((tag) => tag.id === tagId)).length
 }
 
-export default {
-  filterProjects,
-  getTagTypesInUse,
-  getNextProject,
-  countProjectsByTag,
-  filterTagUsages,
-  getImagesByType,
-  getHost,
-  getCardImage,
-  getHeroImage,
-  getTagSummary,
-  padNumber,
-  pickBySlug,
+export function getProjectsForCompany(projects: Project[], companyId: string): Project[] {
+  return projects.filter((project) => project.companyId === companyId)
+}
+
+const PERSONAL_COMPANY = 'Personal'
+const PERSONAL_PROJECT_LABEL = 'Personal project'
+
+export function getProjectEyebrow(project: Project, companies: Company[], isSiteCaseStudy: boolean): string {
+  const companyName = companies.find((company) => company.id === project.companyId)?.name
+  const owner = !companyName || companyName === PERSONAL_COMPANY ? PERSONAL_PROJECT_LABEL : companyName
+  if (isSiteCaseStudy) return `Case study / ${owner}`
+  return [owner, formatDateRange(project.startDate, project.endDate)].filter(Boolean).join(' / ')
 }

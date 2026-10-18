@@ -6,6 +6,7 @@
       :value="modelValue"
       type="search"
       :placeholder="placeholder"
+      data-testid="search-field"
       class="min-w-0 flex-1 border-0 bg-transparent py-3.25 text-[15px] text-text outline-none"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       @keydown.enter="emit('enter')"

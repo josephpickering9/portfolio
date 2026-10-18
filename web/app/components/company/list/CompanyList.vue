@@ -7,14 +7,7 @@
         lede="Companies I've worked with, and the projects I delivered at each."
       />
       <ClientOnly>
-        <NuxtLink
-          v-if="isAuthenticated"
-          to="/companies/new"
-          class="flex items-center gap-2 rounded-full bg-accent px-4 py-2.25 text-sm font-medium text-accent-ink hover:text-accent-ink"
-        >
-          <Icon name="heroicons:plus" />
-          New company
-        </NuxtLink>
+        <FormButton v-if="isAuthenticated" href="/companies/new" label="New company" icon="heroicons:plus" />
       </ClientOnly>
     </div>
 
@@ -23,18 +16,16 @@
       message="Couldn't load companies. Check your connection and try again."
       @retry="load"
     />
-    <CompanyTimeline v-else :companies="companyStore.companies" :projects="projectStore.projects" :loading="loading" />
+    <CompanyTimeline v-else :companies="companyStore.companies" :projects="projectStore.projects" :loading="companyStore.companiesPending" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useProjectStore } from '~/store/ProjectStore'
 import useAuth from '~/composables/useAuth'
-import useCompaniesData from '~/composables/useCompaniesData'
-import useProjectsData from '~/composables/useProjectsData'
 import PageHeader from '~/components/ui/layout/PageHeader.vue'
+import FormButton from '~/components/ui/form/FormButton.vue'
 import LoadError from '~/components/feedback/LoadError.vue'
 import CompanyTimeline from '~/components/company/timeline/CompanyTimeline.vue'
 
@@ -42,15 +33,8 @@ const { isAuthenticated } = useAuth()
 const companyStore = useCompanyStore()
 const projectStore = useProjectStore()
 
-const loading = computed(
-  () => companyStore.companiesLoading || (!companyStore.companiesForm.data && !companyStore.companiesError),
-)
-
 function load() {
   companyStore.getCompanies()
-  if (!projectStore.projectsForm.data) projectStore.getProjects()
+  projectStore.ensureProjects()
 }
-
-useCompaniesData()
-useProjectsData()
 </script>

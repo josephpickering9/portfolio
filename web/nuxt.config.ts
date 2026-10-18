@@ -1,4 +1,5 @@
 import { fileURLToPath, URL } from 'node:url'
+import { defineNuxtConfig } from 'nuxt/config'
 
 function apiImageHosts(): string[] {
   const apiBase = process.env['NUXT_PUBLIC_API_BASE']
@@ -20,6 +21,16 @@ export default defineNuxtConfig({
   },
 
   ssr: true,
+
+  imports: {
+    autoImport: false,
+  },
+
+  typescript: {
+    tsConfig: {
+      include: ['../tests/**/*'],
+    },
+  },
 
   app: {
     head: {
@@ -88,8 +99,6 @@ export default defineNuxtConfig({
   alias: {
     cookie: 'cookie',
     '@api': fileURLToPath(new URL('./api', import.meta.url)),
-    '@types': fileURLToPath(new URL('./types', import.meta.url)),
-    '@mocks': fileURLToPath(new URL('./mocks', import.meta.url)),
   },
 
   sitemap: {

@@ -1,12 +1,12 @@
 <template>
   <div class="flex flex-col gap-7">
     <div class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),1fr))] gap-5">
-      <FormGroup v-for="single in singleSlots" :key="single.key" :label="single.label" :helper="single.hint">
+      <FormGroup v-for="single in SINGLE_SLOTS" :key="single.key" :label="single.label" :helper="single.hint">
         <FileInput v-model="images[single.key]" :aspect="single.aspect" :spec="single.spec" :disabled="disabled" />
       </FormGroup>
     </div>
 
-    <div v-for="gallery in galleries" :key="gallery.key" class="flex flex-col gap-3">
+    <div v-for="gallery in GALLERIES" :key="gallery.key" class="flex flex-col gap-3">
       <div class="flex items-baseline justify-between gap-3">
         <span class="eyebrow tracking-[0.05em] text-muted">{{ gallery.label }} ({{ images[gallery.key].length }})</span>
         <span class="text-[13px] text-muted">Drag to reorder</span>
@@ -42,14 +42,18 @@ import FileInput from '~/components/ui/input/FileInput.vue'
 import FileInputList from '~/components/ui/input/FileInputList.vue'
 import Toggle from '~/components/ui/input/Toggle.vue'
 
-defineProps<{
+interface Props {
   disabled?: boolean
-}>()
+}
+
+withDefaults(defineProps<Props>(), {
+  disabled: false,
+})
 
 const form = defineModel<CreateProject>({ required: true })
 const images = defineModel<ProjectImageSlots>('images', { required: true })
 
-const singleSlots: { key: 'banner' | 'card'; label: string; aspect: string; hint: string; spec: ImageSpec }[] = [
+const SINGLE_SLOTS: { key: 'banner' | 'card'; label: string; aspect: string; hint: string; spec: ImageSpec }[] = [
   {
     key: 'banner',
     label: 'Banner',
@@ -66,7 +70,7 @@ const singleSlots: { key: 'banner' | 'card'; label: string; aspect: string; hint
   },
 ]
 
-const galleries: { key: 'desktop' | 'mobile'; label: string; width: number; aspect: string; hint: string; spec: ImageSpec }[] = [
+const GALLERIES: { key: 'desktop' | 'mobile'; label: string; width: number; aspect: string; hint: string; spec: ImageSpec }[] = [
   {
     key: 'desktop',
     label: 'Desktop',
@@ -87,6 +91,6 @@ const showMockup = computed({
 
 defineExpose({
   validate: async () => true,
-  hasErrors: computed(() => false),
+  hasErrors: false,
 })
 </script>

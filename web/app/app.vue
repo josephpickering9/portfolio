@@ -14,11 +14,12 @@ import { computed } from 'vue'
 import { useThemeStore } from '~/store/ThemeStore'
 import Notifications from '~/components/feedback/notification/Notifications.vue'
 import { useHead } from '#imports'
+import { formatPageTitle } from '~/utils/meta-helper'
 
 const themeStore = useThemeStore()
 
 useHead({
-  title: 'Portfolio | Joseph Pickering',
+  title: formatPageTitle('Portfolio'),
   htmlAttrs: {
     'data-theme': computed(() => themeStore.theme),
   },

@@ -2,7 +2,7 @@
   <div class="relative">
     <div :class="[fieldClass, 'flex flex-wrap items-center gap-1.5 py-2 focus-within:border-accent']" @click="input?.focus()">
       <span v-for="tag in selected" :key="tag.title" class="flex items-center gap-1.5 rounded-full bg-surface2 py-1.25 pr-1.5 pl-2.5 text-[13px]">
-        <Icon :name="iconFor(tag)" />
+        <Icon :name="getTagIcon(tag)" />
         {{ tag.title }}
         <button
           type="button"
@@ -43,7 +43,7 @@
           class="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2.25 text-left text-sm text-text hover:bg-surface"
           @mousedown.prevent="add(tag.title)"
         >
-          <Icon :name="iconFor(tag)" />
+          <Icon :name="getTagIcon(tag)" />
           <span class="flex-1">{{ tag.title }}</span>
           <span class="font-mono text-[11px] text-muted uppercase">{{ tag.type }}</span>
         </button>
@@ -54,12 +54,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import type { Tag } from '@api'
 import { useTagStore } from '~/store/TagStore'
-import { tagTypes } from '~/data/TagTypes'
 import { useFormField } from '~/composables/useFormField'
-
-const MAX_SUGGESTIONS = 8
+import { getTagIcon } from '~/utils/tag-helper'
+import { includesSearch } from '~/utils/string-helper'
 
 interface Props {
   modelValue: string[]
@@ -74,6 +72,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ (e: 'update:modelValue', value: string[]): void }>()
 
+const MAX_SUGGESTIONS = 8
+
 const tagStore = useTagStore()
 const { id, fieldClass } = useFormField()
 
@@ -85,18 +85,13 @@ const selected = computed(() =>
   props.modelValue.map((title) => tagStore.tags.find((tag) => tag.title === title) ?? { title, type: undefined, icon: undefined }),
 )
 
-const suggestions = computed(() => {
-  const search = query.value.trim().toLowerCase()
-  return tagStore.tags
-    .filter((tag) => !props.modelValue.includes(tag.title) && tag.title.toLowerCase().includes(search))
-    .slice(0, MAX_SUGGESTIONS)
-})
+const suggestions = computed(() =>
+  tagStore.tags
+    .filter((tag) => !props.modelValue.includes(tag.title) && includesSearch(tag.title, query.value))
+    .slice(0, MAX_SUGGESTIONS),
+)
 
 const showSuggestions = computed(() => focused.value && suggestions.value.length > 0)
-
-function iconFor(tag: Pick<Tag, 'icon'> & { type?: Tag['type'] }): string {
-  return tag.icon || tagTypes.find((type) => type.value === tag.type)?.icon || 'heroicons:tag'
-}
 
 function add(title: string) {
   emit('update:modelValue', [...props.modelValue, title])
@@ -104,10 +99,7 @@ function add(title: string) {
 }
 
 function remove(title: string) {
-  emit(
-    'update:modelValue',
-    props.modelValue.filter((value) => value !== title),
-  )
+  emit('update:modelValue', props.modelValue.filter((value) => value !== title))
 }
 
 function addTopMatch() {
@@ -120,7 +112,5 @@ function removeLastIfEmpty() {
   if (!query.value && last) remove(last)
 }
 
-onMounted(() => {
-  if (!tagStore.tags.length) tagStore.getTags()
-})
+onMounted(() => tagStore.ensureTags())
 </script>

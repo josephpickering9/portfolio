@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatDateRange, formatDuration } from '~/utils/date-helper'
+import { formatDateRange, formatDuration, formatYear, toDateInputValue, wholeYearsSince } from '~/utils/date-helper'
 
 const now = new Date('2026-10-16T12:00:00Z')
 
@@ -32,5 +32,29 @@ describe('formatDateRange', () => {
 
   it('returns an empty string without a start date', () => {
     expect(formatDateRange(undefined, null, now)).toBe('')
+  })
+})
+
+describe('formatYear', () => {
+  it('formats the four-digit year', () => {
+    expect(formatYear(now)).toBe('2026')
+  })
+})
+
+describe('wholeYearsSince', () => {
+  it('counts only completed years', () => {
+    expect(wholeYearsSince(new Date('2016-07-01T00:00:00Z'), now)).toBe(10)
+    expect(wholeYearsSince(new Date('2016-11-01T00:00:00Z'), now)).toBe(9)
+  })
+})
+
+describe('toDateInputValue', () => {
+  it('keeps the date part of an ISO timestamp', () => {
+    expect(toDateInputValue('2024-03-01T00:00:00Z')).toBe('2024-03-01')
+  })
+
+  it('returns undefined for a missing date', () => {
+    expect(toDateInputValue(null)).toBeUndefined()
+    expect(toDateInputValue(undefined)).toBeUndefined()
   })
 })

@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col gap-5.5">
     <div class="flex flex-wrap items-center justify-between gap-4">
-      <NuxtLink :to="backTo" class="text-sm text-muted">← {{ backLabel }}</NuxtLink>
+      <NuxtLink :to="backTo" class="text-sm text-muted" data-testid="project-back-link">← {{ backLabel }}</NuxtLink>
       <ClientOnly>
         <NuxtLink v-if="isAuthenticated" :to="`/projects/${project.slug}/update`" class="flex items-center gap-1.5 text-sm text-muted">
           <Icon name="heroicons:pencil-square" />
@@ -10,7 +10,7 @@
       </ClientOnly>
     </div>
     <span class="eyebrow text-accent">{{ eyebrow }}</span>
-    <h1 class="m-0 font-display text-[clamp(48px,7vw,88px)] leading-[0.95] font-normal tracking-[-0.02em]">{{ project.title }}</h1>
+    <h1 class="m-0 font-display text-[clamp(48px,7vw,88px)] leading-[0.95] font-normal tracking-[-0.02em]" data-testid="project-title">{{ project.title }}</h1>
     <p class="m-0 max-w-180 text-xl leading-[1.55] text-muted">{{ project.shortDescription }}</p>
     <div v-if="project.website || project.repositories.length" class="flex flex-wrap gap-3">
       <a

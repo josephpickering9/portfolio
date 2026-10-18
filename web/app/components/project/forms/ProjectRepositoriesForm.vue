@@ -23,6 +23,7 @@ const repositories = computed({
 })
 
 const errors = computed(() => (submitted.value ? validateRepositories(repositories.value) : {}))
+const hasErrors = computed(() => Object.keys(errors.value).length > 0)
 
 async function validate(): Promise<boolean> {
   submitted.value = true
@@ -31,6 +32,6 @@ async function validate(): Promise<boolean> {
 
 defineExpose({
   validate,
-  hasErrors: computed(() => Object.keys(errors.value).length > 0),
+  hasErrors,
 })
 </script>

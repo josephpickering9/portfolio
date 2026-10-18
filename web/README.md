@@ -52,15 +52,16 @@ Consumes the [Work Experience API](../api) in this repo.
 ```
 app/
 ├── components/     # UI components organised by feature (project/, company/, tag/, ui/, search/)
-├── composables/    # Shared logic (useAuth, useEntityForm, useProjectFilters, useValidation)
+├── composables/    # Shared reactive logic (useAuth, useEntityForm, useSearchFilters, useProjectsData, …)
 ├── pages/          # File-based routing
-├── store/          # Pinia stores — all API calls go through here
-├── types/          # TypeScript type definitions
+├── store/          # Pinia stores — all API calls go through here (tryCatchFinally + unwrap)
+├── types/          # TypeScript type definitions, incl. errors.ts (API error codes → messages)
 ├── utils/          # Pure utility functions (async-helper, form-data, image-helper, etc.)
 └── data/           # Static data (tag types)
 
 api/                # Auto-generated OpenAPI client (do not edit manually)
-e2e/                # Playwright E2E specs
+tests/              # Vitest specs (*.spec.ts), mirroring app/
+e2e/                # Playwright E2E specs (data-testid selectors)
 ```
 
 ## Getting Started
@@ -123,12 +124,12 @@ Fix any resulting TypeScript errors in stores/components that consume the change
 Vitest for unit tests, Playwright for E2E:
 
 ```bash
-yarn test          # Unit tests (app/**/*.test.ts)
+yarn test          # Unit tests (tests/**/*.spec.ts)
 yarn test:watch    # Unit tests in watch mode
 yarn test:e2e      # E2E tests (e2e/*.spec.ts) — starts its own dev server automatically
 ```
 
-E2E coverage is currently the public browsing flows (project search/filter, public page navigation) — the authenticated CMS flows (create/update/delete) sit behind a real Auth0 login with no bypass in this codebase, so they aren't covered yet. See `CLAUDE.md`'s Testing section for details.
+E2E coverage is currently the public flows (home, project search/filter, project details, companies, technologies, AI search with a mocked upstream, theme and mobile menu, public page navigation) — the authenticated CMS flows (create/update/delete) sit behind a real Auth0 login with no bypass in this codebase, so they aren't covered yet. See `CLAUDE.md`'s Testing section for details.
 
 ## Linting
 

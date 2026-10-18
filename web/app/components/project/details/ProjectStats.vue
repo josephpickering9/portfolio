@@ -12,9 +12,11 @@ import { computed } from 'vue'
 import { sortBy } from 'lodash-es'
 import type { ProjectStat } from '@api'
 
-const props = defineProps<{
+interface Props {
   stats: ProjectStat[]
-}>()
+}
+
+const props = defineProps<Props>()
 
 const sortedStats = computed(() => sortBy(props.stats, (stat) => stat.order ?? 0))
 </script>

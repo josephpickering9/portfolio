@@ -1,7 +1,10 @@
-import type { TagType } from "@api"
+import type { TagType } from '@api'
 
-export interface TagTypeValue {
-    value: TagType
-    label: string
-    icon: string
+export interface TagTypeDefinition {
+  label: string
+  icon: string
+}
+
+export interface TagTypeValue extends TagTypeDefinition {
+  value: TagType
 }

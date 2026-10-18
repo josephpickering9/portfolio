@@ -28,7 +28,7 @@
       <button type="submit" class="rounded-full bg-accent px-3.5 py-2 text-sm font-medium text-accent-ink">Apply</button>
       <button type="button" class="rounded-full border border-line px-3.5 py-2 text-sm" @click="linkOpen = false">Cancel</button>
     </form>
-    <EditorContent :id="id" :editor="editor" class="rich-text-editor" :style="{ minHeight: `${minHeight}px` }" />
+    <EditorContent :id="id" :editor="editor" class="rich-text-editor min-h-(--editor-min-height)" :style="{ '--editor-min-height': `${minHeight}px` }" />
   </div>
 </template>
 
@@ -60,7 +60,23 @@ const linkOpen = ref(false)
 const linkUrl = ref('')
 const linkInput = ref<HTMLInputElement | null>(null)
 
-const chain = () => editor.value?.chain().focus()
+function chain() {
+  return editor.value?.chain().focus()
+}
+
+async function openLink() {
+  linkUrl.value = editor.value?.getAttributes('link')['href'] ?? ''
+  linkOpen.value = true
+  await nextTick()
+  linkInput.value?.focus()
+}
+
+function applyLink() {
+  const href = linkUrl.value.trim()
+  if (href) chain()?.extendMarkRange('link').setLink({ href }).run()
+  else chain()?.extendMarkRange('link').unsetLink().run()
+  linkOpen.value = false
+}
 
 const actions = [
   { label: 'Bold', icon: 'mdi:format-bold', run: () => chain()?.toggleBold().run(), active: () => editor.value?.isActive('bold') },
@@ -80,20 +96,6 @@ const actions = [
   { label: 'Link', icon: 'mdi:link-variant', run: openLink, active: () => editor.value?.isActive('link') },
   { label: 'Clear formatting', icon: 'mdi:format-clear', run: () => chain()?.unsetAllMarks().clearNodes().run() },
 ]
-
-async function openLink() {
-  linkUrl.value = editor.value?.getAttributes('link')['href'] ?? ''
-  linkOpen.value = true
-  await nextTick()
-  linkInput.value?.focus()
-}
-
-function applyLink() {
-  const href = linkUrl.value.trim()
-  if (href) chain()?.extendMarkRange('link').setLink({ href }).run()
-  else chain()?.extendMarkRange('link').unsetLink().run()
-  linkOpen.value = false
-}
 
 onMounted(() => {
   editor.value = new Editor({
@@ -120,6 +122,7 @@ watch(
 </script>
 
 <style>
+/* TipTap renders its own ProseMirror DOM, which template utility classes can't reach. */
 .rich-text-editor .ProseMirror {
   min-height: inherit;
   padding: 18px 20px;

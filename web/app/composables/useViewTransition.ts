@@ -1,12 +1,11 @@
 import { nextTick } from 'vue'
+import { useReducedMotion } from '~/composables/useReducedMotion'
 
 export function useViewTransition() {
+  const { prefersReducedMotion } = useReducedMotion()
+
   function canAnimate(): boolean {
-    return (
-      import.meta.client &&
-      typeof document.startViewTransition === 'function' &&
-      !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    )
+    return import.meta.client && typeof document.startViewTransition === 'function' && !prefersReducedMotion()
   }
 
   async function withViewTransition(update: () => void): Promise<void> {

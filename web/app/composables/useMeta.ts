@@ -1,4 +1,9 @@
-import { shallowRef, toValue, watch, type MaybeRefOrGetter } from 'vue'
+import { shallowRef, toValue, watch } from 'vue'
+import type { MaybeRefOrGetter } from 'vue'
+import { useHead, useRuntimeConfig, useSeoMeta } from '#imports'
+import { formatPageTitle } from '~/utils/meta-helper'
+
+const DEFAULT_META_IMAGE = '/meta.png'
 
 interface Meta {
   title?: string
@@ -7,18 +12,21 @@ interface Meta {
 }
 
 export default function useMeta() {
+  const runtimeConfig = useRuntimeConfig()
+
   function updateMeta(meta: MaybeRefOrGetter<Meta>) {
-    const defaultMeta = `${useRuntimeConfig().public.base}/meta.png`
+    const defaultImage = `${runtimeConfig.public.base}${DEFAULT_META_IMAGE}`
     const resolved = shallowRef(toValue(meta))
-    watch(() => toValue(meta), (value) => (resolved.value = value))
+    watch(
+      () => toValue(meta),
+      (value) => (resolved.value = value),
+    )
 
-    const fullTitle = () => (resolved.value.title ? `${resolved.value.title} | Joseph Pickering` : 'Joseph Pickering')
+    const fullTitle = () => formatPageTitle(resolved.value.title)
     const description = () => resolved.value.description
-    const image = () => resolved.value.image || defaultMeta
+    const image = () => resolved.value.image || defaultImage
 
-    useHead({
-      title: fullTitle,
-    })
+    useHead({ title: fullTitle })
 
     useSeoMeta({
       title: fullTitle,

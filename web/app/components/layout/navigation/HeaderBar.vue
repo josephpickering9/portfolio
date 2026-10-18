@@ -19,7 +19,7 @@
       <div class="hidden items-center gap-3 min-[860px]:flex">
         <ThemeController />
         <CvButton />
-        <AdminMenu v-if="mounted && isAuthenticated" @logout="logout?.()" />
+        <AdminMenu v-if="mounted && isAuthenticated" @logout="logout" />
       </div>
 
       <button
@@ -28,6 +28,7 @@
         :aria-label="menuOpen ? 'Close navigation menu' : 'Open navigation menu'"
         :aria-expanded="menuOpen"
         aria-controls="mobile-menu"
+        data-testid="mobile-menu-toggle"
         @click="menuOpen = !menuOpen"
       >
         <Icon :name="menuOpen ? 'mdi:close' : 'mdi:menu'" />
@@ -54,11 +55,11 @@ const { isAuthenticated, logout } = useAuth()
 const menuOpen = ref(false)
 const mounted = ref(false)
 
-onMounted(() => (mounted.value = true))
-
 function isActive(to: string): boolean {
   return route.path === to || route.path.startsWith(`${to}/`)
 }
+
+onMounted(() => (mounted.value = true))
 
 watch(
   () => route.fullPath,

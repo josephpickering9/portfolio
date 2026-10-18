@@ -4,6 +4,7 @@
       :is="preview ? 'div' : NuxtLink"
       :to="preview ? undefined : { path: '/projects', query: { q: tag.title } }"
       class="flex h-full items-center gap-3 rounded-xl border bg-surface p-4 text-text transition-[border-color,box-shadow] duration-200"
+      data-testid="tag-tile"
       :class="[
         highlighted ? 'border-accent shadow-[0_16px_40px_-20px_var(--glow)]' : 'border-line',
         { 'hover:border-accent hover:text-text hover:shadow-[0_16px_40px_-20px_var(--glow)]': !preview },
@@ -12,7 +13,7 @@
       <Icon :name="icon" size="22" class="shrink-0" />
       <span class="flex min-w-0 flex-1 flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
         <span class="font-medium break-words">{{ tag.title || 'Technology' }}</span>
-        <span class="ml-auto font-mono text-xs whitespace-nowrap text-muted">{{ count }} {{ count === 1 ? 'project' : 'projects' }}</span>
+        <span class="ml-auto font-mono text-xs whitespace-nowrap text-muted">{{ formatCount(count, 'project') }}</span>
       </span>
     </component>
     <ClientOnly>
@@ -31,8 +32,9 @@
 <script setup lang="ts">
 import { computed, resolveComponent } from 'vue'
 import type { Tag } from '@api'
-import { tagTypes } from '~/data/TagTypes'
 import useAuth from '~/composables/useAuth'
+import { getTagIcon } from '~/utils/tag-helper'
+import { formatCount } from '~/utils/string-helper'
 
 interface Props {
   tag: Pick<Tag, 'id' | 'title' | 'type' | 'icon'>
@@ -50,5 +52,5 @@ const props = withDefaults(defineProps<Props>(), {
 const { isAuthenticated } = useAuth()
 const NuxtLink = resolveComponent('NuxtLink')
 
-const icon = computed(() => props.tag.icon || tagTypes.find((type) => type.value === props.tag.type)?.icon || 'heroicons:tag')
+const icon = computed(() => getTagIcon(props.tag))
 </script>

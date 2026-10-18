@@ -10,9 +10,11 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+interface Props {
   label: string
-}>()
+}
+
+defineProps<Props>()
 
 const emit = defineEmits<{ (e: 'click'): void }>()
 </script>

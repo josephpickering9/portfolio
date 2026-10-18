@@ -3,15 +3,16 @@ import { ImageType, TagType } from '@api'
 import type { Project } from '@api'
 import {
   countProjectsByTag,
+  countProjectsUsingTag,
   filterProjects,
   filterTagUsages,
   getCardImage,
   getHeroImage,
-  getHost,
   getImagesByType,
   getNextProject,
+  getProjectEyebrow,
+  getProjectsForCompany,
   getTagSummary,
-  padNumber,
   pickBySlug,
 } from '~/utils/project-helper'
 
@@ -60,13 +61,6 @@ describe('getTagSummary', () => {
   it('joins the first four tag titles', () => {
     const tags = ['Vue', 'Nuxt', '.NET', 'C#', 'Docker'].map((title) => tag(title))
     expect(getTagSummary(project({ tags }))).toBe('Vue, Nuxt, .NET, C#')
-  })
-})
-
-describe('padNumber', () => {
-  it('pads single digits to two characters', () => {
-    expect(padNumber(1)).toBe('01')
-    expect(padNumber(12)).toBe('12')
   })
 })
 
@@ -132,13 +126,6 @@ describe('getImagesByType', () => {
   })
 })
 
-describe('getHost', () => {
-  it('strips the protocol and trailing slash', () => {
-    expect(getHost('https://experience.josephpickering.co.uk/')).toBe('experience.josephpickering.co.uk')
-    expect(getHost(undefined)).toBe('')
-  })
-})
-
 describe('filterTagUsages', () => {
   const usages = [
     { tag: tag('TypeScript'), count: 9 },
@@ -172,5 +159,45 @@ describe('getHeroImage', () => {
     expect(getHeroImage(project({ bannerUrl: 'banner.png', cardUrl: 'card.png' }))).toBe('banner.png')
     expect(getHeroImage(project({ cardUrl: 'card.png' }))).toBe('card.png')
     expect(getHeroImage(project())).toBe('')
+  })
+})
+
+describe('countProjectsUsingTag', () => {
+  it('counts the projects that include the tag', () => {
+    const vue = tag('Vue')
+    const projects = [project({ tags: [vue] }), project({ tags: [tag('React')] }), project({ tags: [vue] })]
+    expect(countProjectsUsingTag(projects, vue.id)).toBe(2)
+  })
+
+  it('returns zero without a tag id', () => {
+    expect(countProjectsUsingTag([project({ tags: [tag('Vue')] })], undefined)).toBe(0)
+  })
+})
+
+describe('getProjectsForCompany', () => {
+  it('returns only the projects for that company', () => {
+    const projects = [project({ id: 'a', companyId: 'acme' }), project({ id: 'b', companyId: 'other' })]
+    expect(getProjectsForCompany(projects, 'acme').map((p) => p.id)).toEqual(['a'])
+  })
+})
+
+describe('getProjectEyebrow', () => {
+  const companies = [
+    { id: 'acme', name: 'Acme', slug: 'acme', description: '' },
+    { id: 'me', name: 'Personal', slug: 'personal', description: '' },
+  ]
+
+  it('names the company and the date range', () => {
+    const eyebrow = getProjectEyebrow(project({ companyId: 'acme', startDate: '2024-01-01', endDate: '2024-03-01' }), companies, false)
+    expect(eyebrow).toBe('Acme / Jan 2024 — Mar 2024 (2 months)')
+  })
+
+  it('labels personal and company-less work as a personal project', () => {
+    expect(getProjectEyebrow(project({ companyId: 'me', startDate: undefined }), companies, false)).toBe('Personal project')
+    expect(getProjectEyebrow(project({ companyId: undefined, startDate: undefined }), companies, false)).toBe('Personal project')
+  })
+
+  it('uses the case-study label for this site', () => {
+    expect(getProjectEyebrow(project({ companyId: 'acme' }), companies, true)).toBe('Case study / Acme')
   })
 })

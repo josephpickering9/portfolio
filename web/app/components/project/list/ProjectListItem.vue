@@ -2,10 +2,11 @@
   <NuxtLink
     :to="`/projects/${project.slug}`"
     class="flex flex-col gap-4 text-text transition-transform duration-350 ease-lift hover:-translate-y-1.5 hover:text-text"
+    data-testid="project-card"
   >
     <MockupBrowser size="sm">
       <NuxtImg
-v-if="getCardImage(project)"
+        v-if="getCardImage(project)"
         format="webp"
         :src="getImageUrl(getCardImage(project))"
         :alt="project.title"
@@ -29,7 +30,7 @@ v-if="getCardImage(project)"
 
 <script setup lang="ts">
 import type { Project } from '@api'
-import { getImageUrl } from '~/utils/image-helper'
+import { useImageUrl } from '~/composables/useImageUrl'
 import { getCardImage, getTagSummary } from '~/utils/project-helper'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 
@@ -38,4 +39,6 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const { getImageUrl } = useImageUrl()
 </script>

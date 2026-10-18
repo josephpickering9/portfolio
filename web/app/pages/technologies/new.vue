@@ -3,6 +3,7 @@
 </template>
 
 <script setup lang="ts">
+import { definePageMeta } from '#imports'
 import useMeta from '~/composables/useMeta'
 import TagForm from '~/components/tag/form/TagForm.vue'
 

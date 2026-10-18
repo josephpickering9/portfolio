@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { renderBasicMarkdown, uniqueBy } from '~/utils/markdown-helper'
+import { renderBasicMarkdown } from '~/utils/markdown-helper'
 
 describe('renderBasicMarkdown', () => {
   it('wraps blocks in paragraphs and keeps single line breaks', () => {
@@ -20,16 +20,5 @@ describe('renderBasicMarkdown', () => {
 
   it('escapes HTML', () => {
     expect(renderBasicMarkdown('<img src=x onerror=alert(1)>')).toBe('<p>&lt;img src=x onerror=alert(1)&gt;</p>')
-  })
-})
-
-describe('uniqueBy', () => {
-  it('keeps the first item for each key', () => {
-    const items = [
-      { slug: 'a', n: 1 },
-      { slug: 'b', n: 2 },
-      { slug: 'a', n: 3 },
-    ]
-    expect(uniqueBy(items, (item) => item.slug).map((item) => item.n)).toEqual([1, 2])
   })
 })

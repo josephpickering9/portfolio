@@ -1,33 +1,61 @@
-import type { Ref } from 'vue';
-import type { AsyncForm } from '~/types/AsyncForm';
-import { extractError } from '~/utils/error-helper';
+import type { Ref } from 'vue'
+import type { AsyncForm } from '~/types/AsyncForm'
+import { extractError, extractErrorCode, isCancelledError } from '~/utils/error-helper'
 
-export async function tryCatchFinally<T>(
-    form: Ref<AsyncForm<T>>,
-    fun: () => Promise<T | undefined>
-): Promise<T | undefined> {
-    try {
-        form.value.error = undefined;
-        form.value.status = undefined;
-        form.value.loading = true;
+export class ApiRequestError extends Error {
+  readonly body: unknown
+  readonly status?: number
 
-        const result = await fun();
-        form.value.data = result;
-    } catch (error: any) {
-        if (error?.name === 'CanceledError') return;
-        form.value.error = extractError(error);
-        form.value.status = error?.response?.status;
-    } finally {
-        form.value.loading = false;
-    }
+  constructor(body: unknown, status?: number) {
+    super('API request failed')
+    this.name = 'ApiRequestError'
+    this.body = body
+    this.status = status
+  }
+}
 
-    return form.value.data;
+export interface ApiResult<T> {
+  data?: T
+  error?: unknown
+  name?: string
+  status?: number
+  response?: { status?: number }
+}
+
+export function unwrap<T>(result: ApiResult<T>): T {
+  if (result.error === undefined) return result.data as T
+  if (isCancelledError(result)) throw result
+  throw new ApiRequestError(result.error, result.response?.status ?? result.status)
+}
+
+export async function tryCatchFinally<T>(form: Ref<AsyncForm<T>>, fn: () => Promise<T>): Promise<T | undefined> {
+  form.value.error = undefined
+  form.value.errorCode = undefined
+  form.value.loading = true
+
+  try {
+    const result = await fn()
+    form.value.data = result
+    return result
+  } catch (error: unknown) {
+    if (isCancelledError(error)) return undefined
+    form.value.error = extractError(error)
+    form.value.errorCode = extractErrorCode(error)
+    return undefined
+  } finally {
+    form.value.loading = false
+  }
 }
 
 export function asyncForm<T>(): AsyncForm<T> {
-    return {
-        data: undefined,
-        error: undefined,
-        loading: false,
-    };
+  return {
+    data: undefined,
+    error: undefined,
+    errorCode: undefined,
+    loading: false,
+  }
+}
+
+export function isAwaitingData<T>(form: AsyncForm<T>): boolean {
+  return Boolean(form.loading) || (form.data === undefined && !form.error)
 }

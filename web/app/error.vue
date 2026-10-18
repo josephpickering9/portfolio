@@ -6,7 +6,7 @@
         aria-hidden="true"
       />
       <span class="relative font-mono text-[13px] tracking-[0.06em] text-accent uppercase">Error {{ error.statusCode }}</span>
-      <h1 class="relative m-0 font-display text-[clamp(56px,10vw,136px)] leading-[0.9] font-normal tracking-tight">
+      <h1 data-testid="error-heading" class="relative m-0 font-display text-[clamp(56px,10vw,136px)] leading-[0.9] font-normal tracking-tight">
         <template v-if="isNotFound">Page not <span class="text-accent">found</span></template>
         <template v-else>Something went <span class="text-accent">wrong</span></template>
       </h1>
@@ -44,23 +44,27 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { NuxtError } from '#app'
+import { clearError, useHead } from '#imports'
 import { useThemeStore } from '~/store/ThemeStore'
+import { formatPageTitle } from '~/utils/meta-helper'
+import { HTTP_NOT_FOUND } from '~/types/errors'
 
-const HTTP_NOT_FOUND = 404
-
-const props = defineProps<{
+interface Props {
   error: NuxtError
-}>()
+}
+
+const props = defineProps<Props>()
 
 const themeStore = useThemeStore()
+
 const isNotFound = computed(() => props.error.statusCode === HTTP_NOT_FOUND)
 
+async function goTo(path: string) {
+  await clearError({ redirect: path })
+}
+
 useHead({
-  title: computed(() => (isNotFound.value ? 'Page not found | Joseph Pickering' : 'Error | Joseph Pickering')),
+  title: computed(() => formatPageTitle(isNotFound.value ? 'Page not found' : 'Error')),
   htmlAttrs: { 'data-theme': computed(() => themeStore.theme) },
 })
-
-function goTo(path: string) {
-  clearError({ redirect: path })
-}
 </script>

@@ -34,10 +34,3 @@ export function describeImageFit(size: ImageSize, spec: ImageSpec): string | und
 export function describeSpec(spec: ImageSpec): string {
   return `${spec.ratioLabel}, at least ${spec.minWidth}×${spec.minHeight}`
 }
-
-export default {
-  croppedShare,
-  visibleWidth,
-  describeImageFit,
-  describeSpec,
-}

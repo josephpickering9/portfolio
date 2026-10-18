@@ -5,7 +5,13 @@
         <Skeleton />
       </li>
     </template>
-    <li v-for="company in sortedCompanies" v-else :key="company.id" class="relative flex flex-col gap-3.5 pb-13 pl-9">
+    <li
+      v-for="company in sortedCompanies"
+      v-else
+      :key="company.id"
+      class="relative flex flex-col gap-3.5 pb-13 pl-9"
+      data-testid="company-timeline-item"
+    >
       <span
         class="absolute top-4 -left-1.75 size-3.25 rounded-full border-2 border-accent bg-bg shadow-[0_0_16px_var(--glow)]"
         aria-hidden="true"
@@ -13,7 +19,7 @@
       <div class="flex flex-wrap items-center gap-4">
         <div class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-line bg-surface2">
           <NuxtImg
-v-if="company.logo"
+            v-if="company.logo"
             format="webp"
             :src="getImageUrl(company.logo)"
             :alt="company.name"
@@ -41,12 +47,13 @@ v-if="company.logo"
         </ClientOnly>
       </div>
       <div class="rich-text max-w-170 leading-[1.7]" v-html="company.description" />
-      <div v-if="projectsByCompany(company.id).length" class="flex flex-wrap gap-2">
+      <div v-if="projectsByCompany[company.id]?.length" class="flex flex-wrap gap-2">
         <NuxtLink
-          v-for="project in projectsByCompany(company.id)"
+          v-for="project in projectsByCompany[company.id]"
           :key="project.id"
           :to="`/projects/${project.slug}`"
           class="rounded-full bg-surface2 px-3 py-1.5 text-[13px] text-text transition-colors duration-200 hover:bg-accent hover:text-accent-ink"
+          data-testid="company-project-link"
         >
           {{ project.title }}
         </NuxtLink>
@@ -58,26 +65,29 @@ v-if="company.logo"
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Company, Project } from '@api'
-import { getImageUrl } from '~/utils/image-helper'
+import { useImageUrl } from '~/composables/useImageUrl'
 import { formatDateRange } from '~/utils/date-helper'
 import { sortCompaniesNewestFirst } from '~/utils/company-helper'
+import { getProjectsForCompany } from '~/utils/project-helper'
 import useAuth from '~/composables/useAuth'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
+
+interface Props {
+  companies: Company[]
+  projects: Project[]
+  loading: boolean
+}
+
+const props = defineProps<Props>()
 
 const SKELETON_COUNT = 3
 const UNDATED_LABEL = 'Side projects and freelance work'
 
-const props = defineProps<{
-  companies: Company[]
-  projects: Project[]
-  loading: boolean
-}>()
-
 const { isAuthenticated } = useAuth()
+const { getImageUrl } = useImageUrl()
 
 const sortedCompanies = computed(() => sortCompaniesNewestFirst(props.companies))
-
-function projectsByCompany(companyId: string): Project[] {
-  return props.projects.filter((project) => project.companyId === companyId)
-}
+const projectsByCompany = computed(() =>
+  Object.fromEntries(props.companies.map((company) => [company.id, getProjectsForCompany(props.projects, company.id)])),
+)
 </script>

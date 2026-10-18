@@ -1,12 +1,11 @@
-export default defineEventHandler((event) => {
-    // In development, return an empty service worker to prevent Vue Router warnings
-    // The actual service worker is only used in production builds
-    setResponseHeader(event, 'Content-Type', 'application/javascript')
-    setResponseHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+import { defineEventHandler, setResponseHeader } from 'h3'
 
-    return `
-// Service worker is disabled in development mode
-// This file prevents 404 errors from cached service worker requests
+// Dev-only stand-in: unregisters any service worker cached from a production build so it can't intercept dev requests.
+export default defineEventHandler((event) => {
+  setResponseHeader(event, 'Content-Type', 'application/javascript')
+  setResponseHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+
+  return `
 self.addEventListener('install', () => {
   self.skipWaiting();
 });

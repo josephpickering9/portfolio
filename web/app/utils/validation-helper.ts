@@ -33,9 +33,3 @@ export function validateStats(stats: CreateProjectStat[]): Record<number, ('valu
   })
   return errors
 }
-
-export default {
-  isHttpUrl,
-  validateRepositories,
-  validateStats,
-}

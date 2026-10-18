@@ -1,14 +1,12 @@
 <template>
   <FormLayout
-    :eyebrow="id ? 'Update company' : 'New company'"
-    :title="form.name || (id ? 'Untitled company' : 'New company')"
-    :save-label="id ? 'Save changes' : 'Create company'"
-    delete-title="Delete this company?"
+    :copy="copy"
     :show-delete="Boolean(id)"
     :loading="loading"
-    :saving="companyStore.companyCreating"
+    :saving="companyStore.companySaving"
+    :deleting="companyStore.companyDeleting"
     @save="save"
-    @delete="id && remove(id)"
+    @delete="remove"
   >
     <div v-if="companyStore.companyLoading" class="skeleton-pulse h-120 rounded-panel border border-line bg-surface" aria-hidden="true" />
     <div v-else class="grid items-start gap-5 lg:grid-cols-3">
@@ -21,7 +19,7 @@
           <TextInput v-model="form.website" placeholder="https://example.com" :disabled="loading" />
         </FormGroup>
         <FormGroup label="Description" label-tag="span">
-          <TextEditor v-model="form.description" placeholder="Brief description of the company…" :min-height="260" :disabled="loading" />
+          <TextEditor v-model="form.description" placeholder="Brief description of the company…" :min-height="DESCRIPTION_MIN_HEIGHT" :disabled="loading" />
         </FormGroup>
       </section>
       <div class="flex min-w-0 flex-col gap-5">
@@ -52,7 +50,10 @@ import { helpers, required } from '@vuelidate/validators'
 import type { Company, CreateCompany } from '@api'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useEntityForm } from '~/composables/useEntityForm'
-import { getImageUrl } from '~/utils/image-helper'
+import { companyToForm } from '~/utils/company-helper'
+import { defaultCompanyForm } from '~/utils/default-helper'
+import { getEntityFormCopy } from '~/utils/entity-form-helper'
+import { useImageUrl } from '~/composables/useImageUrl'
 import { isHttpUrl, URL_MESSAGE } from '~/utils/validation-helper'
 import type { UploadItem } from '~/types/UploadItem'
 import FormLayout from '~/components/ui/layout/FormLayout.vue'
@@ -62,8 +63,6 @@ import TextEditor from '~/components/ui/input/TextEditor.vue'
 import FileInput from '~/components/ui/input/FileInput.vue'
 import DatePicker from '~/components/ui/input/DatePicker.vue'
 
-const DATE_LENGTH = 10
-
 interface Props {
   id?: string
 }
@@ -72,24 +71,20 @@ const props = withDefaults(defineProps<Props>(), {
   id: undefined,
 })
 
-const companyStore = useCompanyStore()
-
-const form = ref<CreateCompany>({ name: '', description: '', website: '', startDate: undefined, endDate: undefined })
-const logo = ref<UploadItem | null>(null)
-
-const loading = computed(() => (companyStore.companyCreating || companyStore.companyLoading) ?? false)
-
-const rules = {
+const ENTITY_NAME = 'company'
+const DESCRIPTION_MIN_HEIGHT = 260
+const RULES = {
   form: {
     name: { required },
     website: { url: helpers.withMessage(URL_MESSAGE, (value: string | null | undefined) => isHttpUrl(value)) },
   },
 }
-const v$ = useVuelidate(rules, { form })
 
+const companyStore = useCompanyStore()
+const { getImageUrl } = useImageUrl()
 const entityForm = useEntityForm<Company, CreateCompany>({
-  entityName: 'company',
-  redirectRoute: '/companies',
+  entityName: ENTITY_NAME,
+  listRoute: '/companies',
   actions: {
     get: companyStore.getCompany,
     create: companyStore.createCompany,
@@ -98,14 +93,25 @@ const entityForm = useEntityForm<Company, CreateCompany>({
   },
   state: {
     loadError: () => companyStore.companyError,
-    saveError: () => companyStore.companyCreateError,
+    saveError: () => companyStore.companySaveError,
+    deleteError: () => companyStore.companyDeleteError,
   },
 })
-const { remove } = entityForm
+
+const form = ref<CreateCompany>({ ...defaultCompanyForm })
+const logo = ref<UploadItem | null>(null)
+const v$ = useVuelidate(RULES, { form })
+
+const loading = computed(() => Boolean(companyStore.companySaving || companyStore.companyLoading))
+const copy = computed(() => getEntityFormCopy(ENTITY_NAME, Boolean(props.id), form.value.name))
 
 async function save() {
   if (!(await v$.value.$validate())) return entityForm.invalid()
   await entityForm.save(props.id, { ...form.value, logo: logo.value?.file })
+}
+
+async function remove() {
+  if (props.id) await entityForm.remove(props.id)
 }
 
 onMounted(async () => {
@@ -113,13 +119,7 @@ onMounted(async () => {
   const company = await entityForm.fetch(props.id)
   if (!company) return
 
-  form.value = {
-    name: company.name,
-    description: company.description,
-    website: company.website ?? '',
-    startDate: company.startDate?.substring(0, DATE_LENGTH),
-    endDate: company.endDate?.substring(0, DATE_LENGTH),
-  }
+  form.value = companyToForm(company)
   logo.value = company.logo ? { key: company.logo, previewUrl: getImageUrl(company.logo) } : null
 })
 </script>

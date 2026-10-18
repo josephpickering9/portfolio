@@ -2,12 +2,12 @@
   <div class="relative" :class="round ? 'size-35' : 'w-full'">
     <label
       :for="inputId"
-      class="flex cursor-pointer items-center justify-center overflow-hidden border border-dashed bg-cover bg-top bg-no-repeat transition-colors duration-200"
+      class="flex cursor-pointer items-center justify-center overflow-hidden border border-dashed bg-(image:--preview) bg-cover bg-top bg-no-repeat transition-colors duration-200"
       :class="[
-        round ? 'size-35 rounded-full bg-surface2 bg-cover bg-center' : 'w-full rounded-xl bg-bg',
+        round ? 'size-35 rounded-full bg-surface2 bg-center' : 'aspect-(--aspect) w-full rounded-xl bg-bg',
         invalid ? 'border-danger' : dragging ? 'border-accent' : 'border-line',
       ]"
-      :style="{ aspectRatio: round ? undefined : aspect, backgroundImage: modelValue ? `url('${modelValue.previewUrl}')` : undefined }"
+      :style="previewVars"
       @dragover.prevent="dragging = true"
       @dragleave="dragging = false"
       @drop.prevent="onDrop"
@@ -65,8 +65,14 @@ const emit = defineEmits<{ (e: 'update:modelValue', value: UploadItem | null): v
 
 const { id, invalid } = useFormField()
 const inputId = id ?? useId()
-const dragging = ref(false)
 const sizes = useImageSizes(() => (props.modelValue ? [props.modelValue.previewUrl] : []))
+
+const dragging = ref(false)
+
+const previewVars = computed(() => ({
+  '--aspect': props.aspect,
+  '--preview': props.modelValue ? `url('${props.modelValue.previewUrl}')` : 'none',
+}))
 
 const fitWarning = computed(() => {
   const url = props.modelValue?.previewUrl

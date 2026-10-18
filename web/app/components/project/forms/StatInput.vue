@@ -25,6 +25,7 @@
 
 <script setup lang="ts">
 import type { CreateProjectStat } from '@api'
+import { removeAt, replaceAt } from '~/utils/array-helper'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import RowRemoveButton from '~/components/ui/button/RowRemoveButton.vue'
 
@@ -46,10 +47,8 @@ function hasError(index: number, field: StatField): boolean {
 }
 
 function update(index: number, field: StatField, value: string) {
-  emit(
-    'update:modelValue',
-    props.modelValue.map((stat, statIndex) => (statIndex === index ? { ...stat, [field]: value } : stat)),
-  )
+  const current = props.modelValue[index]
+  if (current) emit('update:modelValue', replaceAt(props.modelValue, index, { ...current, [field]: value }))
 }
 
 function add() {
@@ -57,9 +56,6 @@ function add() {
 }
 
 function remove(index: number) {
-  emit(
-    'update:modelValue',
-    props.modelValue.filter((_, statIndex) => statIndex !== index),
-  )
+  emit('update:modelValue', removeAt(props.modelValue, index))
 }
 </script>

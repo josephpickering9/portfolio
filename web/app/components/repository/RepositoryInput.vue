@@ -38,6 +38,7 @@
 
 <script setup lang="ts">
 import type { CreateProjectRepository } from '@api'
+import { removeAt, replaceAt } from '~/utils/array-helper'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import RowRemoveButton from '~/components/ui/button/RowRemoveButton.vue'
 
@@ -59,10 +60,8 @@ function errorFor(index: number, field: RepositoryField): string | undefined {
 }
 
 function update(index: number, field: RepositoryField, value: string) {
-  emit(
-    'update:modelValue',
-    props.modelValue.map((repository, repoIndex) => (repoIndex === index ? { ...repository, [field]: value } : repository)),
-  )
+  const current = props.modelValue[index]
+  if (current) emit('update:modelValue', replaceAt(props.modelValue, index, { ...current, [field]: value }))
 }
 
 function add() {
@@ -70,9 +69,6 @@ function add() {
 }
 
 function remove(index: number) {
-  emit(
-    'update:modelValue',
-    props.modelValue.filter((_, repoIndex) => repoIndex !== index),
-  )
+  emit('update:modelValue', removeAt(props.modelValue, index))
 }
 </script>
