@@ -16,13 +16,20 @@ public class VertexAiOptions
     public string Location { get; set; } = "global";
     public string Collection { get; set; } = "default_collection";
     public string Branch { get; set; } = "0";
-    public string Model { get; set; } = "gemini-2.5-pro";
+    public string Model { get; set; } = "gemini-3.8-flash";
     public string ModelLocation { get; set; } = "global";
     public VertexEnvironment Environment { get; set; } = VertexEnvironment.Local;
     public string QueryDataStoreSuffix { get; set; } = "project_structured_v2";
     public string DataStoreVersion { get; set; } = "v2";
     public string? CredentialsFile { get; set; }
     public string? CredentialsJson { get; set; }
+
+    public string GenerateContentUrl()
+    {
+        var location = string.IsNullOrWhiteSpace(ModelLocation) ? Location : ModelLocation;
+        var host = location == "global" ? "aiplatform.googleapis.com" : $"{location}-aiplatform.googleapis.com";
+        return $"https://{host}/v1/projects/{ProjectId}/locations/{location}/publishers/google/models/{Model}:generateContent";
+    }
 }
 
 public enum VertexEnvironment

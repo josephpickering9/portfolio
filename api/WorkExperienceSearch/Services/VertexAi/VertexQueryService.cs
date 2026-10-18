@@ -44,7 +44,6 @@ public class VertexQueryService : IVertexQueryService
     {
         var dataStoreId = $"{_options.Environment.ToString().ToLowerInvariant()}_project_structured_{_options.DataStoreVersion}";
         var datastoreResource = $"projects/{_options.ProjectId}/locations/{_options.Location}/collections/{_options.Collection}/dataStores/{dataStoreId}";
-        var hostLocation = string.IsNullOrWhiteSpace(_options.ModelLocation) ? _options.Location : _options.ModelLocation;
 
         var token = await _credential.UnderlyingCredential.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
 
@@ -93,15 +92,10 @@ public class VertexQueryService : IVertexQueryService
                         }
                     }
                 }
-            },
-            generationConfig = new
-            {
-                temperature = 0.0
             }
         };
 
-        var url = $"https://{hostLocation}-aiplatform.googleapis.com/v1/projects/{_options.ProjectId}/locations/{hostLocation}/publishers/google/models/{_options.Model}:generateContent";
-        using var request = new HttpRequestMessage(HttpMethod.Post, url)
+        using var request = new HttpRequestMessage(HttpMethod.Post, _options.GenerateContentUrl())
         {
             Content = JsonContent.Create(body)
         };

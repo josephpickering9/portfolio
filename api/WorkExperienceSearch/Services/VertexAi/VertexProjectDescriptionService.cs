@@ -73,7 +73,6 @@ Output format:
         if (project == null) return new NotFoundFailure<ProjectDescriptionSuggestionResponse>("Project not found.");
 
         var token = await _credential.UnderlyingCredential.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
-        var hostLocation = string.IsNullOrWhiteSpace(_options.ModelLocation) ? _options.Location : _options.ModelLocation;
 
         var prompt = BuildPrompt(project, request);
 
@@ -94,16 +93,10 @@ Output format:
                     role = "user",
                     parts = new[] { new { text = prompt } }
                 }
-            },
-            generationConfig = new
-            {
-                temperature = 0.35,
-                topP = 0.9,
             }
         };
 
-        var url = $"https://{hostLocation}-aiplatform.googleapis.com/v1/projects/{_options.ProjectId}/locations/{hostLocation}/publishers/google/models/{_options.Model}:generateContent";
-        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url)
+        using var requestMessage = new HttpRequestMessage(HttpMethod.Post, _options.GenerateContentUrl())
         {
             Content = JsonContent.Create(body)
         };

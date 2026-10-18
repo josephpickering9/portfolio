@@ -107,7 +107,7 @@ public class ProjectController(IProjectService projectService) : ControllerBase
    VertexAi:Location=global
    VertexAi:Collection=default_collection
    VertexAi:Branch=0
-   VertexAi:Model=gemini-2.5-pro
+   VertexAi:Model=gemini-3.8-flash
    VertexAi:ModelLocation=us-central1
    VertexAi:QueryDataStoreSuffix=your-datastore-suffix
    VertexAi:CredentialsFile=/path/to/service-account.json
