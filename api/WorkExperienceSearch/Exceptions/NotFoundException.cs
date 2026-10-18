@@ -1,6 +1,6 @@
 namespace Work_Experience_Search.Exceptions;
 
-public class NotFoundException : Exception
+public sealed class NotFoundException : Exception
 {
     public NotFoundException()
     {

@@ -3,7 +3,9 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
+using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -14,9 +16,10 @@ public class ProjectRepositoryServiceTests : BaseServiceTests
 
     public ProjectRepositoryServiceTests()
     {
+        var cacheInvalidator = new CacheInvalidator();
         _projectRepositoryService = new ProjectRepositoryService(
-            new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator()),
-            new ProjectCodeRepository(Context),
+            new ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), cacheInvalidator),
+            new ProjectCodeRepository(Context, cacheInvalidator),
             NullLogger<ProjectRepositoryService>.Instance);
     }
 
@@ -34,5 +37,31 @@ public class ProjectRepositoryServiceTests : BaseServiceTests
         Assert.Equal("Backend", saved.Title);
         Assert.Equal("https://github.com/a/backend", saved.Url);
         Assert.Equal(2, saved.Order);
+    }
+
+    [Fact]
+    public async Task GetProjectRepositoryAsync_ExistingRepository_ReturnsRepository()
+    {
+        var created = (await _projectRepositoryService.SyncProjectRepositoriesAsync(Project1Id, [new() { Title = "API", Url = "https://github.com/a/api" }])).ExpectSuccess();
+
+        var result = (await _projectRepositoryService.GetProjectRepositoryAsync(Project1Id, created.Single().Id)).ExpectSuccess();
+
+        Assert.Equal("API", result.Title);
+    }
+
+    [Fact]
+    public async Task GetProjectRepositoryAsync_UnknownRepository_ReturnsProjectRepositoryNotFound()
+    {
+        var error = (await _projectRepositoryService.GetProjectRepositoryAsync(Project1Id, ProjectRepositoryId.New())).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectRepositoryNotFound, error);
+    }
+
+    [Fact]
+    public async Task SyncProjectRepositoriesAsync_UnknownProject_ReturnsProjectNotFound()
+    {
+        var error = (await _projectRepositoryService.SyncProjectRepositoriesAsync(ProjectId.New(), [])).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectNotFound, error);
     }
 }

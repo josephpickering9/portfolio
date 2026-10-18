@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Work_Experience_Search.Tests;
+using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
@@ -46,6 +47,6 @@ public class MediaControllerIntegrationTests(CustomWebApplicationFactory customW
 
         var response = await Client.GetAsync($"/media/uploads/{nonExistingFileName}");
 
-        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        await AssertErrorAsync(response, HttpStatusCode.NotFound, ErrorCodes.FileNotFound);
     }
 }

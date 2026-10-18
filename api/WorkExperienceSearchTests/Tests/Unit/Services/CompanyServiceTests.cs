@@ -2,13 +2,13 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Exceptions;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Services.Image;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -50,9 +50,7 @@ public class CompanyServiceTests : BaseServiceTests
         var companyId = CompanyId.New();
 
         var result = (await _companyService.GetCompanyAsync(companyId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Company not found.", result.Message);
+        Assert.Equal(ErrorCodes.CompanyNotFound, result);
     }
 
     [Fact]
@@ -91,9 +89,7 @@ public class CompanyServiceTests : BaseServiceTests
         (await _companyService.CreateCompanyAsync(createCompany)).ExpectSuccess();
 
         var result = (await _companyService.CreateCompanyAsync(createCompany)).ExpectFailure();
-
-        Assert.IsType<ConflictException>(result);
-        Assert.Equal("A company with the same title already exists.", result.Message);
+        Assert.Equal(ErrorCodes.CompanyAlreadyExists, result);
     }
 
     [Fact]
@@ -136,9 +132,7 @@ public class CompanyServiceTests : BaseServiceTests
         };
 
         var result = (await _companyService.UpdateCompanyAsync(companyId, updateCompany)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Company not found.", result.Message);
+        Assert.Equal(ErrorCodes.CompanyNotFound, result);
     }
 
     [Fact]
@@ -158,8 +152,24 @@ public class CompanyServiceTests : BaseServiceTests
         var companyId = CompanyId.New();
 
         var result = (await _companyService.DeleteCompanyAsync(companyId)).ExpectFailure();
+        Assert.Equal(ErrorCodes.CompanyNotFound, result);
+    }
 
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Company not found.", result.Message);
+    [Fact]
+    public async Task GetCompanyBySlugAsync_InvalidSlug_ReturnsCompanyNotFound()
+    {
+        var error = (await _companyService.GetCompanyBySlugAsync("non-existent-company")).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.CompanyNotFound, error);
+    }
+
+    [Fact]
+    public async Task GetCompanyBySlugAsync_ValidSlug_ReturnsCompany()
+    {
+        var created = (await _companyService.CreateCompanyAsync(new CreateCompany { Name = "Slugged Company", Description = "Description" })).ExpectSuccess();
+
+        var result = (await _companyService.GetCompanyBySlugAsync("slugged-company")).ExpectSuccess();
+
+        Assert.Equal(created.Id, result.Id);
     }
 }

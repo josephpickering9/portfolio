@@ -4,7 +4,6 @@ namespace Work_Experience_Search.Services;
 
 public interface IFileService
 {
-    Task<Result<string>> SaveFileAsync(byte[] file, string name = "image.png");
-    Task<Result<string>> SaveFileAsync(IFormFile? file);
+    Task<Result<string>> SaveFileAsync(IFormFile? file, CancellationToken cancellationToken = default);
     void DeleteFile(string? filePath);
 }

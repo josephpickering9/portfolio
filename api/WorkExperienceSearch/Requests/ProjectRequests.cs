@@ -3,7 +3,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Requests;
 
-public record CreateProject
+public sealed record CreateProject
 {
     public required string Title { get; init; }
     public required string ShortDescription { get; init; }
@@ -15,14 +15,14 @@ public record CreateProject
     public DateOnly StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
     public string? Website { get; init; }
-    public bool ShowMockup { get; init; } = false;
+    public bool ShowMockup { get; init; }
     public List<CreateProjectImage> Images { get; init; } = [];
     public List<string> Tags { get; init; } = [];
     public List<CreateProjectRepository> Repositories { get; init; } = [];
     public List<CreateProjectStat> Stats { get; init; } = [];
 }
 
-public record CreateProjectImage
+public sealed record CreateProjectImage
 {
     public ProjectImageId? Id { get; init; }
     public IFormFile? Image { get; init; }
@@ -30,7 +30,7 @@ public record CreateProjectImage
     public int? Order { get; init; }
 }
 
-public record CreateProjectRepository
+public sealed record CreateProjectRepository
 {
     public ProjectRepositoryId? Id { get; init; }
     public required string Title { get; init; }
@@ -38,7 +38,7 @@ public record CreateProjectRepository
     public int? Order { get; init; }
 }
 
-public record CreateProjectStat
+public sealed record CreateProjectStat
 {
     public ProjectStatId? Id { get; init; }
     public required string Label { get; init; }

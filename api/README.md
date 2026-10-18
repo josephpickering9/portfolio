@@ -35,29 +35,35 @@ Controllers  →  Services  →  Repositories  →  Database (EF Core / PostgreS
 
 ### Key Patterns
 
-**Result pattern** — every service method returns `Result<T>`. Controllers never throw; they map failures to RFC 7807 `ProblemDetails` responses via a single `result.ToResponse()` call.
+**Result pattern** — every fallible service method returns `Result<T>` carrying an error code from `Types/ErrorCodes.cs`. Controllers never throw or branch; a single `result.ToResponse()` call maps success to 200/204 and failure to `{ "error": "<code>" }` with the status from `Extensions/ErrorStatusCodes.cs`. Validation, auth, rate-limit and unhandled-exception failures use the same body.
 
 ```csharp
-// Service — primary-constructor DI, no manual field boilerplate
-public class ProjectService(IProjectRepository projectRepository) : IProjectService
+// Service — primary-constructor DI, sealed, CancellationToken plumbed through
+public sealed class ProjectService(IProjectRepository projectRepository, ILogger<ProjectService> logger) : IProjectService
 {
-    public async Task<Result<Project>> GetProjectAsync(ProjectId id)
+    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
     {
-        var project = await projectRepository.GetAsync(id);
-        return project is null
-            ? new NotFoundFailure<Project>("Project not found.")
-            : new Success<Project>(project);
+        var project = await projectRepository.GetAsync(id, cancellationToken);
+        if (project is null)
+        {
+            logger.LogWarning("Project {ProjectId} not found.", id);
+            return ErrorCodes.ProjectNotFound.ToFail();
+        }
+
+        return project.ToOk();
     }
 }
 
 // Controller
-public class ProjectController(IProjectService projectService) : ControllerBase
+public sealed class ProjectController(IProjectService projectService) : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Project>> GetProject(ProjectId id) =>
-        (await projectService.GetProjectAsync(id)).ToResponse();
+    public async Task<ActionResult<Project>> GetProject(ProjectId id, CancellationToken cancellationToken) =>
+        (await projectService.GetProjectAsync(id, cancellationToken)).ToResponse();
 }
 ```
+
+**Lean `Program.cs`** — startup is a list of `AddXxx()` / `UseXxx()` calls; each integration (database, repositories, services, Vertex AI, Swagger, Auth0, CORS, rate limiting, exception handling) registers itself in `Extensions/*Extensions.cs`.
 
 **Repository pattern with base class** — `BaseRepository` centralises the `IMemoryCache` get/set helpers so each concrete repository stays focused on building its own cache keys and queries.
 
@@ -143,7 +149,7 @@ The test suite covers three levels:
 | Type | Location | Tooling |
 |---|---|---|
 | Unit | `WorkExperienceSearchTests/Tests/Unit/` | xUnit, Moq, EF Core `InMemoryDatabase` provider |
-| Integration | `WorkExperienceSearchTests/Tests/Integration/` | `WebApplicationFactory`, real HTTP client |
+| Integration | `WorkExperienceSearchTests/Tests/Integration/` | `WebApplicationFactory` (EF Core `InMemoryDatabase`), real HTTP client, stubbed Vertex AI upstream |
 | Architecture | `WorkExperienceSearchTests/Tests/Architecture/` | NetArchTest |
 
 Run all tests:
@@ -163,16 +169,17 @@ dotnet test --collect:"XPlat Code Coverage"
 - Controllers must not reference Repository types directly
 - Services must not reference Controller types
 - Repositories must not reference Service or Controller types
+- Every concrete class is `sealed`
 
 ---
 
 ## CI/CD
 
-Two GitHub Actions workflows run on every push:
+Two GitHub Actions workflows (path-filtered to `api/**`) run on push:
 
-**`.github/workflows/dotnet-tests.yml`** — spins up a PostgreSQL container via Docker Compose, restores, builds, and runs the full test suite. Pull requests cannot be merged if this workflow fails.
+**`.github/workflows/api-tests.yml`** — spins up a PostgreSQL container via Docker Compose, restores, builds, and runs the full test suite. Pull requests cannot be merged if this workflow fails.
 
-**`.github/workflows/deploy.yml`** — triggers on push to `main`. Publishes the app, uploads the artifact to the Digital Ocean droplet via SCP, runs `dotnet ef database update` on the server, then stops the currently running process, symlinks the new release into place, and starts it — a brief restart window, not a zero-downtime swap.
+**`.github/workflows/api-deploy.yml`** — triggers on push to `main`. Publishes the app, uploads the artifact to the Digital Ocean droplet via SCP, runs `dotnet ef database update` on the server, then stops the currently running process, symlinks the new release into place, and starts it — a brief restart window, not a zero-downtime swap.
 
 ---
 
@@ -186,9 +193,9 @@ WorkExperienceSearch/
 ├── Requests/             # Immutable record DTOs for all endpoints
 ├── Validators/           # FluentValidation validators (one per request type)
 ├── Models/               # EF Core entity models
-├── Types/                # Result<T>, typed IDs (Ids.cs)
+├── Types/                # Result<T>, ErrorCodes, ApiErrorDto, typed IDs (Ids.cs)
 ├── Exceptions/           # Typed exception hierarchy (unexpected-failure paths only)
-└── Utils/                # Extension methods (string, slug generation, etc.)
+└── Extensions/           # Startup registration, error contract, extension methods (string, enum, file)
 
 WorkExperienceSearchTests/
 ├── Tests/Unit/           # Service-level tests with mocked dependencies

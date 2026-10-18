@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Services;
@@ -9,50 +10,32 @@ namespace Work_Experience_Search.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class TagController(ITagService tagService) : ControllerBase
+public sealed class TagController(ITagService tagService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<Tag>>> GetTags(string? search)
-    {
-        var tags = await tagService.GetTagsAsync(search);
-        return tags.ToResponse();
-    }
+    public async Task<ActionResult<IReadOnlyList<Tag>>> GetTags(string? search, CancellationToken cancellationToken) =>
+        (await tagService.GetTagsAsync(search, cancellationToken)).ToResponse();
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Tag>> GetTag(TagId id)
-    {
-        var result = await tagService.GetTagAsync(id);
-        return result.ToResponse();
-    }
+    public async Task<ActionResult<Tag>> GetTag(TagId id, CancellationToken cancellationToken) =>
+        (await tagService.GetTagAsync(id, cancellationToken)).ToResponse();
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<Tag>> GetTag(string slug)
-    {
-        var result = await tagService.GetTagBySlugAsync(slug);
-        return result.ToResponse();
-    }
+    public async Task<ActionResult<Tag>> GetTag(string slug, CancellationToken cancellationToken) =>
+        (await tagService.GetTagBySlugAsync(slug, cancellationToken)).ToResponse();
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<Tag>> PostTag([FromBody] CreateTag createTag)
-    {
-        var result = await tagService.CreateTagAsync(createTag);
-        return result.ToResponse();
-    }
+    public async Task<ActionResult<Tag>> PostTag([FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
+        (await tagService.CreateTagAsync(createTag, cancellationToken)).ToResponse();
 
     [HttpPut("{id:guid}")]
     [Authorize]
-    public async Task<ActionResult<Tag>> PutTag(TagId id, [FromBody] CreateTag createTag)
-    {
-        var result = await tagService.UpdateTagAsync(id, createTag);
-        return result.ToResponse();
-    }
+    public async Task<ActionResult<Tag>> PutTag(TagId id, [FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
+        (await tagService.UpdateTagAsync(id, createTag, cancellationToken)).ToResponse();
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteTag(TagId id)
-    {
-        var result = await tagService.DeleteTagAsync(id);
-        return result.ToResponse();
-    }
+    public async Task<IActionResult> DeleteTag(TagId id, CancellationToken cancellationToken) =>
+        (await tagService.DeleteTagAsync(id, cancellationToken)).ToResponse();
 }

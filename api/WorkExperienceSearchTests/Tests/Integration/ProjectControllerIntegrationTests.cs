@@ -65,7 +65,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.GetAsync($"/project/{nonExistingProjectId}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.ProjectNotFound);
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.GetAsync($"/project/{nonExistingProjectSlug}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.ProjectNotFound);
     }
 
     [Fact]
@@ -263,7 +263,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.PostAsync("/project", content);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -290,10 +290,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
         // Act - Second attempt (should fail)
         var secondResponse = await AuthenticatedClient.PostAsync("/project", content);
 
-        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
-        var stringResponse = await secondResponse.Content.ReadAsStringAsync();
-
-        Assert.Contains("A project with the same title already exists", stringResponse);
+        await AssertErrorAsync(secondResponse, HttpStatusCode.Conflict, ErrorCodes.ProjectAlreadyExists);
 
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<Database>();
@@ -381,7 +378,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.PutAsync($"/project/{existingProject.Id}", content);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -483,6 +480,6 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.DeleteAsync($"/project/{existingProject.Id}");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 }

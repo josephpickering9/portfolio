@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Exceptions;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -46,9 +46,7 @@ public class TagServiceTests : BaseServiceTests
         var tagId = TagId.New();
 
         var result = (await _tagService.GetTagAsync(tagId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Tag not found.", result.Message);
+        Assert.Equal(ErrorCodes.TagNotFound, result);
     }
 
     [Fact]
@@ -80,9 +78,7 @@ public class TagServiceTests : BaseServiceTests
         };
 
         var result = (await _tagService.CreateTagAsync(createTag)).ExpectFailure();
-
-        Assert.IsType<ConflictException>(result);
-        Assert.Equal("A tag with the same title already exists.", result.Message);
+        Assert.Equal(ErrorCodes.TagAlreadyExists, result);
     }
 
     [Fact]
@@ -117,9 +113,7 @@ public class TagServiceTests : BaseServiceTests
         };
 
         var result = (await _tagService.UpdateTagAsync(tagId, updateTag)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Tag not found.", result.Message);
+        Assert.Equal(ErrorCodes.TagNotFound, result);
     }
 
     [Fact]
@@ -142,9 +136,35 @@ public class TagServiceTests : BaseServiceTests
         var tagId = TagId.New();
 
         var result = (await _tagService.DeleteTagAsync(tagId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Tag not found.", result.Message);
+        Assert.Equal(ErrorCodes.TagNotFound, result);
     }
 
+    [Fact]
+    public async Task GetTagBySlugAsync_InvalidSlug_ReturnsTagNotFound()
+    {
+        var error = (await _tagService.GetTagBySlugAsync("non-existent-tag")).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.TagNotFound, error);
+    }
+
+    [Fact]
+    public async Task UpdateTagAsync_TitleTakenByAnotherTag_ReturnsTagAlreadyExists()
+    {
+        var update = new CreateTag { Title = "ASP.NET Core", Type = TagType.Backend };
+
+        var error = (await _tagService.UpdateTagAsync(Tag1Id, update)).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.TagAlreadyExists, error);
+    }
+
+    [Fact]
+    public async Task SyncTagsAsync_MixOfExistingAndNewTitles_ReusesExistingAndCreatesNew()
+    {
+        var result = (await _tagService.SyncTagsAsync(["c#", "Rust"])).ExpectSuccess();
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal(Tag1Id, result[0].Id);
+        Assert.Equal("Rust", result[1].Title);
+        Assert.Contains(Context.Tag, t => t.Title == "Rust");
+    }
 }

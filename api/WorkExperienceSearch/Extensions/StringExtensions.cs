@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Work_Experience_Search.Utils;
+namespace Work_Experience_Search.Extensions;
 
 public static class StringExtensions
 {

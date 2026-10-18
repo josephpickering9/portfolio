@@ -2,7 +2,7 @@ using Microsoft.Extensions.Primitives;
 
 namespace Work_Experience_Search.Services;
 
-public class CacheInvalidator
+public sealed class CacheInvalidator
 {
     private CancellationTokenSource _projectsToken = new();
     private CancellationTokenSource _companiesToken = new();

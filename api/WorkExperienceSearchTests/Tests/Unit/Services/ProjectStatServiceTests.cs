@@ -1,11 +1,11 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Exceptions;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -16,9 +16,10 @@ public class ProjectStatServiceTests : BaseServiceTests
 
     public ProjectStatServiceTests()
     {
+        var cacheInvalidator = new CacheInvalidator();
         _projectStatService = new ProjectStatService(
-            new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator()),
-            new ProjectStatRepository(Context),
+            new ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), cacheInvalidator),
+            new ProjectStatRepository(Context, cacheInvalidator),
             NullLogger<ProjectStatService>.Instance);
     }
 
@@ -37,9 +38,7 @@ public class ProjectStatServiceTests : BaseServiceTests
         var invalidProjectId = ProjectId.New();
 
         var result = (await _projectStatService.GetProjectStatsAsync(invalidProjectId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Project not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectNotFound, result);
     }
 
     [Fact]
@@ -48,9 +47,7 @@ public class ProjectStatServiceTests : BaseServiceTests
         var invalidStatId = ProjectStatId.New();
 
         var result = (await _projectStatService.GetProjectStatAsync(Project1Id, invalidStatId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Stat not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectStatNotFound, result);
     }
 
     [Fact]
@@ -113,8 +110,6 @@ public class ProjectStatServiceTests : BaseServiceTests
         var invalidProjectId = ProjectId.New();
 
         var result = (await _projectStatService.SyncProjectStatsAsync(invalidProjectId, [])).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Project not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectNotFound, result);
     }
 }

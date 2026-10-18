@@ -1,15 +1,17 @@
 using FluentValidation;
 using Work_Experience_Search.Requests;
+using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Validators;
 
-public class VertexQueryRequestValidator : AbstractValidator<VertexQueryRequest>
+public sealed class VertexQueryRequestValidator : AbstractValidator<VertexQueryRequest>
 {
     private const int MaxQueryLength = 500;
 
     public VertexQueryRequestValidator()
     {
-        RuleFor(x => x.Query).NotEmpty().MaximumLength(MaxQueryLength)
-            .WithMessage($"Query must not exceed {MaxQueryLength} characters.");
+        RuleFor(x => x.Query)
+            .NotEmpty().WithMessage(ErrorCodes.QueryRequired)
+            .MaximumLength(MaxQueryLength).WithMessage(ErrorCodes.QueryTooLong);
     }
 }

@@ -3,13 +3,14 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Exceptions;
 using Work_Experience_Search.Models;
+using ProjectRepository = Work_Experience_Search.Repositories.ProjectRepository;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Services.Image;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -22,12 +23,18 @@ public class ProjectImageServiceTests : BaseServiceTests
     {
         var mockFileService = new Mock<IFileService>();
         var mockImageService = new Mock<IImageService>();
-        _projectImageService = new ProjectImageService(new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator()), new ProjectImageRepository(Context), mockFileService.Object, mockImageService.Object, NullLogger<ProjectImageService>.Instance);
+        var cacheInvalidator = new CacheInvalidator();
+        _projectImageService = new ProjectImageService(
+            new ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), cacheInvalidator),
+            new ProjectImageRepository(Context, cacheInvalidator),
+            mockFileService.Object,
+            mockImageService.Object,
+            NullLogger<ProjectImageService>.Instance);
 
-        mockFileService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>()))
-            .ReturnsAsync(() => new Success<string>("testPath"));
-        mockImageService.Setup(s => s.OptimiseImageAsync(It.IsAny<byte[]>()))
-            .ReturnsAsync(() => new Success<byte[]>(new byte[12]));
+        mockFileService.Setup(fs => fs.SaveFileAsync(It.IsAny<IFormFile>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<string>.Ok("testPath"));
+        mockImageService.Setup(s => s.OptimiseImageAsync(It.IsAny<byte[]>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<byte[]>.Ok(new byte[12]));
     }
 
     [Fact]
@@ -45,9 +52,7 @@ public class ProjectImageServiceTests : BaseServiceTests
         var invalidProjectId = ProjectId.New();
 
         var result = (await _projectImageService.GetProjectImagesAsync(invalidProjectId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Project not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectNotFound, result);
     }
 
     [Fact]
@@ -68,9 +73,7 @@ public class ProjectImageServiceTests : BaseServiceTests
         var imageId = Image1Id;
 
         var result = (await _projectImageService.GetProjectImageAsync(invalidProjectId, imageId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Project not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectNotFound, result);
     }
 
     [Fact]
@@ -79,9 +82,7 @@ public class ProjectImageServiceTests : BaseServiceTests
         var invalidImageId = ProjectImageId.New();
 
         var result = (await _projectImageService.GetProjectImageAsync(Project1Id, invalidImageId)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Image not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectImageNotFound, result);
     }
 
     [Fact]

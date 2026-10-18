@@ -5,7 +5,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class ProjectImage
+public sealed class ProjectImage
 {
     [Required] public ProjectImageId Id { get; set; } = ProjectImageId.New();
 
@@ -23,9 +23,9 @@ public class ProjectImage
 
 public enum ImageType
 {
-    [Description("Logo")] Logo, // 0
-    [Description("Banner")] Banner, // 1
-    [Description("Card")] Card, // 2
-    [Description("Desktop")] Desktop, // 3
-    [Description("Mobile")] Mobile // 4
+    [Description("Logo")] Logo,
+    [Description("Banner")] Banner,
+    [Description("Card")] Card,
+    [Description("Desktop")] Desktop,
+    [Description("Mobile")] Mobile
 }

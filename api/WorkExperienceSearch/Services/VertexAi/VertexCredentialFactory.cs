@@ -1,6 +1,5 @@
 using System.Text;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.Extensions.Logging;
 
 namespace Work_Experience_Search.Services.VertexAi;
 
@@ -58,9 +57,9 @@ internal static class VertexCredentialFactory
         {
             var bytes = Convert.FromBase64String(value);
             var decoded = Encoding.UTF8.GetString(bytes);
-            return decoded.TrimStart().StartsWith("{") ? decoded : null;
+            return decoded.TrimStart().StartsWith('{') ? decoded : null;
         }
-        catch
+        catch (FormatException)
         {
             return null;
         }

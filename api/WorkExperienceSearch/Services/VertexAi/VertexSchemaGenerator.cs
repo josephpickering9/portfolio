@@ -19,9 +19,6 @@ public sealed class VertexFieldAttribute(bool searchable = false, bool indexable
     public bool Retrievable { get; } = retrievable;
 }
 
-/// <summary>
-/// Lightweight JSON Schema generator based on DTO reflection. Avoids manual string maintenance.
-/// </summary>
 public static class VertexSchemaGenerator
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web)
@@ -59,12 +56,12 @@ public static class VertexSchemaGenerator
             if (propSchema is Dictionary<string, object?> dict)
             {
                 var keyMapping = prop.GetCustomAttribute<VertexKeyPropertyAttribute>();
-                if (keyMapping != null)
+                if (keyMapping is not null)
                     dict["keyPropertyMapping"] = keyMapping.Mapping;
 
                 var field = prop.GetCustomAttribute<VertexFieldAttribute>();
-                var isKeyProperty = keyMapping != null;
-                if (field != null)
+                var isKeyProperty = keyMapping is not null;
+                if (field is not null)
                 {
                     // Annotations on array types must go on items, not the array itself
                     var annotationTarget = dict.TryGetValue("type", out var t) && t is "array" && dict["items"] is Dictionary<string, object?> items
@@ -157,7 +154,7 @@ public static class VertexSchemaGenerator
         var enumerableInterface = type.GetInterfaces()
             .FirstOrDefault(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>));
 
-        if (enumerableInterface != null)
+        if (enumerableInterface is not null)
         {
             elementType = enumerableInterface.GetGenericArguments()[0];
             return true;
@@ -169,7 +166,7 @@ public static class VertexSchemaGenerator
 
     private static bool IsNullable(Type type, NullabilityInfo nullabilityInfo)
     {
-        if (Nullable.GetUnderlyingType(type) != null) return true;
+        if (Nullable.GetUnderlyingType(type) is not null) return true;
 
         return nullabilityInfo.ReadState == NullabilityState.Nullable || nullabilityInfo.WriteState == NullabilityState.Nullable;
     }

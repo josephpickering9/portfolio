@@ -4,7 +4,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class ProjectStat
+public sealed class ProjectStat
 {
     [Required] public ProjectStatId Id { get; set; } = ProjectStatId.New();
 

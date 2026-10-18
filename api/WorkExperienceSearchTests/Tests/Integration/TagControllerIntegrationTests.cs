@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Tests;
@@ -53,7 +54,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await Client.GetAsync($"/tag/{nonExistingTagId}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.TagNotFound);
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await Client.PostAsync("/tag", CreateJsonContent(createTag));
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -109,7 +110,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await AuthenticatedClient.PostAsync("/tag", CreateJsonContent(createTag));
 
-        Assert.Equal(HttpStatusCode.Conflict, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Conflict, ErrorCodes.TagAlreadyExists);
     }
 
     [Fact]
@@ -125,7 +126,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await Client.PutAsync($"/tag/{TagId.New()}", CreateJsonContent(updateTag));
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -165,7 +166,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await AuthenticatedClient.PutAsync($"/tag/{nonExistingTagId}", CreateJsonContent(updateTag));
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.TagNotFound);
     }
 
     [Fact]
@@ -173,7 +174,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
     {
         var httpResponse = await Client.DeleteAsync($"/tag/{TagId.New()}");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -193,6 +194,78 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/tag/{nonExistingTagId}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.TagNotFound);
+    }
+
+    [Fact]
+    public async Task GetTags_NoTags_ReturnsEmptyList()
+    {
+        var httpResponse = await Client.GetAsync("/tag");
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = GetJsonContent<List<Tag>>(await httpResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(response);
+        Assert.Empty(response);
+    }
+
+    [Fact]
+    public async Task GetTag_ExistingSlug_ReturnsTag()
+    {
+        var tag = await CreateTagAsync(TagId.New());
+
+        var httpResponse = await Client.GetAsync($"/tag/{tag.Slug}");
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = GetJsonContent<Tag>(await httpResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(response);
+        Assert.Equal(tag.Id, response.Id);
+    }
+
+    [Fact]
+    public async Task GetTag_NonExistingSlug_ReturnsNotFound()
+    {
+        var httpResponse = await Client.GetAsync("/tag/non-existent-tag");
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.TagNotFound);
+    }
+
+    [Fact]
+    public async Task PostTag_InvalidCustomColour_ReturnsValidationCode()
+    {
+        var createTag = new CreateTag { Title = "Colourful", Type = TagType.Frontend, CustomColour = "red" };
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/tag", CreateJsonContent(createTag));
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.BadRequest, ErrorCodes.CustomColourInvalid);
+    }
+
+    [Fact]
+    public async Task PostTag_EmptyTitle_ReturnsValidationCode()
+    {
+        var createTag = new CreateTag { Title = "", Type = TagType.Frontend };
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/tag", CreateJsonContent(createTag));
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.BadRequest, ErrorCodes.TitleRequired);
+    }
+
+    [Fact]
+    public async Task PostTag_MalformedBody_ReturnsBadRequestCode()
+    {
+        var content = new StringContent("{ not json", Encoding.UTF8, "application/json");
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/tag", content);
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.BadRequest, ErrorCodes.BadRequest);
+    }
+
+    [Fact]
+    public async Task PostTag_UnsupportedContentType_ReturnsBadRequestCode()
+    {
+        var content = new StringContent("Title=Plain", Encoding.UTF8, "text/plain");
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/tag", content);
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.BadRequest, ErrorCodes.BadRequest);
     }
 }

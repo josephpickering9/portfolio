@@ -1,6 +1,6 @@
 namespace Work_Experience_Search.Exceptions;
 
-public class ConflictException : Exception
+public sealed class ConflictException : Exception
 {
     public ConflictException()
     {

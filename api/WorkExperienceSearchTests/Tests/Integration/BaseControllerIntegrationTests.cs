@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using Auth0.AuthenticationApi;
@@ -9,7 +10,7 @@ using Newtonsoft.Json;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Tests;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Types;
 using Xunit;
 
@@ -57,38 +58,41 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         context.Tag.RemoveRange(context.Tag);
         context.Company.RemoveRange(context.Company);
         await context.SaveChangesAsync();
+        InvalidateCaches();
+    }
+
+    private void InvalidateCaches()
+    {
+        var cacheInvalidator = Factory.Services.GetRequiredService<CacheInvalidator>();
+        cacheInvalidator.InvalidateProjects();
+        cacheInvalidator.InvalidateCompanies();
+        cacheInvalidator.InvalidateTags();
     }
 
     protected async Task<Project> CreateProjectAsync(
         ProjectId projectId,
         string title = "Test Project",
-        string description = "Test Description",
-        string shortDescription = "Test Short Description",
         CompanyId? companyId = null,
-        DateOnly? startDate = null,
-        DateOnly? endDate = null,
-        string website = "https://example.com",
-        List<string>? tags = null
-    )
+        List<string>? tags = null)
     {
-        var resolvedStartDate = startDate ?? new DateOnly(2021, 1, 1);
+        var startDate = new DateOnly(2021, 1, 1);
         var project = new Project
         {
             Id = projectId,
             Title = title,
-            Description = description,
-            ShortDescription = shortDescription,
+            Description = "Test Description",
+            ShortDescription = "Test Short Description",
             CompanyId = companyId,
-            StartDate = resolvedStartDate,
-            EndDate = endDate ?? resolvedStartDate.AddYears(1),
-            Website = website,
+            StartDate = startDate,
+            EndDate = startDate.AddYears(1),
+            Website = "https://example.com",
             Slug = title.ToSlug(),
             Tags = []
         };
 
         using var scope = Factory.Services.CreateScope();
 
-        if (companyId != null)
+        if (companyId is not null)
         {
             await CreateCompanyAsync(companyId.Value);
         }
@@ -97,13 +101,14 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         {
             var tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
             var createdTags = await tagService.SyncTagsAsync(tags);
-            if (createdTags.Data != null) project.Tags = createdTags.Data;
+            if (createdTags.Data is not null) project.Tags = [.. createdTags.Data];
         }
 
         var context = scope.ServiceProvider.GetRequiredService<Database>();
 
         context.Project.Add(project);
         await context.SaveChangesAsync();
+        InvalidateCaches();
 
         return project;
     }
@@ -122,7 +127,8 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
             Title = title,
             Type = type,
             Icon = icon,
-            CustomColour = customColour
+            CustomColour = customColour,
+            Slug = title.ToSlug()
         };
 
         using var scope = Factory.Services.CreateScope();
@@ -130,6 +136,7 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
 
         context.Tag.Add(tag);
         await context.SaveChangesAsync();
+        InvalidateCaches();
 
         return tag;
     }
@@ -137,21 +144,15 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
     protected async Task<Company> CreateCompanyAsync(
         CompanyId companyId,
         string name = "Test Company",
-        string description = "Test Description",
-        string website = "https://example.com",
-        DateOnly? startDate = null,
-        DateOnly? endDate = null
-    )
+        string description = "Test Description")
     {
-        var resolvedStartDate = startDate;
         var company = new Company
         {
             Id = companyId,
             Name = name,
             Description = description,
-            StartDate = resolvedStartDate,
-            EndDate = endDate ?? resolvedStartDate?.AddYears(1),
-            Website = website
+            Website = "https://example.com",
+            Slug = name.ToSlug()
         };
 
         using var scope = Factory.Services.CreateScope();
@@ -159,6 +160,7 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
 
         context.Company.Add(company);
         await context.SaveChangesAsync();
+        InvalidateCaches();
 
         return company;
     }
@@ -171,6 +173,14 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
     protected static T? GetJsonContent<T>(string json)
     {
         return JsonConvert.DeserializeObject<T>(json);
+    }
+
+    protected static async Task AssertErrorAsync(HttpResponseMessage response, HttpStatusCode expectedStatus, string expectedErrorCode)
+    {
+        Assert.Equal(expectedStatus, response.StatusCode);
+        var error = GetJsonContent<ApiErrorDto>(await response.Content.ReadAsStringAsync());
+        Assert.NotNull(error);
+        Assert.Equal(expectedErrorCode, error.Error);
     }
 
     protected static MultipartFormDataContent GetMultipartFormDataContent<T>(T data) where T : class

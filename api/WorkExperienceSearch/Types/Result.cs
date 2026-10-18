@@ -1,84 +1,41 @@
-using Microsoft.AspNetCore.Mvc;
-using Work_Experience_Search.Exceptions;
-
 namespace Work_Experience_Search.Types;
 
-public class Result<T>
+public sealed class Result<T>
 {
-    protected Result(T data)
+    private Result(T? data, string? error)
     {
         Data = data;
-    }
-
-    protected Result(Exception error, ErrorType type)
-    {
         Error = error;
-        ErrorType = type;
     }
 
     public T? Data { get; }
-    public Exception? Error { get; }
-    private ErrorType ErrorType { get; }
-    public bool IsSuccess => Error == null;
+    public string? Error { get; }
+    public bool IsSuccess => Error is null;
 
-    public ActionResult ToResponse()
-    {
-        return IsSuccess ? ToSuccessResponse() : ToErrorResponse();
-    }
+    public static Result<T> Ok(T data) => new(data, null);
 
-    private ActionResult ToSuccessResponse()
-    {
-        return Data != null ? new OkObjectResult(Data) : new NoContentResult();
-    }
+    public static Result<T> Fail(string errorCode) => new(default, errorCode);
 
-    private ActionResult ToErrorResponse()
-    {
-        if (Error == null)
-        {
-            return new ObjectResult(new ProblemDetails { Status = 400, Title = "Bad Request" }) { StatusCode = 400 };
-        }
-
-        var (statusCode, title) = ErrorType switch
-        {
-            ErrorType.NotFound => (StatusCodes.Status404NotFound, "Not Found"),
-            ErrorType.Conflict => (StatusCodes.Status409Conflict, "Conflict"),
-            ErrorType.BadRequest => (StatusCodes.Status400BadRequest, "Bad Request"),
-            ErrorType.Unauthorized => (StatusCodes.Status401Unauthorized, "Unauthorized"),
-            ErrorType.Forbidden => (StatusCodes.Status403Forbidden, "Forbidden"),
-            _ => (StatusCodes.Status400BadRequest, "Bad Request")
-        };
-
-        var problemDetails = new ProblemDetails
-        {
-            Status = statusCode,
-            Title = title,
-            Detail = Error.Message
-        };
-
-        return new ObjectResult(problemDetails) { StatusCode = statusCode };
-    }
+    public static implicit operator Result<T>(ResultFailure failure) => Fail(failure.ErrorCode);
 }
 
-public class Success<T>(T data) : Result<T>(data);
-
-public class Failure<T>(string message) : Result<T>(new Exception(message), ErrorType.None);
-
-public class NotFoundFailure<T>(string message = "Item not found.") : Result<T>(new NotFoundException(message), ErrorType.NotFound);
-
-public class ConflictFailure<T>(string message) : Result<T>(new ConflictException(message), ErrorType.Conflict);
-
-public class BadRequestFailure<T>(string message) : Result<T>(new Exception(message), ErrorType.BadRequest);
-
-public class UnauthorizedFailure<T>(string message) : Result<T>(new Exception(message), ErrorType.Unauthorized);
-
-public class ForbiddenFailure<T>(string message) : Result<T>(new Exception(message), ErrorType.Forbidden);
-
-public enum ErrorType
+public sealed record ResultFailure
 {
-    None,
-    NotFound,
-    Conflict,
-    BadRequest,
-    Unauthorized,
-    Forbidden
+    public ResultFailure(string errorCode)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(errorCode);
+        ErrorCode = errorCode;
+    }
+
+    public string ErrorCode { get; }
+}
+
+public static class ResultFactory
+{
+    public static Result<T> ToOk<T>(this T value) => Result<T>.Ok(value);
+
+    public static ResultFailure ToFail(this string errorCode) => new(errorCode);
+
+    public static Result<T> ToResultOrFail<T>(this T? value, string errorCode) where T : class =>
+        value is null ? Result<T>.Fail(errorCode) : Result<T>.Ok(value);
 }

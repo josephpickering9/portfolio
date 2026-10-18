@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -80,54 +80,34 @@ public class BaseServiceTests : IAsyncLifetime
         };
     }
 
-    protected static Company CreateCompany(
-        CompanyId id,
-        string name,
-        string description,
-        string logo,
-        string website,
-        DateOnly? startDate = null,
-        DateOnly? endDate = null)
+    protected sealed record ProjectSeed(ProjectId Id, string Title)
     {
-        return new Company
-        {
-            Id = id,
-            Name = name,
-            Description = description,
-            StartDate = startDate,
-            EndDate = endDate,
-            Logo = logo,
-            Website = website
-        };
+        public string Description { get; init; } = "Description";
+        public string ShortDescription { get; init; } = "Short Description";
+        public CompanyId? CompanyId { get; init; }
+        public DateOnly StartDate { get; init; } = new(2020, 1, 1);
+        public DateOnly? EndDate { get; init; }
+        public string? Website { get; init; }
+        public List<Tag> Tags { get; init; } = [];
     }
 
-    protected static Project CreateProject(
-        ProjectId id,
-        string title = "Title",
-        string description = "Description",
-        string shortDescription = "Short Description",
-        CompanyId? companyId = null!,
-        DateOnly? startDate = null,
-        DateOnly? endDate = null,
-        string website = null!,
-        List<Tag> tags = null!
-    )
-    {
-        var resolvedStartDate = startDate ?? new DateOnly(2020, 1, 1);
-        return new Project
+    protected static Project CreateProject(ProjectId id, string title = "Title", List<Tag>? tags = null) =>
+        CreateProject(new ProjectSeed(id, title) { Tags = tags ?? [] });
+
+    protected static Project CreateProject(ProjectSeed seed) =>
+        new()
         {
-            Id = id,
-            Title = title,
-            Description = description,
-            ShortDescription = shortDescription,
-            CompanyId = companyId,
-            StartDate = resolvedStartDate,
-            EndDate = endDate ?? resolvedStartDate.AddYears(1),
-            Website = website,
-            Tags = tags,
-            Slug = title.ToSlug()
+            Id = seed.Id,
+            Title = seed.Title,
+            Description = seed.Description,
+            ShortDescription = seed.ShortDescription,
+            CompanyId = seed.CompanyId,
+            StartDate = seed.StartDate,
+            EndDate = seed.EndDate ?? seed.StartDate.AddYears(1),
+            Website = seed.Website,
+            Tags = seed.Tags,
+            Slug = seed.Title.ToSlug()
         };
-    }
 
     private static ProjectImage CreateProjectImage(
         Guid id,
@@ -177,14 +157,16 @@ public class BaseServiceTests : IAsyncLifetime
     
     private static IEnumerable<Company> GetTestCompanies() =>
         [
-            CreateCompany(
-                Company1Id,
-                "Test Company",
-                "Test Description",
-                "testLogo",
-                "https://example.com",
-                new DateOnly(2020, 1, 1),
-                new DateOnly(2021, 1, 1))
+            new Company
+            {
+                Id = Company1Id,
+                Name = "Test Company",
+                Description = "Test Description",
+                StartDate = new DateOnly(2020, 1, 1),
+                EndDate = new DateOnly(2021, 1, 1),
+                Logo = "testLogo",
+                Website = "https://example.com"
+            }
         ];
     
     private async Task<IEnumerable<Project>> GetTestProjects()
@@ -194,19 +176,36 @@ public class BaseServiceTests : IAsyncLifetime
 
         return
         [
-            CreateProject(Project1Id, "Visit Northumberland",
-                "A website for Visit Northumberland using C# and ASP.NET Core MVC.",
-                "A website for Visit Northumberland", companies.First().Id,
-                new DateOnly(2020, 1, 1), new DateOnly(2021, 1, 1), "https://visitnorthumberland.com/", [tags[0], tags[1]]),
-            CreateProject(Project2Id, "BeatCovidNE", "A website for BeatCovidNE using C# and ASP.NET Core MVC.",
-                "A website for BeatCovidNE", companies.First().Id, new DateOnly(2021, 1, 1),
-                new DateOnly(2022, 1, 1),
-                "https://beatcovidne.co.uk/", [tags[1], tags[2]]),
-            CreateProject(Project3Id, "taxigoat",
-                "A website & mobile application for taxigoat using Xamarin Forms and ASP.NET Core API.",
-                "A website for taxigoat", companies.First().Id, new DateOnly(2019, 1, 1),
-                new DateOnly(2020, 1, 1),
-                "https://taxigoat.co.uk/", [tags[2]])
+            CreateProject(new ProjectSeed(Project1Id, "Visit Northumberland")
+            {
+                Description = "A website for Visit Northumberland using C# and ASP.NET Core MVC.",
+                ShortDescription = "A website for Visit Northumberland",
+                CompanyId = companies.First().Id,
+                StartDate = new DateOnly(2020, 1, 1),
+                EndDate = new DateOnly(2021, 1, 1),
+                Website = "https://visitnorthumberland.com/",
+                Tags = [tags[0], tags[1]]
+            }),
+            CreateProject(new ProjectSeed(Project2Id, "BeatCovidNE")
+            {
+                Description = "A website for BeatCovidNE using C# and ASP.NET Core MVC.",
+                ShortDescription = "A website for BeatCovidNE",
+                CompanyId = companies.First().Id,
+                StartDate = new DateOnly(2021, 1, 1),
+                EndDate = new DateOnly(2022, 1, 1),
+                Website = "https://beatcovidne.co.uk/",
+                Tags = [tags[1], tags[2]]
+            }),
+            CreateProject(new ProjectSeed(Project3Id, "taxigoat")
+            {
+                Description = "A website & mobile application for taxigoat using Xamarin Forms and ASP.NET Core API.",
+                ShortDescription = "A website for taxigoat",
+                CompanyId = companies.First().Id,
+                StartDate = new DateOnly(2019, 1, 1),
+                EndDate = new DateOnly(2020, 1, 1),
+                Website = "https://taxigoat.co.uk/",
+                Tags = [tags[2]]
+            })
         ];
     }
     
