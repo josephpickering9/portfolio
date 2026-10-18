@@ -94,7 +94,6 @@ Output format:
                     parts = new[] { new { text = prompt } }
                 }
             }
-            // No generationConfig: Gemini 3+ is tuned for the default temperature (1.0); lower values can cause looping
         };
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Post, _options.GenerateContentUrl())

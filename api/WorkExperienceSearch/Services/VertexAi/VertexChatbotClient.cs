@@ -27,7 +27,6 @@ public class VertexAiOptions
     public string GenerateContentUrl()
     {
         var location = string.IsNullOrWhiteSpace(ModelLocation) ? Location : ModelLocation;
-        // The global endpoint has no regional host prefix (aiplatform.googleapis.com, not global-aiplatform...)
         var host = location == "global" ? "aiplatform.googleapis.com" : $"{location}-aiplatform.googleapis.com";
         return $"https://{host}/v1/projects/{ProjectId}/locations/{location}/publishers/google/models/{Model}:generateContent";
     }
