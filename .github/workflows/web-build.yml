@@ -1,0 +1,24 @@
+name: Web Build
+on:
+  push:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-build.yml'
+jobs:
+  build:
+    name: yarn build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'yarn' # cache dependencies
+          cache-dependency-path: web/yarn.lock
+      - name: Yarn install
+        run: yarn install --frozen-lockfile
+      - name: Yarn build
+        run: yarn build

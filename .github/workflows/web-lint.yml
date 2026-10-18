@@ -1,9 +1,16 @@
-name: yarn lint
-on: [push]
+name: Web Lint
+on:
+  push:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-lint.yml'
 jobs:
   lint:
     name: yarn lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
     steps:
       - uses: actions/checkout@v4
 

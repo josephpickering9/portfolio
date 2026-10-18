@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-yarn lint-staged
+# Hooks run from the repo root; lint-staged needs web/'s package.json
+cd web && yarn lint-staged

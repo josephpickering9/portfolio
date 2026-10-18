@@ -15,7 +15,7 @@ Code should be intuitive enough to read without comments. Default to writing no 
 Nuxt 4 (compatibility v4, `app/` source dir), Vue 3, TypeScript, Tailwind CSS v4 on the design tokens in `app/assets/css/tokens.css` (no component library — custom components live under `app/components/ui/`), Pinia for state, Auth0 (`@auth0/auth0-vue`) for auth, `@vuelidate` for form validation, TipTap for rich text, `@vite-pwa/nuxt` for PWA.
 
 ## API client — never hand-edit
-`api/`, `api/client/`, `api/core/` are generated from the backend's Swagger spec via `@hey-api/openapi-ts` (`openapi-ts.config.ts`). Regenerate with `yarn codegen` (backend must be running locally at `http://localhost:5105`, see the monorepo root `CLAUDE.md`). These files are overwritten on every run — never edit them by hand, and don't add business logic there.
+`api/`, `api/client/`, `api/core/` are generated from the backend's Swagger spec via `@hey-api/openapi-ts` (`openapi-ts.config.ts`). Regenerate with `yarn codegen` (backend must be running locally at `http://localhost:5105`, see the repo root `CLAUDE.md`). These files are overwritten on every run — never edit them by hand, and don't add business logic there.
 
 `app/plugins/axios-config.ts` sets the generated client's `baseURL` from `runtimeConfig.public.apiBase`; `app/plugins/auth0.client.ts` attaches the bearer token.
 
@@ -55,7 +55,7 @@ New code should come with tests, not just fixes for the code covered by this bac
 
 ## Code quality standing rules
 
-Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` at the monorepo root):
+Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` at the repo root):
 
 - **File size cap ~500-600 lines.** Split a large component into sub-components, or a large store/composable by responsibility, before it grows past this. No automated check yet — a code-review convention.
 - **No non-null assertions (`!`).** Capture the value into a local `const` first so TypeScript can narrow it properly (a direct `if (x)` on a prop/computed doesn't reliably narrow across statements or closures, which is why the assertion tends to get reached for in the first place), or restructure so the assertion isn't needed — see the pattern used throughout `CompanyForm.vue`/`ProjectForm.vue`/`TagForm.vue`. Not automated (no `no-non-null-assertion` ESLint rule configured); catch it in review.

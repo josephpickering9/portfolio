@@ -2,7 +2,7 @@
 
 A Nuxt 4 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it's now a full portfolio with AI search, company timelines, and a CMS for managing content.
 
-Linked to the [Work Experience API](https://github.com/josephpickering9/work_experience_api).
+Consumes the [Work Experience API](../api) in this repo.
 
 **Live:** [experience.josephpickering.co.uk](https://experience.josephpickering.co.uk)
 
@@ -65,12 +65,12 @@ e2e/                # Playwright E2E specs
 
 ## Getting Started
 
-**Prerequisites:** Node.js (LTS), Yarn, a running instance of the [Work Experience API](https://github.com/josephpickering9/work_experience_api), and an Auth0 application.
+**Prerequisites:** Node.js (LTS), Yarn, a running instance of the [Work Experience API](../api), and an Auth0 application.
 
 ```bash
 # Clone and install
-git clone https://github.com/josephpickering9/work_experience.git
-cd work_experience
+git clone https://github.com/josephpickering9/portfolio.git
+cd portfolio/web
 yarn install
 
 # Configure environment
@@ -146,4 +146,4 @@ The project deploys automatically to a Digital Ocean droplet via GitHub Actions 
 
 ## Conventions
 
-Coding conventions (directory layout, component patterns, testing, linting) live in [`CLAUDE.md`](./CLAUDE.md). The monorepo root's [`docs/CODE_QUALITY_BACKLOG.md`](../docs/CODE_QUALITY_BACKLOG.md) tracks the active code-quality backlog for both projects.
+Coding conventions (directory layout, component patterns, testing, linting) live in [`CLAUDE.md`](./CLAUDE.md). The repo root's [`docs/CODE_QUALITY_BACKLOG.md`](../docs/CODE_QUALITY_BACKLOG.md) tracks the active code-quality backlog for both projects.

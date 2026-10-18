@@ -8,6 +8,7 @@
     "preview": "nuxt preview",
     "start": "nuxt start",
     "postinstall": "nuxt prepare",
+    "prepare": "cd .. && husky web/.husky",
     "codegen": "yarn openapi-ts",
     "test": "vitest run",
     "test:watch": "vitest",

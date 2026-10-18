@@ -40,7 +40,7 @@ Real exceptions (`Exceptions/NotFoundException`, `ConflictException`) still exis
 
 ## Code quality standing rules
 
-Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` at the monorepo root) — code review should hold new code to these, not just legacy code:
+Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` at the repo root) — code review should hold new code to these, not just legacy code:
 
 - **File size cap ~500-600 lines.** Split a service by responsibility or extract a sub-component before a file grows past this. No automated check for this yet (`.NET` has no built-in line-count analyzer) — a code-review convention, same as the comment-policy rules above.
 - **Method parameters: max 5-6.** Beyond that, introduce a dedicated request/DTO class instead of growing the parameter list further.
@@ -65,7 +65,7 @@ Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` 
 - `Migrations/` — EF Core migrations, never hand-edited (see below).
 
 ## Migrations
-Never create migration files manually. Always run `dotnet ef migrations add <Name>` from `Work Experience Search/WorkExperienceSearch/`. Manual migrations skip the `.Designer.cs` snapshot and cause EF to block `database update` with a `PendingModelChangesWarning`. Apply with `dotnet ef database update`.
+Never create migration files manually. Always run `dotnet ef migrations add <Name>` from `api/WorkExperienceSearch/`. Manual migrations skip the `.Designer.cs` snapshot and cause EF to block `database update` with a `PendingModelChangesWarning`. Apply with `dotnet ef database update`.
 
 ## Testing
 xUnit + Moq + `NetArchTest.Rules`, tests live in `WorkExperienceSearchTests/Tests/`:

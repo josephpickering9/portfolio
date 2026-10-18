@@ -81,8 +81,8 @@ public class ProjectController(IProjectService projectService) : ControllerBase
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/josephpickering9/work_experience_api.git
-   cd work_experience_api
+   git clone https://github.com/josephpickering9/portfolio.git
+   cd portfolio/api
    ```
 
 2. **Start the database**
@@ -200,4 +200,4 @@ WorkExperienceSearchTests/
 
 ## Conventions
 
-Coding conventions (layering, comment policy, testing, style) live in [`CLAUDE.md`](./CLAUDE.md). The monorepo root's [`docs/CODE_QUALITY_BACKLOG.md`](../docs/CODE_QUALITY_BACKLOG.md) tracks the active code-quality backlog for both projects.
+Coding conventions (layering, comment policy, testing, style) live in [`CLAUDE.md`](./CLAUDE.md). The repo root's [`docs/CODE_QUALITY_BACKLOG.md`](../docs/CODE_QUALITY_BACKLOG.md) tracks the active code-quality backlog for both projects.
