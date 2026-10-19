@@ -46,10 +46,13 @@ jobs:
           cache: 'yarn'
           cache-dependency-path: web/yarn.lock
 
+      - name: Build the API
+        run: dotnet build api/Portfolio.Api
+
       - name: Migrate and seed the database
         run: |
           dotnet tool install --global dotnet-ef --version 10.0.13
-          dotnet ef database update --project api/Portfolio.Api --connection "$CONNECTION_STRING"
+          dotnet ef database update --project api/Portfolio.Api --no-build --connection "$CONNECTION_STRING"
           psql "postgresql://e2e:e2e@localhost:5432/portfolio_e2e" -v ON_ERROR_STOP=1 -f web/e2e/fixtures/seed.sql
 
       - name: Start the API
@@ -64,7 +67,7 @@ jobs:
         run: |
           mkdir -p wwwroot/uploads
           cp ../../web/e2e/fixtures/uploads/* wwwroot/uploads/
-          nohup dotnet run --no-launch-profile > "$RUNNER_TEMP/api.log" 2>&1 &
+          nohup dotnet run --no-build --no-launch-profile > "$RUNNER_TEMP/api.log" 2>&1 &
           for _ in $(seq 1 90); do
             curl -sf "$API_URL/health" > /dev/null && exit 0
             sleep 2
