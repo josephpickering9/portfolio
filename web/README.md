@@ -92,7 +92,6 @@ yarn dev
 | `NUXT_PUBLIC_API_BASE` | Base URL of the Work Experience API (e.g. `http://localhost:5105` locally) |
 | `NUXT_PUBLIC_BASE` | Base URL of this frontend (used for PWA and redirects, e.g. `http://localhost:3000` locally) |
 | `NUXT_AUTH0_CLIENT_ID` | Auth0 application client ID |
-| `NUXT_AUTH0_CLIENT_SECRET` | Auth0 application client secret |
 | `NUXT_AUTH0_DOMAIN` | Auth0 domain (e.g. `your-tenant.auth0.com`) |
 | `NUXT_PUBLIC_LINKED_IN_URL` | LinkedIn profile URL displayed in the header |
 | `NUXT_PUBLIC_UMAMI_ID` | Umami analytics website ID (optional — leave blank to disable analytics) |
@@ -104,7 +103,7 @@ This project uses Auth0. To set up:
 1. Create an application (Single Page Application) in the [Auth0 dashboard](https://manage.auth0.com).
 2. Create an API in Auth0 and set its identifier as the `audience` — this should match `NUXT_PUBLIC_API_BASE`.
 3. Add your local and production URLs to the **Allowed Callback URLs**, **Allowed Logout URLs**, and **Allowed Web Origins** in the Auth0 application settings.
-4. Populate `NUXT_AUTH0_CLIENT_ID`, `NUXT_AUTH0_CLIENT_SECRET`, and `NUXT_AUTH0_DOMAIN` in `.env`.
+4. Populate `NUXT_AUTH0_CLIENT_ID` and `NUXT_AUTH0_DOMAIN` in `.env` (a Single Page Application has no client secret).
 
 Authentication is enforced per-page via `definePageMeta({ middleware: 'auth' })`. The plugin at `app/plugins/auth0.client.ts` attaches the bearer token to all API requests.
 
