@@ -4,22 +4,25 @@ export interface AiPrompt {
 }
 
 export const aiPrompts: AiPrompt[] = [
-  { text: 'What React projects has Joe worked on?', icon: 'simple-icons:react' },
+  { text: 'What has Joe worked on most recently?', icon: 'heroicons:clock' },
+  { text: 'Which companies has Joe worked for?', icon: 'heroicons:building-office-2' },
   { text: 'What technologies does Joe use most?', icon: 'heroicons:code-bracket' },
-  { text: 'What has Joe built with Next.js?', icon: 'simple-icons:nextdotjs' },
-  { text: "Tell me about Joe's .NET background.", icon: 'simple-icons:dotnet' },
-  { text: 'Which projects use Vue?', icon: 'simple-icons:vuedotjs' },
+  { text: "What measurable impact have Joe's projects had?", icon: 'heroicons:chart-bar' },
+  { text: 'What has Joe built with Vue and Nuxt?', icon: 'simple-icons:nuxtdotjs' },
+  { text: 'What React projects has Joe worked on?', icon: 'simple-icons:react' },
   { text: 'Show me projects using TypeScript.', icon: 'simple-icons:typescript' },
-  { text: 'What Flutter apps has Joe built?', icon: 'simple-icons:flutter' },
-  { text: 'What about mobile development with Android?', icon: 'simple-icons:android' },
-  { text: 'What PHP projects has Joe worked on?', icon: 'simple-icons:php' },
+  { text: "Tell me about Joe's .NET background.", icon: 'simple-icons:dotnet' },
+  { text: 'What backend work has Joe done in Kotlin?', icon: 'simple-icons:kotlin' },
+  { text: 'What PHP and Laravel work has Joe done?', icon: 'simple-icons:php' },
   { text: 'What AI projects has Joe worked on?', icon: 'heroicons:cpu-chip' },
-  { text: 'Has Joe worked on any mobile apps?', icon: 'heroicons:device-phone-mobile' },
   { text: 'What projects involved document processing?', icon: 'heroicons:document-text' },
-  { text: "What's Joe's experience with Nuxt?", icon: 'simple-icons:nuxtdotjs' },
+  { text: 'Has Joe worked on any mobile apps?', icon: 'heroicons:device-phone-mobile' },
+  { text: 'Has Joe built a design system or component library?', icon: 'simple-icons:storybook' },
+  { text: 'What databases has Joe worked with?', icon: 'heroicons:circle-stack' },
+  { text: 'Which cloud platforms has Joe deployed to?', icon: 'heroicons:cloud' },
   { text: "Tell me about Joe's CI/CD experience.", icon: 'simple-icons:githubactions' },
-  { text: 'What Kotlin projects has Joe built?', icon: 'simple-icons:kotlin' },
   { text: 'Has Joe worked with WordPress or CMS platforms?', icon: 'simple-icons:wordpress' },
+  { text: 'What tourism and heritage websites has Joe built?', icon: 'heroicons:building-library' },
 ]
 
 export const SUGGESTED_PROMPT_COUNT = 3
