@@ -1,16 +1,16 @@
 using System.ComponentModel;
 using System.Reflection;
-using Microsoft.OpenApi.Any;
-using Microsoft.OpenApi.Models;
+using System.Text.Json.Nodes;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Work_Experience_Search.Filters;
 
 public sealed class EnumDescriptionSchemaFilter : ISchemaFilter
 {
-    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    public void Apply(IOpenApiSchema schema, SchemaFilterContext context)
     {
-        if (!context.Type.IsEnum) return;
+        if (!context.Type.IsEnum || schema is not OpenApiSchema enumSchema) return;
 
         var enumDescriptions = new List<string>();
         foreach (var enumValue in Enum.GetValues(context.Type))
@@ -23,8 +23,7 @@ public sealed class EnumDescriptionSchemaFilter : ISchemaFilter
             enumDescriptions.Add(descriptionAttribute?.Description ?? value);
         }
 
-        schema.Enum.Clear();
-        foreach (var enumDescription in enumDescriptions) schema.Enum.Add(new OpenApiString(enumDescription));
-        schema.Type = "string";
+        enumSchema.Enum = enumDescriptions.Select(JsonNode (description) => JsonValue.Create(description)).ToList();
+        enumSchema.Type = JsonSchemaType.String;
     }
 }

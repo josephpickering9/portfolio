@@ -4,7 +4,7 @@ This repo holds the backend and frontend of [josephpickering.co.uk](https://jose
 
 | Project | Path | Stack | Docs |
 |---|---|---|---|
-| Backend API | [`api/`](./api) | .NET 8, PostgreSQL, EF Core | [README](./api/README.md) · [CLAUDE.md](./api/CLAUDE.md) |
+| Backend API | [`api/`](./api) | .NET 10, PostgreSQL, EF Core | [README](./api/README.md) · [CLAUDE.md](./api/CLAUDE.md) |
 | Frontend | [`web/`](./web) | Nuxt 4, Vue 3, TypeScript | [README](./web/README.md) · [CLAUDE.md](./web/CLAUDE.md) |
 
 See each project's own README for full setup instructions. This file only covers how the two fit together.

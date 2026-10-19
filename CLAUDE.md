@@ -2,7 +2,7 @@
 
 Two projects in one git repo, not a package-manager-linked monorepo:
 
-- **`api/`** — .NET 8 Web API + PostgreSQL backend. See `api/CLAUDE.md`.
+- **`api/`** — .NET 10 Web API + PostgreSQL backend. See `api/CLAUDE.md`.
 - **`web/`** — Nuxt 4 / Vue 3 frontend. See `web/CLAUDE.md`.
 
 Each has its own dependency graph, CI workflows (`.github/workflows/api-*` / `web-*`, path-filtered so a change only builds and deploys its own side), and CLAUDE.md with project-specific conventions. This file only covers things that span both.

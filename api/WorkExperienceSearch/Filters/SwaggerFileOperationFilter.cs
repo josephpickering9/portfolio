@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Work_Experience_Search.Filters;
@@ -15,42 +15,37 @@ public sealed class SwaggerFileOperationFilter : IOperationFilter
                         || p.ParameterType == typeof(List<IFormFile>));
 
         var parameterInfos = formParameters.ToList();
-        if (!parameterInfos.Any())
+        if (!parameterInfos.Any() || operation.RequestBody?.Content is not { } content)
             return;
 
-        operation.RequestBody.Content.Clear();
-        var schema = new OpenApiSchema();
+        content.Clear();
+        var schema = new OpenApiSchema { Properties = new Dictionary<string, IOpenApiSchema>() };
 
         foreach (var p in parameterInfos)
-            if (p.ParameterType == typeof(IFormFile))
-            {
-                schema.Properties.Add(p.Name, new OpenApiSchema
-                {
-                    Type = "string",
-                    Format = "binary"
-                });
-            }
-            else if (p.ParameterType == typeof(IFormCollection) || p.ParameterType == typeof(List<IFormFile>))
-            {
-                schema.Properties.Add(p.Name, new OpenApiSchema
-                {
-                    Type = "array",
-                    Items = new OpenApiSchema
-                    {
-                        Type = "string",
-                        Format = "binary"
-                    }
-                });
-            }
-            else
-            {
-                var reference = context.SchemaGenerator.GenerateSchema(p.ParameterType, context.SchemaRepository);
-                schema.Properties.Add(p.Name, reference);
-            }
+        {
+            if (p.Name is not { } name) continue;
 
-        operation.RequestBody.Content.Add("multipart/form-data", new OpenApiMediaType
+            schema.Properties.Add(name, ToFormSchema(p.ParameterType, context));
+        }
+
+        content.Add("multipart/form-data", new OpenApiMediaType
         {
             Schema = schema
         });
+    }
+
+    private static IOpenApiSchema ToFormSchema(Type parameterType, OperationFilterContext context)
+    {
+        if (parameterType == typeof(IFormFile))
+            return new OpenApiSchema { Type = JsonSchemaType.String, Format = "binary" };
+
+        if (parameterType == typeof(IFormCollection) || parameterType == typeof(List<IFormFile>))
+            return new OpenApiSchema
+            {
+                Type = JsonSchemaType.Array,
+                Items = new OpenApiSchema { Type = JsonSchemaType.String, Format = "binary" }
+            };
+
+        return context.SchemaGenerator.GenerateSchema(parameterType, context.SchemaRepository);
     }
 }

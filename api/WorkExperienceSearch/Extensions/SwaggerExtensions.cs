@@ -1,4 +1,4 @@
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using Work_Experience_Search.Filters;
 using Work_Experience_Search.Types;
 
@@ -21,7 +21,7 @@ public static class SwaggerExtensions
             options.SupportNonNullableReferenceTypes();
 
             foreach (var idType in StronglyTypedIdTypes())
-                options.MapType(idType, () => new OpenApiSchema { Type = "string", Format = "uuid" });
+                options.MapType(idType, () => new OpenApiSchema { Type = JsonSchemaType.String, Format = "uuid" });
         });
 
         return services;
