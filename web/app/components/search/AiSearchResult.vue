@@ -97,7 +97,7 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { AiAnswer } from '~/types/AiAnswer'
 import { useReducedMotion } from '~/composables/useReducedMotion'
 import { useImageUrl } from '~/composables/useImageUrl'
-import { renderBasicMarkdown } from '~/utils/markdown-helper'
+import { renderMarkdown } from '~/utils/markdown-helper'
 import { formatCount } from '~/utils/string-helper'
 
 interface Props {
@@ -122,7 +122,7 @@ const shown = ref(0)
 let timer: ReturnType<typeof setInterval> | undefined
 
 const revealing = computed(() => shown.value < props.result.answer.length)
-const renderedAnswer = computed(() => renderBasicMarkdown(props.result.answer.slice(0, shown.value)))
+const renderedAnswer = computed(() => renderMarkdown(props.result.answer.slice(0, shown.value)))
 
 function stopReveal() {
   if (timer) clearInterval(timer)
