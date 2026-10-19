@@ -1,6 +1,12 @@
 name: Web Lint & Test
 on:
   push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web-lint.yml'
+      - 'api/WorkExperienceSearch/Types/ErrorCodes.cs'
+  pull_request:
     paths:
       - 'web/**'
       - '.github/workflows/web-lint.yml'
