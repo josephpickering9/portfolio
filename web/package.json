@@ -17,7 +17,7 @@
     "lint:full": "eslint .",
     "lint:commit": "eslint",
     "typecheck": "vue-tsc --noEmit",
-    "generate-logos": "node scripts/generate-logo-grid.js --include 'alnwick-castle,yorkshire-sculpture-park,storybook,beatcovidne,taxigoat,boiler-plan,visit-northumberland,glasgow-retina,research-portal,nightingale-design-research'"
+    "generate-meta": "node scripts/generate-meta-image.js --include 'alnwick-castle,yorkshire-sculpture-park,storybook,beatcovidne,taxigoat,boiler-plan,visit-northumberland,glasgow-retina,research-portal,nightingale-design-research'"
   },
   "lint-staged": {
     "*.{js,vue,ts}": "yarn lint:commit"
