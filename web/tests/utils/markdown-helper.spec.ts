@@ -36,6 +36,12 @@ describe('renderMarkdown', () => {
     )
   })
 
+  it('links bare domains', () => {
+    expect(render('See alnwickcastle.com')).toBe(
+      '<p>See <a href="http://alnwickcastle.com" target="_blank" rel="noopener noreferrer">alnwickcastle.com</a></p>',
+    )
+  })
+
   it('drops unsafe link protocols', () => {
     expect(render('[click](javascript:alert(1))')).toBe('<p>[click](javascript:alert(1))</p>')
   })
