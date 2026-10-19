@@ -82,7 +82,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "nuxt": "^4.4.2",
-    "nuxt-security": "~2.5.1",
+    "nuxt-security": "~2.6.0",
     "nuxt-umami": "^3.2.1",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.8.1",
