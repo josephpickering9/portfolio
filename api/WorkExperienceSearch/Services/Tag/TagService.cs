@@ -1,135 +1,121 @@
-using Work_Experience_Search.Requests;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Models;
-using Work_Experience_Search.Types;
 using Work_Experience_Search.Repositories;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Requests;
+using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Services;
 
-public class TagService(ITagRepository repository, ILogger<TagService> logger) : ITagService
+public sealed class TagService(ITagRepository repository, ILogger<TagService> logger) : ITagService
 {
-    public async Task<Result<IEnumerable<Tag>>> GetTagsAsync(string? search)
+    private const string SlugFallback = "tag";
+
+    public async Task<Result<IReadOnlyList<Tag>>> GetTagsAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var tags = await repository.SearchAsync(search);
-        return new Success<IEnumerable<Tag>>(tags);
+        var tags = await repository.SearchAsync(search, cancellationToken);
+        return tags.ToOk();
     }
 
-    public async Task<Result<Tag>> GetTagAsync(TagId id)
+    public async Task<Result<Tag>> GetTagAsync(TagId id, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.TagNotFound);
+
+    public async Task<Result<Tag>> GetTagBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(slug, cancellationToken)).ToResultOrFail(ErrorCodes.TagNotFound);
+
+    public async Task<Result<Tag>> CreateTagAsync(CreateTag createTag, CancellationToken cancellationToken = default)
     {
-        var tag = await repository.GetAsync(id);
-        if (tag == null)
-        {
-            logger.LogWarning("Tag {TagId} not found.", id);
-            return new NotFoundFailure<Tag>("Tag not found.");
-        }
-
-        return new Success<Tag>(tag);
-    }
-
-    public async Task<Result<Tag>> GetTagBySlugAsync(string slug)
-    {
-        var tag = await repository.GetAsync(slug);
-        if (tag == null)
-        {
-            logger.LogWarning("Tag with slug {Slug} not found.", slug);
-            return new NotFoundFailure<Tag>("Tag not found.");
-        }
-
-        return new Success<Tag>(tag);
-    }
-
-    public async Task<Result<Tag>> CreateTagAsync(CreateTag createTag)
-    {
-        var tagExists = await repository.ExistsAsync(createTag.Title);
-        if (tagExists)
+        if (await repository.ExistsAsync(createTag.Title, cancellationToken))
         {
             logger.LogWarning("Tag creation conflict: a tag titled {Title} already exists.", createTag.Title);
-            return new ConflictFailure<Tag>("A tag with the same title already exists.");
+            return ErrorCodes.TagAlreadyExists.ToFail();
         }
 
-        var tag = new Tag
-        {
-            Title = createTag.Title,
-            Type = createTag.Type,
-            Icon = createTag.Icon,
-            CustomColour = createTag.CustomColour,
-            Slug = createTag.Title.ToSlug()
-        };
+        var tag = new Tag();
+        await ApplyDetailsAsync(tag, createTag, cancellationToken);
 
-        await repository.AddAsync(tag);
+        await repository.AddAsync(tag, cancellationToken);
 
-        return new Success<Tag>(tag);
+        return tag.ToOk();
     }
 
-    public async Task<Result<List<Tag>>> SyncTagsAsync(List<string> tags)
+    public async Task<Result<IReadOnlyList<Tag>>> SyncTagsAsync(IReadOnlyList<string> tags, CancellationToken cancellationToken = default)
     {
-        var tagsList = new List<Tag>();
+        var syncedTags = new List<Tag>();
 
-        foreach (var tag in tags)
+        foreach (var title in tags)
         {
-            var existingTag = await repository.GetByTitleAsync(tag);
-            if (existingTag != null)
+            var existingTag = await repository.GetByTitleTrackedAsync(title, cancellationToken);
+            if (existingTag is not null)
             {
-                tagsList.Add(existingTag);
+                syncedTags.Add(existingTag);
+                continue;
             }
-            else
-            {
-                var newTag = new Tag
-                {
-                    Title = tag,
-                    Type = TagType.Default,
-                    Icon = "",
-                    CustomColour = null,
-                    Slug = tag.ToSlug()
-                };
 
-                await repository.AddAsync(newTag);
-
-                tagsList.Add(newTag);
-            }
+            var newTag = await CreateDefaultTagAsync(title, cancellationToken);
+            await repository.AddAsync(newTag, cancellationToken);
+            syncedTags.Add(newTag);
         }
 
-        return new Success<List<Tag>>(tagsList);
+        return Result<IReadOnlyList<Tag>>.Ok(syncedTags);
     }
 
-    public async Task<Result<Tag>> UpdateTagAsync(TagId id, CreateTag createTag)
+    public async Task<Result<Tag>> UpdateTagAsync(TagId id, CreateTag updateTag, CancellationToken cancellationToken = default)
     {
-        var tag = await repository.GetAsync(id);
-        if (tag == null)
+        var tag = await repository.GetTrackedAsync(id, cancellationToken);
+        if (tag is null)
         {
             logger.LogWarning("Tag {TagId} not found for update.", id);
-            return new NotFoundFailure<Tag>("Tag not found.");
+            return ErrorCodes.TagNotFound.ToFail();
         }
 
-        var tagExists = await repository.ExistsAsync(createTag.Title, id);
-        if (tagExists)
+        if (await repository.ExistsAsync(updateTag.Title, id, cancellationToken))
         {
-            logger.LogWarning("Tag {TagId} update conflict: a tag titled {Title} already exists.", id, createTag.Title);
-            return new ConflictFailure<Tag>("A tag with the same title already exists.");
+            logger.LogWarning("Tag {TagId} update conflict: a tag titled {Title} already exists.", id, updateTag.Title);
+            return ErrorCodes.TagAlreadyExists.ToFail();
         }
 
-        tag.Title = createTag.Title;
-        tag.Type = createTag.Type;
-        tag.Icon = createTag.Icon;
-        tag.CustomColour = createTag.CustomColour;
-        tag.Slug = createTag.Title.ToSlug();
+        await ApplyDetailsAsync(tag, updateTag, cancellationToken);
 
-        await repository.UpdateAsync(tag);
+        await repository.UpdateAsync(tag, cancellationToken);
 
-        return new Success<Tag>(tag);
+        return tag.ToOk();
     }
 
-    public async Task<Result<Tag>> DeleteTagAsync(TagId id)
+    public async Task<Result> DeleteTagAsync(TagId id, CancellationToken cancellationToken = default)
     {
-        var tag = await repository.GetAsync(id);
-        if (tag == null)
+        var tag = await repository.GetTrackedAsync(id, cancellationToken);
+        if (tag is null)
         {
             logger.LogWarning("Tag {TagId} not found for deletion.", id);
-            return new NotFoundFailure<Tag>("Tag not found.");
+            return ErrorCodes.TagNotFound.ToFail();
         }
 
-        await repository.DeleteAsync(tag);
+        await repository.DeleteAsync(tag, cancellationToken);
 
-        return new Success<Tag>(tag);
+        return Result.Ok();
     }
+
+    private async Task ApplyDetailsAsync(Tag tag, CreateTag request, CancellationToken cancellationToken)
+    {
+        if (tag.Title != request.Title)
+            tag.Slug = await ResolveSlugAsync(request.Title, tag.Id, cancellationToken);
+
+        tag.Title = request.Title;
+        tag.Type = request.Type;
+        tag.Icon = request.Icon;
+        tag.CustomColour = request.CustomColour;
+    }
+
+    private async Task<Tag> CreateDefaultTagAsync(string title, CancellationToken cancellationToken) =>
+        new()
+        {
+            Title = title,
+            Type = TagType.Default,
+            Icon = string.Empty,
+            CustomColour = null,
+            Slug = await ResolveSlugAsync(title, null, cancellationToken)
+        };
+
+    private Task<string> ResolveSlugAsync(string title, TagId? excludeId, CancellationToken cancellationToken) =>
+        title.ToUniqueSlugAsync(SlugFallback, (slug, ct) => repository.SlugExistsAsync(slug, excludeId, ct), cancellationToken);
 }

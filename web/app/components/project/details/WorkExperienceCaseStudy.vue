@@ -19,7 +19,7 @@
           errors in the stores and components that consume it.
         </p>
       </div>
-      <div v-for="decision in decisions" :key="decision.title" class="flex flex-col gap-1.5">
+      <div v-for="decision in DECISIONS" :key="decision.title" class="flex flex-col gap-1.5">
         <span class="font-semibold">{{ decision.title }}</span>
         <span class="leading-[1.6] text-muted">{{ decision.body }}</span>
       </div>
@@ -28,7 +28,7 @@
 
   <CaseStudySection label="04 / Stack">
     <ul class="m-0 grid list-none grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-x-6 gap-y-0.5 p-0 text-[15px]">
-      <li v-for="row in stack" :key="row.layer" class="flex justify-between gap-3 border-b border-line py-3">
+      <li v-for="row in STACK" :key="row.layer" class="flex justify-between gap-3 border-b border-line py-3">
         <span class="pt-0.5 font-mono text-xs tracking-[0.05em] text-muted uppercase">{{ row.layer }}</span>
         <span class="flex items-center gap-2 text-right">
           <Icon :name="row.icon" />
@@ -43,7 +43,7 @@
 import CaseStudySection from './CaseStudySection.vue'
 import ProjectArchitecture from './ProjectArchitecture.vue'
 
-const decisions = [
+const DECISIONS = [
   { title: 'Server-side rendering', body: 'Nuxt 4 SSR for fast load times and SEO.' },
   {
     title: 'All API calls go through Pinia stores',
@@ -55,7 +55,7 @@ const decisions = [
   },
 ]
 
-const stack = [
+const STACK = [
   { layer: 'Framework', tech: 'Nuxt 4, Vue 3', icon: 'simple-icons:nuxt' },
   { layer: 'Language', tech: 'TypeScript', icon: 'simple-icons:typescript' },
   { layer: 'Backend', tech: '.NET 8', icon: 'simple-icons:dotnet' },

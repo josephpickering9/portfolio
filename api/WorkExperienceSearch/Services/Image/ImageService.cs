@@ -1,77 +1,58 @@
-﻿using Microsoft.AspNetCore.StaticFiles;
-using Microsoft.Extensions.Configuration;
 using TinifyAPI;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
 
 namespace Work_Experience_Search.Services.Image;
 
-public class ImageService : IImageService
+public sealed class ImageService(
+    IWebHostEnvironment hostEnvironment,
+    IConfiguration configuration,
+    ILogger<ImageService> logger) : IImageService
 {
-    private readonly IWebHostEnvironment _env;
-    private readonly string? _tinifyApiKey;
-    private readonly ILogger<ImageService> _logger;
+    private const string TinifyApiKeySetting = "Tinify:ApiKey";
 
-    public ImageService(IWebHostEnvironment hostEnvironment, IConfiguration configuration, ILogger<ImageService> logger)
+    private readonly string? _tinifyApiKey = configuration[TinifyApiKeySetting];
+
+    public async Task<Result<ImageData>> GetImageAsync(string fileName, CancellationToken cancellationToken = default)
     {
-        _env = hostEnvironment;
-        _tinifyApiKey = configuration["Tinify:ApiKey"];
-        _logger = logger;
+        var filePath = Path.Combine(hostEnvironment.GetUploadDirectory(), Path.GetFileName(fileName));
 
-        if (!string.IsNullOrWhiteSpace(_tinifyApiKey))
-            Tinify.Key = _tinifyApiKey;
-    }
+        if (!File.Exists(filePath))
+        {
+            logger.LogWarning("Image {FileName} not found.", fileName);
+            return ErrorCodes.FileNotFound.ToFail();
+        }
 
-    public Result<ImageData> GetImage(string fileName)
-    {
         try
         {
-            var filePath = Path.Combine(_env.WebRootPath ?? _env.ContentRootPath, "uploads", fileName);
-
-            if (!File.Exists(filePath))
-            {
-                _logger.LogWarning("Image {FileName} not found.", fileName);
-                return new NotFoundFailure<ImageData>("Image not found");
-            }
-
-            new FileExtensionContentTypeProvider().TryGetContentType(filePath, out var contentType);
-
-            var imageData = new ImageData
-            {
-                FileName = fileName,
-                File = File.ReadAllBytes(filePath),
-                ContentType = contentType ?? "application/octet-stream"
-            };
-
-            return new Success<ImageData>(imageData);
+            var file = await File.ReadAllBytesAsync(filePath, cancellationToken);
+            return new ImageData(fileName, file, FileExtensions.GetContentType(filePath)).ToOk();
         }
-        catch (Exception e)
+        catch (IOException e)
         {
-            _logger.LogError(e, "Failed to read image {FileName}.", fileName);
-            return new Failure<ImageData>(e.Message);
+            logger.LogError(e, "Failed to read image {FileName}.", fileName);
+            return ErrorCodes.InternalError.ToFail();
         }
     }
 
-    public async Task<Result<byte[]>> OptimiseImageAsync(byte[] image)
+    public async Task<Result<byte[]>> OptimiseImageAsync(byte[] image, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_tinifyApiKey))
-            return new Failure<byte[]>("Tinify API key is not configured.");
+            return ErrorCodes.ImageOptimisationUnavailable.ToFail();
+
+        Tinify.Key = _tinifyApiKey;
 
         try
         {
-            return new Success<byte[]>(await Tinify.FromBuffer(image).ToBuffer());
+            var optimised = await Tinify.FromBuffer(image).ToBuffer().WaitAsync(cancellationToken);
+            return optimised.ToOk();
         }
         catch (TinifyException e)
         {
-            _logger.LogError(e, "Tinify image optimisation failed.");
-            return new Failure<byte[]>(e.Message);
+            logger.LogError(e, "Tinify image optimisation failed.");
+            return ErrorCodes.ImageOptimisationUnavailable.ToFail();
         }
     }
 }
 
-public class ImageData
-{
-    public required string FileName { get; init; }
-    public required byte[] File { get; init; }
-    public required string ContentType { get; init; }
-}
+public sealed record ImageData(string FileName, byte[] File, string ContentType);

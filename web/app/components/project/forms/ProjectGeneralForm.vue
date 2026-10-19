@@ -38,13 +38,28 @@ import DatePicker from '~/components/ui/input/DatePicker.vue'
 import SelectList from '~/components/ui/input/SelectList.vue'
 import TagAutoComplete from '~/components/tag/form/TagAutoComplete.vue'
 
-defineProps<{
+interface Props {
   disabled?: boolean
-}>()
+}
+
+withDefaults(defineProps<Props>(), {
+  disabled: false,
+})
 
 const form = defineModel<CreateProject>({ required: true })
 
+const RULES = {
+  form: {
+    title: { required },
+    startDate: { required },
+    shortDescription: { required },
+    website: { url: helpers.withMessage(URL_MESSAGE, (value: string | null | undefined) => isHttpUrl(value)) },
+    tags: { required: helpers.withMessage('Add at least one technology', (value?: string[]) => Boolean(value?.length)) },
+  },
+}
+
 const companyStore = useCompanyStore()
+const v$ = useVuelidate(RULES, { form })
 
 const tags = computed({
   get: () => form.value.tags ?? [],
@@ -57,24 +72,12 @@ const companyOptions = computed(() =>
   sortCompaniesNewestFirst(companyStore.companies).map((company) => ({ value: company.id, label: company.name })),
 )
 
-const rules = {
-  form: {
-    title: { required },
-    startDate: { required },
-    shortDescription: { required },
-    website: { url: helpers.withMessage(URL_MESSAGE, (value: string | null | undefined) => isHttpUrl(value)) },
-    tags: { required: helpers.withMessage('Add at least one technology', (value?: string[]) => Boolean(value?.length)) },
-  },
-}
+const hasErrors = computed(() => v$.value.$error)
 
-const v$ = useVuelidate(rules, { form })
+onMounted(() => companyStore.ensureCompanies())
 
 defineExpose({
   validate: () => v$.value.$validate(),
-  hasErrors: computed(() => v$.value.$error),
-})
-
-onMounted(() => {
-  if (!companyStore.companies.length) companyStore.getCompanies()
+  hasErrors,
 })
 </script>

@@ -1,6 +1,8 @@
 <template>
   <CaseStudySection
-v-for="(section, index) in sections" :key="section.key" :label="`${padNumber(index + 1)} / ${section.title}`"
+    v-for="(section, index) in sections"
+    :key="section.key"
+    :label="`${padNumber(index + 1)} / ${section.title}`"
     :stacked="section.key === 'gallery'"
   >
     <div v-if="section.key === 'overview'" class="flex flex-col gap-8">
@@ -27,7 +29,8 @@ v-for="(section, index) in sections" :key="section.key" :label="`${padNumber(ind
 import { computed } from 'vue'
 import { ImageType } from '@api'
 import type { Project } from '@api'
-import { getImagesByType, padNumber } from '~/utils/project-helper'
+import { getImagesByType } from '~/utils/project-helper'
+import { padNumber } from '~/utils/string-helper'
 import CaseStudySection from './CaseStudySection.vue'
 import ProjectStats from './ProjectStats.vue'
 import ProjectTags from './ProjectTags.vue'
@@ -35,9 +38,11 @@ import ProjectGallery from './ProjectGallery.vue'
 
 type SectionKey = 'overview' | 'problem' | 'decisions' | 'outcome' | 'stack' | 'gallery'
 
-const props = defineProps<{
+interface Props {
   project: Project
-}>()
+}
+
+const props = defineProps<Props>()
 
 const desktopImages = computed(() => getImagesByType(props.project, ImageType.DESKTOP).map((image) => image.image))
 const mobileImages = computed(() => getImagesByType(props.project, ImageType.MOBILE).map((image) => image.image))

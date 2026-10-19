@@ -4,27 +4,27 @@ using Work_Experience_Search.Services;
 
 namespace Work_Experience_Search.Repositories;
 
-public class ProjectImageRepository(Database context) : IProjectImageRepository
+public sealed class ProjectImageRepository(Database context, CacheInvalidator cacheInvalidator) : IProjectImageRepository
 {
     public async Task AddAsync(ProjectImage image, CancellationToken cancellationToken = default)
     {
         context.ProjectImage.Add(image);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task UpdateAsync(ProjectImage image, CancellationToken cancellationToken = default)
     {
         context.ProjectImage.Update(image);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(ProjectImage image, CancellationToken cancellationToken = default)
     {
         context.ProjectImage.Remove(image);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IEnumerable<ProjectImage>> GetUnoptimisedImagesAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ProjectImage>> GetUnoptimisedImagesTrackedAsync(CancellationToken cancellationToken = default)
     {
         return await context.ProjectImage.Where(i => !i.IsOptimised).ToListAsync(cancellationToken);
     }
@@ -32,5 +32,6 @@ public class ProjectImageRepository(Database context) : IProjectImageRepository
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await context.SaveChangesAsync(cancellationToken);
+        cacheInvalidator.InvalidateProjects();
     }
 }

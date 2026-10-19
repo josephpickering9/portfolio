@@ -5,7 +5,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class ProjectRepository
+public sealed class ProjectRepository
 {
     [Required] public ProjectRepositoryId Id { get; set; } = ProjectRepositoryId.New();
 

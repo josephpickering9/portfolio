@@ -9,7 +9,7 @@
   >
     <div v-if="current" class="flex h-full flex-col">
       <header class="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <p class="m-0 font-mono text-xs tracking-wide text-muted" aria-live="polite">
+        <p class="m-0 font-mono text-xs tracking-wide text-muted" aria-live="polite" data-testid="lightbox-position">
           <span class="text-text">{{ index + 1 }}</span> / {{ images.length }}
           <span class="ml-2 hidden sm:inline">— {{ current.alt }}</span>
         </p>
@@ -27,6 +27,7 @@
             type="button"
             class="grid size-10 place-items-center rounded-full text-muted transition-colors hover:bg-surface2 hover:text-text"
             aria-label="Close viewer"
+            data-testid="lightbox-close"
             @click="close"
           >
             <Icon name="mdi:close" class="size-6" />
@@ -40,19 +41,22 @@
         @touchstart.passive="onTouchStart"
         @touchend="onTouchEnd"
       >
-        <img
+        <NuxtImg
           :key="current.src"
+          format="webp"
           :src="current.src"
           :alt="current.alt"
+          sizes="100vw"
           class="max-h-full max-w-full rounded-card object-contain shadow-glow-lg select-none"
           :class="{ 'border border-line': current.kind === 'mobile' }"
           draggable="false"
-        >
+          data-testid="lightbox-image"
+        />
 
         <template v-if="hasMultiple">
           <button
             type="button"
-            class="absolute top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface/80 text-text backdrop-blur-sm transition-colors hover:border-accent hover:text-accent left-2 sm:left-5"
+            class="absolute top-1/2 left-2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface/80 text-text backdrop-blur-sm transition-colors hover:border-accent hover:text-accent sm:left-5"
             aria-label="Previous screenshot"
             data-testid="lightbox-prev"
             @click="step(-1)"
@@ -61,7 +65,7 @@
           </button>
           <button
             type="button"
-            class="absolute top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface/80 text-text backdrop-blur-sm transition-colors hover:border-accent hover:text-accent right-2 sm:right-5"
+            class="absolute top-1/2 right-2 grid size-11 -translate-y-1/2 place-items-center rounded-full border border-line bg-surface/80 text-text backdrop-blur-sm transition-colors hover:border-accent hover:text-accent sm:right-5"
             aria-label="Next screenshot"
             data-testid="lightbox-next"
             @click="step(1)"
@@ -106,8 +110,6 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import type { LightboxImage } from '~/types/LightboxImage'
 
-const SWIPE_THRESHOLD_PX = 50
-
 interface Props {
   images: LightboxImage[]
   index: number | null
@@ -119,6 +121,9 @@ const emit = defineEmits<{
   (e: 'update:index', value: number | null): void
 }>()
 
+const SWIPE_THRESHOLD_PX = 50
+const SCROLL_LOCK_CLASS = 'overflow-hidden'
+
 const dialog = ref<HTMLDialogElement | null>(null)
 const strip = ref<HTMLUListElement | null>(null)
 const touchStartX = ref<number | null>(null)
@@ -128,7 +133,7 @@ const current = computed(() => (props.index === null ? undefined : props.images[
 const hasMultiple = computed(() => props.images.length > 1)
 
 function setPageScrollLocked(locked: boolean) {
-  document.documentElement.style.overflow = locked ? 'hidden' : ''
+  document.documentElement.classList.toggle(SCROLL_LOCK_CLASS, locked)
 }
 
 function close() {
@@ -162,6 +167,8 @@ function onTouchEnd(event: TouchEvent) {
   if (Math.abs(deltaX) >= SWIPE_THRESHOLD_PX) step(deltaX < 0 ? 1 : -1)
 }
 
+onBeforeUnmount(() => setPageScrollLocked(false))
+
 watch(
   () => props.index,
   async (value, previous) => {
@@ -180,7 +187,5 @@ watch(
     strip.value?.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest', inline: 'center' })
   },
 )
-
-onBeforeUnmount(() => setPageScrollLocked(false))
 </script>
 

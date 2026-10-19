@@ -21,6 +21,10 @@ Never hand-edit files under `web/api/` — they're overwritten on the next codeg
 
 Backend must be running before frontend codegen or before the frontend can make real API calls (`NUXT_PUBLIC_API_BASE` points at it). Bring up Postgres via the backend's `docker-compose.yml` first, then the API, then the frontend dev server.
 
+## Error contract
+
+Every API failure body is `{ "error": "<snake_case_code>" }`. The codes are defined twice, once per side, and must stay in sync: `api/WorkExperienceSearch/Types/ErrorCodes.cs` (with the HTTP status per code in `Extensions/ErrorStatusCodes.cs`) and `web/app/types/errors.ts` (with the user-facing message per code). Swagger doesn't describe error bodies, so codegen won't catch drift — `web/tests/types/errors-contract.spec.ts` parses `ErrorCodes.cs` and fails if the two lists differ (the Web Lint & Test workflow also triggers on changes to `ErrorCodes.cs`). Change both files in the same PR.
+
 ## Auth
 
 Both sides use Auth0 — the backend validates JWT bearer tokens (`Auth0.AspNetCore.Authentication`), the frontend obtains them via `@auth0/auth0-vue`. Auth0 tenant/client config must stay in sync between `api/.env` and `web/.env` — see each project's `.env.example`.

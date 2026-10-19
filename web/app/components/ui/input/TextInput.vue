@@ -3,41 +3,35 @@
     <Icon :name="icon" class="shrink-0 text-muted" />
     <input
       :id="id"
-      ref="inputRef"
       :value="modelValue ?? ''"
-      :type="type"
+      type="text"
       :placeholder="placeholder"
       :disabled="disabled"
       :aria-invalid="invalid"
       class="min-w-0 flex-1 border-0 bg-transparent py-3 text-text outline-none"
       :class="{ 'font-mono text-sm': mono }"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      @keydown.enter="emit('enter')"
     >
   </div>
   <input
     v-else
     :id="id"
-    ref="inputRef"
     :value="modelValue ?? ''"
-    :type="type"
+    type="text"
     :placeholder="placeholder"
     :disabled="disabled"
     :aria-invalid="invalid"
     :class="[fieldClass, { 'font-mono text-sm': mono }]"
     @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    @keydown.enter="emit('enter')"
   >
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { useFormField } from '~/composables/useFormField'
 
 interface Props {
   modelValue?: string | null
   placeholder?: string
-  type?: string
   disabled?: boolean
   icon?: string
   mono?: boolean
@@ -46,19 +40,12 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   modelValue: undefined,
   placeholder: undefined,
-  type: 'text',
   disabled: false,
   icon: undefined,
   mono: false,
 })
 
-const emit = defineEmits<{
-  (e: 'update:modelValue', value: string): void
-  (e: 'enter'): void
-}>()
+const emit = defineEmits<{ (e: 'update:modelValue', value: string): void }>()
 
 const { id, invalid, fieldClass } = useFormField()
-const inputRef = ref<HTMLInputElement | null>(null)
-
-defineExpose({ focus: () => inputRef.value?.focus() })
 </script>

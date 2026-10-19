@@ -1,12 +1,13 @@
-name: Web Lint
+name: Web Lint & Test
 on:
   push:
     paths:
       - 'web/**'
       - '.github/workflows/web-lint.yml'
+      - 'api/WorkExperienceSearch/Types/ErrorCodes.cs'
 jobs:
   lint:
-    name: yarn lint
+    name: yarn lint, typecheck, test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -23,3 +24,9 @@ jobs:
 
       - name: Yarn lint
         run: yarn lint:full
+
+      - name: Yarn typecheck
+        run: yarn typecheck
+
+      - name: Yarn test
+        run: yarn test

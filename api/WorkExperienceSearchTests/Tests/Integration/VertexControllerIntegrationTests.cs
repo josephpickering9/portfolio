@@ -1,11 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
+using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class VertexControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -14,7 +14,7 @@ public class VertexControllerIntegrationTests(CustomWebApplicationFactory custom
     {
         var httpResponse = await Client.PostAsync("/vertex/ingest", null);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -22,6 +22,6 @@ public class VertexControllerIntegrationTests(CustomWebApplicationFactory custom
     {
         var httpResponse = await Client.PostAsJsonAsync($"/vertex/projects/{Guid.NewGuid()}/description/suggest", new { });
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 }

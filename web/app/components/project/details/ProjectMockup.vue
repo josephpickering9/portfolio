@@ -1,7 +1,7 @@
 <template>
   <MockupBrowser size="lg" :host="getHost(project.website) || project.slug">
     <NuxtImg
-v-if="heroImage"
+      v-if="heroImage"
       format="webp"
       :src="getImageUrl(heroImage)"
       :alt="project.title"
@@ -21,8 +21,9 @@ v-if="heroImage"
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Project } from '@api'
-import { getImageUrl } from '~/utils/image-helper'
-import { getHeroImage, getHost } from '~/utils/project-helper'
+import { useImageUrl } from '~/composables/useImageUrl'
+import { getHeroImage } from '~/utils/project-helper'
+import { getHost } from '~/utils/string-helper'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 
 interface Props {
@@ -30,6 +31,8 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+const { getImageUrl } = useImageUrl()
 
 const heroImage = computed(() => getHeroImage(props.project))
 </script>

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using NetArchTest.Rules;
 using Xunit;
 
@@ -9,6 +10,8 @@ public class ArchitectureTests
     private const string ControllersNamespace = "Work_Experience_Search.Controllers";
     private const string ServicesNamespace = "Work_Experience_Search.Services";
     private const string RepositoriesNamespace = "Work_Experience_Search.Repositories";
+    private const string RootNamespace = "Work_Experience_Search";
+    private const string MigrationsNamespace = "Work_Experience_Search.Migrations";
 
     [Fact]
     public void Controllers_ShouldNotDependOn_Repositories()
@@ -53,5 +56,20 @@ public class ArchitectureTests
             .GetResult();
 
         Assert.True(result.IsSuccessful, $"Repositories must not reference service implementations. Violations: {string.Join(", ", result.FailingTypeNames ?? [])}");
+    }
+
+    [Fact]
+    public void ConcreteClasses_ShouldBeSealed()
+    {
+        var result = Types.InAssembly(typeof(Work_Experience_Search.Controllers.ProjectController).Assembly)
+            .That().AreClasses()
+            .And().AreNotAbstract()
+            .And().ResideInNamespaceStartingWith(RootNamespace)
+            .And().DoNotResideInNamespace(MigrationsNamespace)
+            .And().DoNotHaveCustomAttribute(typeof(CompilerGeneratedAttribute))
+            .Should().BeSealed()
+            .GetResult();
+
+        Assert.True(result.IsSuccessful, $"Classes not designed for inheritance must be sealed. Violations: {string.Join(", ", result.FailingTypeNames ?? [])}");
     }
 }

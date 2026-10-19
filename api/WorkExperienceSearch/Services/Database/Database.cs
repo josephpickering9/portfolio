@@ -1,11 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
 
 namespace Work_Experience_Search.Services;
 
-public class Database(DbContextOptions<Database> options) : DbContext(options)
+public sealed class Database(DbContextOptions<Database> options) : DbContext(options)
 {
     public DbSet<Project> Project { get; set; }
     public DbSet<ProjectImage> ProjectImage { get; set; }

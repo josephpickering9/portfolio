@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -54,12 +55,12 @@ public readonly record struct ProjectStatId(Guid Value) : IId
     public static ProjectStatId New() => new(Guid.NewGuid());
 }
 
-public class GuidIdTypeConverter<TId> : TypeConverter where TId : struct, IId
+public sealed class GuidIdTypeConverter<TId> : TypeConverter where TId : struct, IId
 {
     public override bool CanConvertFrom(ITypeDescriptorContext? context, Type sourceType) =>
         sourceType == typeof(string) || base.CanConvertFrom(context, sourceType);
 
-    public override object? ConvertFrom(ITypeDescriptorContext? context, System.Globalization.CultureInfo? culture, object value)
+    public override object? ConvertFrom(ITypeDescriptorContext? context, CultureInfo? culture, object value)
     {
         if (value is string s && Guid.TryParse(s, out var guid))
         {
@@ -76,7 +77,7 @@ public static class IdFactory
         (TId)Activator.CreateInstance(typeof(TId), value)!;
 }
 
-public class IdJsonConverterFactory : JsonConverterFactory
+public sealed class IdJsonConverterFactory : JsonConverterFactory
 {
     public override bool CanConvert(Type typeToConvert) => typeof(IId).IsAssignableFrom(typeToConvert);
 
@@ -86,7 +87,7 @@ public class IdJsonConverterFactory : JsonConverterFactory
         return (JsonConverter)Activator.CreateInstance(converterType)!;
     }
 
-    private class IdJsonConverter<TId> : JsonConverter<TId> where TId : struct, IId
+    private sealed class IdJsonConverter<TId> : JsonConverter<TId> where TId : struct, IId
     {
         public override TId Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

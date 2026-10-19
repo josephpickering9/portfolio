@@ -1,5 +1,4 @@
-using Work_Experience_Search.Services.VertexAi;
-using Work_Experience_Search.Services;
+using Grpc.Core;
 using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Services.VertexAi;
@@ -9,35 +8,43 @@ public interface IVertexIngestOrchestrator
     Task<Result<VertexIngestSummary>> IngestAllAsync(CancellationToken cancellationToken = default);
 }
 
-public class VertexIngestOrchestrator(
+public sealed class VertexIngestOrchestrator(
     IProjectService projectService,
     ICompanyService companyService,
     ITagService tagService,
     IVertexIngestService vertexIngestService,
-    IVertexChatbotClient vertexChatbotClient) : IVertexIngestOrchestrator
+    IVertexChatbotClient vertexChatbotClient,
+    ILogger<VertexIngestOrchestrator> logger) : IVertexIngestOrchestrator
 {
     public async Task<Result<VertexIngestSummary>> IngestAllAsync(CancellationToken cancellationToken = default)
     {
-        await vertexChatbotClient.InitialiseCachesAsync(ensureSchema: true, cancellationToken);
+        var companies = await companyService.GetCompaniesAsync(null, cancellationToken);
+        if (!companies.IsSuccess) return companies.Error!.ToFail();
 
-        var companyResult = await companyService.GetCompaniesAsync(null);
-        if (!companyResult.IsSuccess || companyResult.Data == null) return new Failure<VertexIngestSummary>("Failed to fetch companies.");
+        var tags = await tagService.GetTagsAsync(null, cancellationToken);
+        if (!tags.IsSuccess) return tags.Error!.ToFail();
 
-        var tagResult = await tagService.GetTagsAsync(null);
-        if (!tagResult.IsSuccess || tagResult.Data == null) return new Failure<VertexIngestSummary>("Failed to fetch tags.");
+        var projects = await projectService.GetProjectsAsync(null, cancellationToken);
+        if (!projects.IsSuccess) return projects.Error!.ToFail();
 
-        var projectResult = await projectService.GetProjectsAsync(null);
-        if (!projectResult.IsSuccess || projectResult.Data == null) return new Failure<VertexIngestSummary>("Failed to fetch projects.");
+        try
+        {
+            await vertexChatbotClient.InitialiseCachesAsync(ensureSchema: true, cancellationToken);
+            await Task.WhenAll(companies.Value!.Select(company => vertexIngestService.UpsertCompanyAsync(company, cancellationToken)));
+            await Task.WhenAll(tags.Value!.Select(tag => vertexIngestService.UpsertTagAsync(tag, cancellationToken)));
+            await Task.WhenAll(projects.Value!.Select(project => vertexIngestService.UpsertProjectAsync(project, cancellationToken)));
+        }
+        catch (RpcException ex) when (ex.StatusCode is not StatusCode.Cancelled)
+        {
+            logger.LogError(ex, "Vertex ingest failed with gRPC status {StatusCode}.", ex.StatusCode);
+            return ErrorCodes.UpstreamUnavailable.ToFail();
+        }
 
-        await Task.WhenAll(companyResult.Data.Select(company => vertexIngestService.UpsertCompanyAsync(company, cancellationToken)));
-        await Task.WhenAll(tagResult.Data.Select(tag => vertexIngestService.UpsertTagAsync(tag, cancellationToken)));
-        await Task.WhenAll(projectResult.Data.Select(project => vertexIngestService.UpsertProjectAsync(project, cancellationToken)));
-
-        return new Success<VertexIngestSummary>(new VertexIngestSummary(
-            CompaniesIngested: companyResult.Data.Count(),
-            TagsIngested: tagResult.Data.Count(),
-            ProjectsIngested: projectResult.Data.Count()));
+        return new VertexIngestSummary(
+            CompaniesIngested: companies.Value!.Count,
+            TagsIngested: tags.Value!.Count,
+            ProjectsIngested: projects.Value!.Count).ToOk();
     }
 }
 
-public record VertexIngestSummary(int CompaniesIngested, int TagsIngested, int ProjectsIngested);
+public sealed record VertexIngestSummary(int CompaniesIngested, int TagsIngested, int ProjectsIngested);

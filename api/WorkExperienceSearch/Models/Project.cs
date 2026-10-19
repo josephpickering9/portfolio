@@ -5,7 +5,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class Project
+public sealed class Project
 {
     [Required] public ProjectId Id { get; set; } = ProjectId.New();
 

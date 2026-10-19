@@ -1,15 +1,25 @@
 using FluentValidation;
 using Work_Experience_Search.Requests;
+using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Validators;
 
-public class CreateTagValidator : AbstractValidator<CreateTag>
+public sealed class CreateTagValidator : AbstractValidator<CreateTag>
 {
+    private const int MaxTitleLength = 200;
+    private const int MaxIconLength = 200;
+    private const string HexColourPattern = "^#[0-9A-Fa-f]{6}$";
+
     public CreateTagValidator()
     {
-        RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
-        RuleFor(x => x.Icon).MaximumLength(200).When(x => x.Icon != null);
-        RuleFor(x => x.CustomColour).Matches(@"^#[0-9A-Fa-f]{6}$").When(x => x.CustomColour != null)
-            .WithMessage("CustomColour must be a valid hex colour (e.g. #FF5733).");
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage(ErrorCodes.TitleRequired)
+            .MaximumLength(MaxTitleLength).WithMessage(ErrorCodes.TitleTooLong);
+        RuleFor(x => x.Icon)
+            .MaximumLength(MaxIconLength).WithMessage(ErrorCodes.IconTooLong)
+            .When(x => x.Icon is not null);
+        RuleFor(x => x.CustomColour)
+            .Matches(HexColourPattern).WithMessage(ErrorCodes.CustomColourInvalid)
+            .When(x => x.CustomColour is not null);
     }
 }

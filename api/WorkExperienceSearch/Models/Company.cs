@@ -3,7 +3,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class Company
+public sealed class Company
 {
     [Required] public CompanyId Id { get; set; } = CompanyId.New();
 

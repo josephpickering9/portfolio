@@ -1,14 +1,12 @@
 <template>
   <FormLayout
-    :eyebrow="id ? 'Update technology' : 'New technology'"
-    :title="form.title || (id ? 'Untitled technology' : 'New technology')"
-    :save-label="id ? 'Save changes' : 'Create technology'"
-    delete-title="Delete this technology?"
+    :copy="copy"
     :show-delete="Boolean(id)"
     :loading="loading"
-    :saving="tagStore.tagCreating"
+    :saving="tagStore.tagSaving"
+    :deleting="tagStore.tagDeleting"
     @save="save"
-    @delete="id && remove(id)"
+    @delete="remove"
   >
     <div v-if="tagStore.tagLoading" class="skeleton-pulse h-90 rounded-panel border border-line bg-surface" aria-hidden="true" />
     <div v-else class="grid grid-cols-[repeat(auto-fit,minmax(min(100%,380px),1fr))] items-start gap-5">
@@ -34,8 +32,10 @@
       </section>
       <aside class="sticky top-24 flex flex-col gap-3.5">
         <span class="eyebrow tracking-[0.05em] text-muted">Live preview</span>
-        <TagListItem :tag="{ id: id ?? 'preview', title: form.title, type: form.type, icon: form.icon }" :count="usage" preview highlighted />
-        <span class="text-[13px] leading-[1.55] text-muted">Shown under {{ form.type }} on the Technologies page and in project stacks.</span>
+        <TagListItem :tag="previewTag" :count="usage" preview highlighted />
+        <span class="text-[13px] leading-[1.55] text-muted">
+          Shown under {{ getTagTypeLabel(form.type) }} on the Technologies page and in project stacks.
+        </span>
       </aside>
     </div>
   </FormLayout>
@@ -45,12 +45,15 @@
 import { computed, onMounted, ref } from 'vue'
 import { useVuelidate } from '@vuelidate/core'
 import { required } from '@vuelidate/validators'
-import { TagType } from '@api'
 import type { CreateTag, Tag } from '@api'
 import { useTagStore } from '~/store/TagStore'
 import { useProjectStore } from '~/store/ProjectStore'
 import { useEntityForm } from '~/composables/useEntityForm'
 import { tagTypes } from '~/data/TagTypes'
+import { defaultTagForm } from '~/utils/default-helper'
+import { getEntityFormCopy } from '~/utils/entity-form-helper'
+import { countProjectsUsingTag } from '~/utils/project-helper'
+import { getTagIcon, getTagTypeLabel, tagToForm } from '~/utils/tag-helper'
 import FormLayout from '~/components/ui/layout/FormLayout.vue'
 import FormGroup from '~/components/ui/form/FormGroup.vue'
 import TextInput from '~/components/ui/input/TextInput.vue'
@@ -65,20 +68,15 @@ const props = withDefaults(defineProps<Props>(), {
   id: undefined,
 })
 
+const ENTITY_NAME = 'technology'
+const PREVIEW_ID = 'preview'
+const RULES = { form: { title: { required } } }
+
 const tagStore = useTagStore()
 const projectStore = useProjectStore()
-
-const form = ref<CreateTag>({ title: '', type: TagType.FRONTEND, icon: '', customColour: undefined })
-
-const loading = computed(() => (tagStore.tagCreating || tagStore.tagLoading) ?? false)
-const previewIcon = computed(() => form.value.icon || tagTypes.find((type) => type.value === form.value.type)?.icon || 'heroicons:tag')
-const usage = computed(() => projectStore.projects.filter((project) => project.tags.some((tag) => tag.id === props.id)).length)
-
-const v$ = useVuelidate({ form: { title: { required } } }, { form })
-
 const entityForm = useEntityForm<Tag, CreateTag>({
-  entityName: 'technology',
-  redirectRoute: '/technologies',
+  entityName: ENTITY_NAME,
+  listRoute: '/technologies',
   actions: {
     get: tagStore.getTag,
     create: tagStore.createTag,
@@ -87,21 +85,34 @@ const entityForm = useEntityForm<Tag, CreateTag>({
   },
   state: {
     loadError: () => tagStore.tagError,
-    saveError: () => tagStore.tagCreateError,
+    saveError: () => tagStore.tagSaveError,
+    deleteError: () => tagStore.tagDeleteError,
   },
 })
-const { remove } = entityForm
+
+const form = ref<CreateTag>({ ...defaultTagForm })
+const v$ = useVuelidate(RULES, { form })
+
+const loading = computed(() => Boolean(tagStore.tagSaving || tagStore.tagLoading))
+const copy = computed(() => getEntityFormCopy(ENTITY_NAME, Boolean(props.id), form.value.title))
+const previewIcon = computed(() => getTagIcon(form.value))
+const previewTag = computed(() => ({ id: props.id ?? PREVIEW_ID, title: form.value.title, type: form.value.type, icon: form.value.icon }))
+const usage = computed(() => countProjectsUsingTag(projectStore.projects, props.id))
 
 async function save() {
   if (!(await v$.value.$validate())) return entityForm.invalid()
   await entityForm.save(props.id, form.value)
 }
 
+async function remove() {
+  if (props.id) await entityForm.remove(props.id)
+}
+
 onMounted(async () => {
-  if (!projectStore.projectsForm.data) projectStore.getProjects()
+  projectStore.ensureProjects()
   if (!props.id) return
 
   const tag = await entityForm.fetch(props.id)
-  if (tag) form.value = { title: tag.title, type: tag.type, icon: tag.icon ?? '', customColour: tag.customColour }
+  if (tag) form.value = tagToForm(tag)
 })
 </script>

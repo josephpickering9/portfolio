@@ -1,18 +1,18 @@
-import { defineSitemapEventHandler } from '#imports'
+import { defineEventHandler } from 'h3'
+import { useRuntimeConfig } from 'nitropack/runtime'
 
-export default defineSitemapEventHandler(async (event) => {
+interface SitemapProject {
+  slug: string
+}
+
+export default defineEventHandler(async (event) => {
   try {
-    const config = useRuntimeConfig(event)
-    const apiBase = process.env.NUXT_PUBLIC_API_BASE ?? config.public.apiBase ?? ''
-
-    const projects = await $fetch<Array<{ slug: string }>>(`${apiBase}/project`)
-
-    return projects.map((p) => ({
-      loc: `/projects/${p.slug}`,
-    }))
-  } catch (e) {
+    const { apiBase } = useRuntimeConfig(event).public
+    const projects = await $fetch<SitemapProject[]>(`${apiBase}/project`)
+    return projects.map((project) => ({ loc: `/projects/${project.slug}` }))
+  } catch (error: unknown) {
     // eslint-disable-next-line no-console
-    console.error('sitemap error', e)
+    console.error('sitemap error', error)
     return []
   }
 })

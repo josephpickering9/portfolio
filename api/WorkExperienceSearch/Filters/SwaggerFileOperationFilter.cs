@@ -4,7 +4,7 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace Work_Experience_Search.Filters;
 
-public class SwaggerFileOperationFilter : IOperationFilter
+public sealed class SwaggerFileOperationFilter : IOperationFilter
 {
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {

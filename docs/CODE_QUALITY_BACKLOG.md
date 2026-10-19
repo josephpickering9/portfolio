@@ -54,7 +54,8 @@ re-application of the Pulse checklist.
    exactly the drift risk the Pulse ticket calls out.
 
 ### Explicitly decided NOT to do (ticket items considered and rejected for this repo)
-- **Centralized `ErrorCodes.cs` constants file** — backend already models errors
+- ~~**Centralized `ErrorCodes.cs` constants file**~~ — *reversed in the 2026-10-19
+  audit below.* Original reasoning: backend already models errors
   via a typed `ErrorType` enum + free-text messages. This satisfies the ticket's
   actual intent (avoid scattered magic error strings) without adding a redundant
   second layer of error identity. Revisit only if free-text messages start
@@ -189,8 +190,7 @@ mode — this is why the verification step (grep for write-path reuse before
 applying) is mandatory, not optional, in Phase 2.
 
 ## NOT in scope
-- Centralized `ErrorCodes.cs` — explicitly rejected above, revisit only if a real
-  magic-string problem emerges.
+- ~~Centralized `ErrorCodes.cs`~~ — done in the 2026-10-19 audit.
 - Any `docs/engineering/`, `docs/design/`, `docs/product/` documentation work from
   the original Pulse ticket — those trees don't exist in this repo.
 - Re-auditing the ~10 already-satisfied checklist items — covered with evidence
@@ -291,3 +291,86 @@ coverage (behind Auth0) is a real, documented gap rather than a deferred
 TODO — it needs a test Auth0 tenant/user before it can be picked up, which is
 an infrastructure decision for the user to make, not a backlog item to track
 here.
+
+---
+
+## Audit 2 (2026-10-19) — extended Pulse checklist
+
+Re-audited against the full Pulse refactor checklist (7 sections, ~45 items — a
+superset of the 14 items above), using Pulse's `docs/engineering/CODING_STANDARDS.md`
+as the definition of each rule. Branch `refactor/code-quality-audit-2`.
+
+### Reversed decision: error codes
+The extended checklist requires `ErrorCodes.cs` and a frontend `types/errors.ts`, and
+the old contract had a real problem the first audit missed: the frontend displayed
+raw server `ProblemDetails.Detail` text and branched on HTTP status. Now every
+failure body is `{ "error": "<code>" }` (Result failures, validation, 401/403, 429,
+framework client errors, unhandled exceptions), codes live in `Types/ErrorCodes.cs`
+with status mapping in `Extensions/ErrorStatusCodes.cs`, and the frontend maps codes
+to copy in `app/types/errors.ts`. `web/tests/types/errors-contract.spec.ts` fails if
+the two lists drift.
+
+### Backend — fixed
+- `Program.cs` 170 → 39 lines; registrations in `Extensions/*Extensions.cs`; `Utils/` folded into `Extensions/`.
+- `Result<T>` rewritten Pulse-style (`ToOk()` / `ToFail()`); upstream Vertex failures are Results (`upstream_unavailable`, 502), not exceptions; `VertexController` no longer returns `Ok(...)` directly.
+- Every concrete class `sealed` — **enforced** by `ArchitectureTests.ConcreteClasses_ShouldBeSealed`.
+- `is null`, records for DTOs, `IReadOnlyList<T>` returns, primary constructors throughout, `CancellationToken` plumbed controller → repository, no inline fully-qualified types, validator messages are codes.
+- Tracked reads renamed `*TrackedAsync`; all others `AsNoTracking()`. Fixed a real bug: `GET /tag/{slug}` always 500'd after the first audit's AsNoTracking change (include cycle) — now `AsNoTrackingWithIdentityResolution()`.
+- Single typed `HttpClient` (`VertexGenerateContentClient`) via `IHttpClientFactory`.
+- Tests 100 → 205: empty/not-found/401/upstream-failure/rate-limit cases per endpoint group, stubbed Vertex upstream, `ErrorContractTests` pinning code → status.
+
+### Frontend — fixed
+- `unwrap()` on every store call (the generated client returns `{ data, error }`); `tryCatchFinally` catches `unknown` and records `errorCode`.
+- Auto-imports off (`imports: { autoImport: false }`) — explicit imports **enforced** by `vue-tsc`.
+- `no-explicit-any` / `no-non-null-assertion` are ESLint errors — **enforced**.
+- All public pages SSR via `useAsyncData` + `{ lazy: true }` + server-only await (technologies was `onMounted`).
+- Tests moved to `tests/**/*.spec.ts`; 79 → 192 unit tests; E2E selectors → `data-testid`, new specs for home, AI search (mocked upstream), companies, theme/mobile menu.
+- One source for lookup data (`data/TagTypes.ts` keyed by the generated `TagType` enum), shared formatting helpers, `AiStore` split by concern, `<NuxtImg>` in the lightbox, inline styles reduced to CSS-custom-property bindings, Pulse `<script setup>` order.
+- `yarn typecheck` used to always exit 0 (`… | grep -v node_modules || echo`); it is now plain `vue-tsc --noEmit`, and the Web Lint & Test workflow runs typecheck and unit tests (it previously ran only lint).
+
+### Dead-code sweep
+Frontend checked with knip (components are explicitly imported, so it traces them); backend with the IDE0051/IDE0052/IDE0060/IDE0005 analyzers plus a public-member reference scan. Deleted: `ToResultOrFail` (never called), `ProjectRepositoryService.GetProjectRepositoriesAsync` (no callers), five service getters only reached from tests (`GetProjectRepositoryAsync`, `GetProjectImage(s)Async`, `GetProjectStat(s)Async`) and the test-only `ProjectId` overloads of the three `Sync…Async` methods (tests now drive the `Project` overload production uses), the now-unreturned codes `project_image_not_found` / `project_repository_not_found` / `project_stat_not_found`, and the frontend's unused `notEmpty`. Unused npm packages are listed under the dependency audit below.
+
+### Kept as-is, deliberately
+- **Stores and composables stay flat** (`app/store/*Store.ts`) — the documented layout here is one store per domain; one-file subfolders would add nothing.
+- **Formatting helpers stay in `app/utils/*-helper.ts`** rather than a `utils/format/` folder — the rule's intent (no ad-hoc formatting in components) is met.
+- **`VertexCredentialFactory` still throws** on invalid credentials JSON — deploy misconfiguration should fail loudly.
+- **No non-generic `Result`** — the only no-value operation (`OptimiseImagesAsync`) would change its success response from 200 to 204.
+- **Not applicable here:** Hangfire jobs, admin app, `docs/engineering|design|product/*`, `docs/INDEX.md`.
+
+### Open — needs a decision or a separate PR
+- **DESIGN.md mismatches** (reported, not changed — design changes need approval): featured slug list differs from DESIGN.md (glasgow-retina vs Asurafin); confirm-dialog Delete text is a hardcoded oklch with no `--danger-ink` token; FileInput overlays use `text-white` / raw black oklch; hover lifts beyond the one authored moment (gallery tiles, citation cards, list rows); hero AI prompt and search field are rounded rectangles, not pills; company timeline lacks the "View all →" link; accent used more than once per view (TagList group icons, LoadError icon + Retry).
+- **Dependency audit (separate PR):** unused packages per knip, verified by hand — `markdown-it`, `@tailwindcss/typography`, `@iconify-json/ic`, `@iconify-json/material-symbols`, `@vue/test-utils`, `ts-node`, likely `@hey-api/client-axios` (openapi-ts bundles its clients; confirm with a codegen run), ESLint packages `@nuxt/eslint` already provides (`eslint-plugin-vue`, `vue-eslint-parser`, `@typescript-eslint/parser`), the unwired Prettier ESLint packages, and the `resolutions`-only pins (`js-yaml`, `minimatch`, `node-forge`, `rollup`, `serialize-javascript`, `svgo`, `tar`); undeclared but used: `@stylistic/eslint-plugin`, `nitropack`, `puppeteer`. yarn prod deps have 7 advisories (high: `@vue/server-renderer` <3.5.42, `source-map-js` <1.2.2; moderate: `postcss-selector-parser` <7.1.6); 62 across all deps. Outdated majors: pinia 4 / @pinia/nuxt 1, typescript 7, @nuxtjs/sitemap 9, lint-staged 17. `typescript` and `@types/node` sit in `dependencies` and belong in `devDependencies`. NuGet: no known vulnerabilities; **.NET 8 reaches end of support in November 2026** — the 8 → 10 upgrade (EF Core, Npgsql, ASP.NET packages, Swashbuckle 6 → 10) is the priority.
+- **E2E against local data:** 4 console-error checks fail locally because `_ipx` 404s on upload images missing from the local `wwwroot/uploads`; they need the real uploads.
+- **Auth-gated CRUD E2E** — still needs a test Auth0 tenant/user.
+- `VertexAiOptions.QueryDataStoreSuffix` is unused but still set by workflows/Dockerfile/README; `Models/Project.cs` uses Newtonsoft `[JsonIgnore]`, so System.Text.Json still serialises `Logo`/`Card`/`Banner` (fixing changes the success response).
+
+---
+
+## Pulse patterns pass (2026-10-19)
+
+Compared the code (not the checklist) against Pulse and ported what was missing. Branch `refactor/pulse-patterns`.
+
+### Backend — fixed
+- `Result` / `Result<T>` are `readonly record struct`s (`Value`, plus a non-generic `Result`); `ToResultOrFail` is back in use. `ResultExtensions` maps un-awaited tasks, so controllers are one expression: `ToResponse()`, `ToCreatedResponse()` (POST → **201** + `Location`), `ToNoContentOrError()` (DELETE and image optimise → **204**). Reverses audit 2's "no non-generic `Result`".
+- **Bug:** titles that differ but share a slug ("C#"/"C", "Vue.js"/"Vuejs") hit the unique index and returned 500. Slugs now go through `ToUniqueSlugAsync` (`c`, `c-2`, then a random suffix), only change when the title does, and fall back to the entity name when a title has no slug characters.
+- **Bug:** `TagRepository.GetByTitleTrackedAsync` passed its arguments to `ILike` reversed, and every "already exists" check used the user's title as a LIKE pattern, so `_`/`%` matched other rows (a tag titled `%` "already existed"). Exact matches are now `lower() = lower()`, search is `strpos`, and the `SupportsILike()` provider branches that existed only for the InMemory tests are gone.
+- List endpoints bind `[FromQuery] SearchQuery` with a validator (`search_too_long`, 100 chars) — also bounds the cache keys built from the search string.
+- Committed Auth0 `ClientSecret` / `ApiClientSecret` removed from `appsettings.json` (they were only there so the tests could fetch a real token).
+
+### Tests — fixed
+- Real PostgreSQL via Testcontainers instead of EF InMemory: template database migrated once, cloned per unit test and per integration class. It immediately caught two tests seeding duplicate slugs that InMemory let through.
+- Locally-signed JWTs (`TestJwt`) instead of a live Auth0 client-credentials call: no network or secrets; added expired / wrong-key / wrong-audience cases. CI no longer runs docker-compose or passes Vertex secrets to restore/build.
+- Integration classes run in parallel (own database each): 191 → 223 tests, ~6 s.
+
+### Frontend — fixed
+- `tryCatchFinallyIfLatest` replaces the two hand-rolled stale-request guards (`ProjectStore.getProjectBySlug`, `AiSearchStore`). Pulse's closure-based `createRequestGeneration` wasn't ported as-is: these are options stores whose state is SSR-serialised, so the counter stays in state.
+- Client regenerated (201/204 responses, typed `VertexIngestSummary`). `yarn codegen` used to exit 1 after generating because its ESLint post-step targeted the ESLint-ignored `api/` folder; the step is removed.
+
+### Kept as-is, deliberately
+- **No pagination.** Lists are a few dozen rows and the frontend filters, derives tag-type filters and builds the timeline from the full list client-side. The real cost is payload size, which the DTO work below addresses.
+
+### Open
+- **Response DTOs** (Pulse's `ToDto()` convention): controllers still return EF entities, which is also why `Project`'s Newtonsoft `[JsonIgnore]`s don't apply. Separate PR — summary DTO for lists, detail DTO for `GET /project/{slug}`, codegen, frontend types.
+- **Rotate the Auth0 secrets** that were committed: they remain in git history on a public repo.
+- **Auth-gated CRUD E2E** still needs a frontend-side test login (the backend half — tests that don't need Auth0 — now exists).

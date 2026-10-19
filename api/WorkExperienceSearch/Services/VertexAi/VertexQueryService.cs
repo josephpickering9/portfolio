@@ -1,306 +1,101 @@
-using System.Text.Json;
-using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Options;
-using Microsoft.EntityFrameworkCore;
-using Work_Experience_Search.Models;
-using Work_Experience_Search.Types;
 using Work_Experience_Search.Repositories;
+using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Services.VertexAi;
 
 public interface IVertexQueryService
 {
-    Task<VertexQueryResult> QueryAsync(string query, CancellationToken cancellationToken = default);
+    Task<Result<VertexQueryResult>> QueryAsync(string query, CancellationToken cancellationToken = default);
 }
 
-public class VertexQueryService : IVertexQueryService
+public sealed class VertexQueryService(
+    IVertexGenerateContentClient generateContentClient,
+    IOptions<VertexAiOptions> options,
+    IProjectRepository projectRepository,
+    ICompanyRepository companyRepository,
+    ITagRepository tagRepository,
+    ILogger<VertexQueryService> logger) : IVertexQueryService
 {
-    private readonly HttpClient _httpClient;
-    private readonly VertexAiOptions _options;
-    private readonly GoogleCredential _credential;
-    private readonly ILogger<VertexQueryService> _logger;
-    private readonly IProjectRepository _projectRepository;
-    private readonly ICompanyRepository _companyRepository;
-    private readonly ITagRepository _tagRepository;
+    public const string FallbackAnswer = "I don't have enough information to answer that.";
 
-    public VertexQueryService(
-        IHttpClientFactory httpClientFactory,
-        IOptions<VertexAiOptions> options,
-        ILogger<VertexQueryService> logger,
-        IProjectRepository projectRepository,
-        ICompanyRepository companyRepository,
-        ITagRepository tagRepository)
+    private const string SystemPrompt = """
+        You are a portfolio assistant for Joseph Pickering (also known as Joe), a software developer.
+
+        Use only the retrieved context to answer questions. When the answer requires synthesising across multiple retrieved documents, draw connections between them to provide a complete answer.
+
+        Only respond with "I don't have enough information to answer that." if the retrieved context contains no relevant information whatsoever.
+
+        Context notes:
+        - Common abbreviations: GCP = Google Cloud Platform, AWS = Amazon Web Services, CI/CD = continuous integration/deployment.
+        - Portfolio data is written in the first person; all "I / my / me" statements refer to Joseph Pickering.
+        - Queries may use "Joe", "Joseph", or "Joseph Pickering" — treat all as the same person.
+
+        Style:
+        - Concise and factual. Reference project titles, company names, or technologies where relevant.
+        - UK English.
+        """;
+
+    public async Task<Result<VertexQueryResult>> QueryAsync(string query, CancellationToken cancellationToken = default)
     {
-        _httpClient = httpClientFactory.CreateClient(nameof(VertexQueryService));
-        _options = options.Value;
-        _logger = logger;
-        _projectRepository = projectRepository;
-        _companyRepository = companyRepository;
-        _tagRepository = tagRepository;
-        _credential = VertexCredentialFactory.Create(_options, _logger).CreateScoped("https://www.googleapis.com/auth/cloud-platform");
-    }
+        var response = await generateContentClient.GenerateContentAsync(BuildRequest(query), cancellationToken);
+        if (!response.IsSuccess) return response.Error!.ToFail();
 
-    public async Task<VertexQueryResult> QueryAsync(string query, CancellationToken cancellationToken = default)
-    {
-        var dataStoreId = $"{_options.Environment.ToString().ToLowerInvariant()}_project_structured_{_options.DataStoreVersion}";
-        var datastoreResource = $"projects/{_options.ProjectId}/locations/{_options.Location}/collections/{_options.Collection}/dataStores/{dataStoreId}";
+        var candidate = response.Value!.Candidates.FirstOrDefault();
+        var citations = await EnrichCitationsAsync(VertexCitationExtractor.Extract(candidate), cancellationToken);
 
-        var token = await _credential.UnderlyingCredential.GetAccessTokenForRequestAsync(cancellationToken: cancellationToken);
-
-        var body = new
-        {
-            systemInstruction = new
-            {
-                role = "system",
-                parts = new[]
-                {
-                    new { text = """
-                        You are a portfolio assistant for Joseph Pickering (also known as Joe), a software developer.
-
-                        Use only the retrieved context to answer questions. When the answer requires synthesising across multiple retrieved documents, draw connections between them to provide a complete answer.
-
-                        Only respond with "I don't have enough information to answer that." if the retrieved context contains no relevant information whatsoever.
-
-                        Context notes:
-                        - Common abbreviations: GCP = Google Cloud Platform, AWS = Amazon Web Services, CI/CD = continuous integration/deployment.
-                        - Portfolio data is written in the first person; all "I / my / me" statements refer to Joseph Pickering.
-                        - Queries may use "Joe", "Joseph", or "Joseph Pickering" — treat all as the same person.
-
-                        Style:
-                        - Concise and factual. Reference project titles, company names, or technologies where relevant.
-                        - UK English.
-                        """ }
-                }
-            },
-            contents = new[]
-            {
-                new
-                {
-                    role = "user",
-                    parts = new[] { new { text = query } }
-                }
-            },
-            tools = new[]
-            {
-                new
-                {
-                    retrieval = new
-                    {
-                        vertexAiSearch = new
-                        {
-                            datastore = datastoreResource
-                        }
-                    }
-                }
-            }
-        };
-
-        using var request = new HttpRequestMessage(HttpMethod.Post, _options.GenerateContentUrl())
-        {
-            Content = JsonContent.Create(body)
-        };
-        request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-        var raw = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (!response.IsSuccessStatusCode)
-        {
-            _logger.LogError("Vertex query failed: {Status} {Body}", response.StatusCode, raw);
-            throw new InvalidOperationException($"Vertex query failed ({(int)response.StatusCode} {response.StatusCode}): {raw}");
-        }
-
-        GoogleSearchResponse? searchResponse;
-        try
-        {
-            searchResponse = JsonSerializer.Deserialize<GoogleSearchResponse>(raw);
-        }
-        catch (JsonException ex)
-        {
-            _logger.LogError(ex, "Failed to deserialize Vertex response: {Body}", raw);
-            throw;
-        }
-
-        const string fallbackAnswer = "I don't have enough information to answer that.";
-
-        if (searchResponse == null)
-        {
-            return new VertexQueryResult(fallbackAnswer, new List<VertexCitation>());
-        }
-
-        var answer = ExtractAnswer(searchResponse);
-        var citations = await EnrichCitationsAsync(ExtractCitations(searchResponse), cancellationToken);
-
+        var answer = candidate?.Content?.Parts.FirstOrDefault()?.Text;
         if (string.IsNullOrEmpty(answer))
         {
-            var finishReasons = searchResponse.Candidates.Select(c => c.FinishReason ?? "null").ToList();
-            _logger.LogWarning("Vertex query returned empty answer. FinishReasons: [{Reasons}]. Raw: {Raw}", string.Join(", ", finishReasons), raw);
-            answer = fallbackAnswer;
+            var finishReasons = response.Value.Candidates.Select(c => c.FinishReason ?? "null");
+            logger.LogWarning("Vertex query returned an empty answer. FinishReasons: [{FinishReasons}]", string.Join(", ", finishReasons));
+            answer = FallbackAnswer;
         }
 
-        return new VertexQueryResult(answer, citations);
+        return new VertexQueryResult(answer, citations).ToOk();
     }
 
-    private static string? ExtractAnswer(GoogleSearchResponse response)
+    private GenerateContentRequest BuildRequest(string query)
     {
-        var candidate = response.Candidates.FirstOrDefault();
-        var part = candidate?.Content?.Parts.FirstOrDefault();
-        return part?.Text;
+        var datastore = options.Value.GetFeatureDataStoreResource(VertexFeatureType.Project);
+        return new GenerateContentRequest(
+            GenerateContentMessage.FromSystem(SystemPrompt),
+            [GenerateContentMessage.FromUser(query)],
+            [new GenerateContentTool(new GenerateContentRetrieval(new VertexAiSearchSource(datastore)))]);
     }
 
-    private static IReadOnlyList<RawVertexCitation> ExtractCitations(GoogleSearchResponse response)
+    private async Task<IReadOnlyList<VertexCitation>> EnrichCitationsAsync(IReadOnlyList<RawVertexCitation> citations, CancellationToken cancellationToken)
     {
-        var list = new List<RawVertexCitation>();
-        var candidate = response.Candidates.FirstOrDefault();
-        if (candidate == null) return list;
+        var projectIds = IdsOf(citations, VertexFeatureType.Project, id => new ProjectId(id));
+        var companyIds = IdsOf(citations, VertexFeatureType.Company, id => new CompanyId(id));
+        var tagIds = IdsOf(citations, VertexFeatureType.Tag, id => new TagId(id));
 
-        if (candidate.GroundingMetadata?.GroundingChunks != null)
+        var projects = (await projectRepository.GetByIdsAsync(projectIds, cancellationToken)).ToDictionary(p => p.Id);
+        var companies = (await companyRepository.GetByIdsAsync(companyIds, cancellationToken)).ToDictionary(c => c.Id);
+        var tags = (await tagRepository.GetByIdsAsync(tagIds, cancellationToken)).ToDictionary(t => t.Id);
+
+        return citations.Select(citation =>
         {
-            foreach (var chunk in candidate.GroundingMetadata.GroundingChunks)
-            {
-                var context = chunk.RetrievedContext;
-                if (context == null || string.IsNullOrWhiteSpace(context.DocumentName)) continue;
-
-                list.Add(new RawVertexCitation
-                {
-                    Id = ExtractId(context.DocumentName),
-                    FeatureType = ExtractFeatureType(context.DocumentName),
-                    Title = ExtractTitle(context.Text)
-                });
-            }
-        }
-
-        if (candidate.CitationMetadata?.Citations != null)
-        {
-            foreach (var c in candidate.CitationMetadata.Citations)
-            {
-                var documentName = c.Uri ?? c.Source;
-                if (!string.IsNullOrWhiteSpace(documentName))
-                {
-                     list.Add(new RawVertexCitation
-                     {
-                         Id = ExtractId(documentName),
-                         FeatureType = ExtractFeatureType(documentName),
-                         Title = null
-                     });
-                }
-            }
-        }
-
-        return list;
-    }
-
-    private static Guid? ExtractId(string documentName)
-    {
-        var parts = documentName.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var docIndex = Array.IndexOf(parts, "documents");
-        if (docIndex >= 0 && docIndex + 1 < parts.Length)
-        {
-            var rawId = parts[docIndex + 1];
-            var idPart = rawId.Split(':')[0];
-
-            if (Guid.TryParse(idPart, out var id))
-            {
-                return id;
-            }
-        }
-
-        return null;
-    }
-
-    private static VertexFeatureType? ExtractFeatureType(string documentName)
-    {
-        var parts = documentName.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        var dsIndex = Array.IndexOf(parts, "dataStores");
-        if (dsIndex >= 0 && dsIndex + 1 < parts.Length)
-        {
-            var dataStore = parts[dsIndex + 1].ToLowerInvariant();
-            if (dataStore.Contains("project")) return VertexFeatureType.Project;
-            if (dataStore.Contains("company")) return VertexFeatureType.Company;
-            if (dataStore.Contains("tag")) return VertexFeatureType.Tag;
-        }
-
-        return null;
-    }
-
-    private static string? ExtractTitle(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text)) return null;
-        var lines = text.Split('\n');
-        var titleLine = lines.FirstOrDefault(l => l.StartsWith("Title:", StringComparison.OrdinalIgnoreCase));
-        return titleLine != null ? titleLine["Title:".Length..].Trim() : null;
-    }
-
-    private async Task<IReadOnlyList<VertexCitation>> EnrichCitationsAsync(IEnumerable<RawVertexCitation> citations, CancellationToken cancellationToken)
-    {
-        var rawList = citations.ToList();
-        var projectIds = rawList
-            .Where(c => c.FeatureType == VertexFeatureType.Project && c.Id.HasValue)
-            .Select(c => new ProjectId(c.Id!.Value))
-            .Distinct()
-            .ToList();
-        var companyIds = rawList
-            .Where(c => c.FeatureType == VertexFeatureType.Company && c.Id.HasValue)
-            .Select(c => new CompanyId(c.Id!.Value))
-            .Distinct()
-            .ToList();
-        var tagIds = rawList
-            .Where(c => c.FeatureType == VertexFeatureType.Tag && c.Id.HasValue)
-            .Select(c => new TagId(c.Id!.Value))
-            .Distinct()
-            .ToList();
-
-        var projects = await _projectRepository.GetByIdsAsync(projectIds, cancellationToken);
-        var companies = await _companyRepository.GetByIdsAsync(companyIds, cancellationToken);
-        var tags = await _tagRepository.GetByIdsAsync(tagIds, cancellationToken);
-
-        var projectLookup = projects.ToDictionary(p => p.Id);
-        var companyLookup = companies.ToDictionary(c => c.Id);
-        var tagLookup = tags.ToDictionary(t => t.Id);
-
-        return rawList.Select(c =>
-        {
-            Project? project = null;
-            Company? company = null;
-            Tag? tag = null;
-
-            if (c.Id.HasValue)
-            {
-                var guid = c.Id.Value;
-                if (c.FeatureType == VertexFeatureType.Project) projectLookup.TryGetValue(new ProjectId(guid), out project);
-                if (c.FeatureType == VertexFeatureType.Company) companyLookup.TryGetValue(new CompanyId(guid), out company);
-                if (c.FeatureType == VertexFeatureType.Tag) tagLookup.TryGetValue(new TagId(guid), out tag);
-            }
+            var project = citation is { FeatureType: VertexFeatureType.Project, Id: { } projectId } ? projects.GetValueOrDefault(new ProjectId(projectId)) : null;
+            var company = citation is { FeatureType: VertexFeatureType.Company, Id: { } companyId } ? companies.GetValueOrDefault(new CompanyId(companyId)) : null;
+            var tag = citation is { FeatureType: VertexFeatureType.Tag, Id: { } tagId } ? tags.GetValueOrDefault(new TagId(tagId)) : null;
 
             return new VertexCitation
             {
-                FeatureType = c.FeatureType,
-                Id = c.Id,
-                Title = c.Title ?? project?.Title ?? company?.Name ?? tag?.Title,
+                FeatureType = citation.FeatureType,
+                Id = citation.Id,
+                Title = citation.Title ?? project?.Title ?? company?.Name ?? tag?.Title,
                 Project = project,
                 Company = company,
                 Tag = tag
             };
         }).ToList();
     }
+
+    private static List<TId> IdsOf<TId>(IEnumerable<RawVertexCitation> citations, VertexFeatureType featureType, Func<Guid, TId> toId) =>
+        citations
+            .Where(c => c.FeatureType == featureType && c.Id.HasValue)
+            .Select(c => toId(c.Id!.Value))
+            .Distinct()
+            .ToList();
 }
-
-public record VertexQueryResult(string Answer, IReadOnlyList<VertexCitation> Citations);
-
-public record VertexCitation
-{
-    public Guid? Id { get; init; }
-    public VertexFeatureType? FeatureType { get; init; }
-    public string? Title { get; init; }
-    public Project? Project { get; init; }
-    public Company? Company { get; init; }
-    public Tag? Tag { get; init; }
-}
-
-internal record RawVertexCitation
-{
-    public Guid? Id { get; init; }
-    public VertexFeatureType? FeatureType { get; init; }
-    public string? Title { get; init; }
-}
-
-

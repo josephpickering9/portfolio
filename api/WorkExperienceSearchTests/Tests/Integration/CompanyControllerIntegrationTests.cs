@@ -1,13 +1,12 @@
 using System.Net;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Models;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class CompanyControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -53,7 +52,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.GetAsync($"/company/{nonExistingCompanyId}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.CompanyNotFound);
     }
 
     [Fact]
@@ -71,7 +70,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await Client.PostAsync("/company", content);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
 
     [Fact]
@@ -89,11 +88,12 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.PostAsync("/company", content);
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, httpResponse.StatusCode);
         var stringResponse = await httpResponse.Content.ReadAsStringAsync();
         var actualCompany = GetJsonContent<Company>(stringResponse);
 
         Assert.NotNull(actualCompany);
+        Assert.EndsWith($"/company/{actualCompany.Id}", httpResponse.Headers.Location?.ToString());
         Assert.Equal(newCompany.Name, actualCompany.Name);
         Assert.Equal(newCompany.Description, actualCompany.Description);
         Assert.Equal(newCompany.StartDate, actualCompany.StartDate);
@@ -117,7 +117,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.PostAsync("/company", content);
 
-        Assert.Equal(HttpStatusCode.Conflict, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Conflict, ErrorCodes.CompanyAlreadyExists);
     }
 
     [Fact]
@@ -166,7 +166,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.PutAsync($"/company/{nonExistingCompanyId}", content);
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.CompanyNotFound);
     }
 
     [Fact]
@@ -177,7 +177,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/company/{companyId}");
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.NoContent, httpResponse.StatusCode);
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/company/{nonExistingCompanyId}");
 
-        Assert.Equal(HttpStatusCode.NotFound, httpResponse.StatusCode);
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.CompanyNotFound);
     }
 
     [Fact]
@@ -220,5 +220,71 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
         Assert.NotNull(updated);
         Assert.Equal("Updated Name", updated.Name);
         Assert.Equal("Updated Description", updated.Description);
+    }
+
+    [Fact]
+    public async Task GetCompanies_NoCompanies_ReturnsEmptyList()
+    {
+        var httpResponse = await Client.GetAsync("/company");
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = GetJsonContent<List<Company>>(await httpResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(response);
+        Assert.Empty(response);
+    }
+
+    [Fact]
+    public async Task GetCompany_ExistingSlug_ReturnsCompany()
+    {
+        var company = await CreateCompanyAsync(CompanyId.New());
+
+        var httpResponse = await Client.GetAsync($"/company/{company.Slug}");
+
+        httpResponse.EnsureSuccessStatusCode();
+        var response = GetJsonContent<Company>(await httpResponse.Content.ReadAsStringAsync());
+        Assert.NotNull(response);
+        Assert.Equal(company.Id, response.Id);
+    }
+
+    [Fact]
+    public async Task GetCompany_NonExistingSlug_ReturnsNotFound()
+    {
+        var httpResponse = await Client.GetAsync("/company/non-existent-company");
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.NotFound, ErrorCodes.CompanyNotFound);
+    }
+
+    [Fact]
+    public async Task PutCompany_Unauthorized_ReturnsUnauthorized()
+    {
+        var content = GetMultipartFormDataContent(new CreateCompany { Name = "Name", Description = "Description" });
+
+        var httpResponse = await Client.PutAsync($"/company/{CompanyId.New()}", content);
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
+    }
+
+    [Fact]
+    public async Task DeleteCompany_Unauthorized_ReturnsUnauthorized()
+    {
+        var httpResponse = await Client.DeleteAsync($"/company/{CompanyId.New()}");
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
+    }
+
+    [Fact]
+    public async Task PostCompany_EndDateBeforeStartDate_ReturnsValidationCode()
+    {
+        var content = GetMultipartFormDataContent(new CreateCompany
+        {
+            Name = "Backwards Company",
+            Description = "Description",
+            StartDate = new DateOnly(2022, 1, 1),
+            EndDate = new DateOnly(2021, 1, 1)
+        });
+
+        var httpResponse = await AuthenticatedClient.PostAsync("/company", content);
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.BadRequest, ErrorCodes.EndDateBeforeStartDate);
     }
 }

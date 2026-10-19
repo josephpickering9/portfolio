@@ -3,8 +3,7 @@ import type { CreateProject, Project, ProjectImage } from '@api'
 import { fromExistingImage } from '~/utils/upload-helper'
 import type { ProjectImageSlots } from '~/utils/upload-helper'
 import { getImagesByType } from '~/utils/project-helper'
-
-const DATE_LENGTH = 10
+import { toDateInputValue } from '~/utils/date-helper'
 
 export function projectToForm(project: Project): CreateProject {
   return {
@@ -15,8 +14,8 @@ export function projectToForm(project: Project): CreateProject {
     keyDecision: project.keyDecision ?? undefined,
     outcome: project.outcome ?? undefined,
     companyId: project.companyId ?? undefined,
-    startDate: project.startDate?.substring(0, DATE_LENGTH),
-    endDate: project.endDate?.substring(0, DATE_LENGTH),
+    startDate: toDateInputValue(project.startDate),
+    endDate: toDateInputValue(project.endDate),
     website: project.website ?? '',
     showMockup: project.showMockup,
     tags: project.tags.map((tag) => tag.title),
@@ -36,9 +35,4 @@ export function projectToImageSlots(project: Project, toUrl: (image: string) => 
     desktop: gallery(ImageType.DESKTOP),
     mobile: gallery(ImageType.MOBILE),
   }
-}
-
-export default {
-  projectToForm,
-  projectToImageSlots,
 }

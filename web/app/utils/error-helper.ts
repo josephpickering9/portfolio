@@ -1,28 +1,47 @@
-const genericMessage = 'There was an issue with your request'
+import { ERROR_MESSAGES, GENERIC_ERROR_MESSAGE, isErrorCode, NETWORK_ERROR_MESSAGE, NOT_FOUND_ERROR_CODES } from '~/types/errors'
 
-export const extractError = (error: any): string => {
-  if (error.isAxiosError) {
-    if (!error.response || typeof error.response.data !== 'string') return genericMessage
+const CANCELLED_ERROR_NAME = 'CanceledError'
 
-    return error.response.data.toString()
-  } else if (error.name === 'ApiError') {
-    if (!error.body) return genericMessage
-
-    if (error.body.errors) {
-      const errorValues = error.body.errors ? (Object.values(error.body.errors) as string[][]) : []
-      return errorValues[0]?.[0] || genericMessage
-    } else if (error.body.status === 404) {
-      return 'Record could not be found'
-    } else {
-      return error.body.message || genericMessage
-    }
-  } else if (typeof error === 'string') {
-    return error
-  } else {
-    return genericMessage
-  }
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null
 }
 
-export default {
-  extractError,
+function codeFromBody(body: unknown): string | undefined {
+  return isRecord(body) && typeof body['error'] === 'string' ? body['error'] : undefined
+}
+
+function responseOf(error: Record<string, unknown>): Record<string, unknown> | undefined {
+  const response = error['response']
+  return isRecord(response) ? response : undefined
+}
+
+export function extractErrorCode(error: unknown): string | undefined {
+  if (!isRecord(error)) return undefined
+  return codeFromBody(error['body']) ?? codeFromBody(responseOf(error)?.['data']) ?? codeFromBody(error)
+}
+
+export function isNetworkError(error: unknown): boolean {
+  if (!isRecord(error) || extractErrorCode(error)) return false
+  const hasStatus = typeof error['status'] === 'number' || responseOf(error) !== undefined
+  return (error['isAxiosError'] === true || error['name'] === 'ApiRequestError') && !hasStatus
+}
+
+export function isCancelledError(error: unknown): boolean {
+  return isRecord(error) && error['name'] === CANCELLED_ERROR_NAME
+}
+
+export function messageForCode(code: string): string {
+  return isErrorCode(code) ? ERROR_MESSAGES[code] : GENERIC_ERROR_MESSAGE
+}
+
+export function isNotFoundCode(code?: string): boolean {
+  return isErrorCode(code) && NOT_FOUND_ERROR_CODES.includes(code)
+}
+
+export function extractError(error: unknown): string {
+  const code = extractErrorCode(error)
+  if (code) return messageForCode(code)
+  if (typeof error === 'string' && error.trim()) return error
+  if (isNetworkError(error)) return NETWORK_ERROR_MESSAGE
+  return GENERIC_ERROR_MESSAGE
 }

@@ -38,9 +38,3 @@ export function toProjectImages(slots: ProjectImageSlots): CreateProjectImage[] 
     ...galleries.flatMap(([items, type]) => items.map((item, index) => toImage(item, type, index + 1))),
   ]
 }
-
-export default {
-  fromExistingImage,
-  fromFile,
-  toProjectImages,
-}

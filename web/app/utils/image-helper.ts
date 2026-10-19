@@ -1,12 +1,8 @@
-import { useRuntimeConfig } from 'nuxt/app'
+const PASSTHROUGH_PREFIXES = ['http', 'blob:', 'data:']
+const UPLOADS_PATH = '/media/uploads/'
 
-export const getImageUrl = (image: string): string => {
+export function buildImageUrl(image: string, apiBase: string): string {
   if (!image) return ''
-  if (image.startsWith('http') || image.startsWith('blob:') || image.startsWith('data:')) return image
-
-  return `${useRuntimeConfig().public.apiBase}/media/uploads/${image}`
-}
-
-export default {
-  getImageUrl,
+  if (PASSTHROUGH_PREFIXES.some((prefix) => image.startsWith(prefix))) return image
+  return `${apiBase}${UPLOADS_PATH}${image}`
 }

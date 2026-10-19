@@ -89,3 +89,7 @@
 .page-leave-to {
   opacity: 0;
 }
+
+@utility pf-dot {
+  animation: pf-dot 1.2s ease-in-out var(--dot-delay, 0ms) infinite;
+}

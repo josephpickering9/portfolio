@@ -1,11 +1,15 @@
 import { useRouter } from 'vue-router'
 import { useNotificationStore } from '~/store/NotificationStore'
+import { capitalise } from '~/utils/string-helper'
+
+const INVALID_FORM_MESSAGE = 'Fix the highlighted fields'
 
 interface EntityFormOptions<T, CreateT> {
   entityName: string
-  redirectRoute: string
+  listRoute: string
+  savedRoute?: (saved: T) => string
   actions: {
-    get: (id: string) => Promise<T | undefined>
+    get: (key: string) => Promise<T | undefined>
     create: (data: CreateT) => Promise<T | undefined>
     update: (id: string, data: CreateT) => Promise<T | undefined>
     delete: (id: string) => Promise<void>
@@ -13,46 +17,49 @@ interface EntityFormOptions<T, CreateT> {
   state: {
     loadError: () => string | undefined
     saveError: () => string | undefined
+    deleteError: () => string | undefined
   }
 }
 
 export function useEntityForm<T, CreateT>(options: EntityFormOptions<T, CreateT>) {
-  const { entityName, redirectRoute, actions, state } = options
+  const { entityName, listRoute, savedRoute, actions, state } = options
   const router = useRouter()
   const notificationStore = useNotificationStore()
-  const capitalised = entityName.charAt(0).toUpperCase() + entityName.slice(1)
 
-  async function fetch(id: string): Promise<T | undefined> {
-    const entity = await actions.get(id)
-    if (!entity || state.loadError()) {
-      notificationStore.displayErrorNotification(state.loadError() || `Couldn't load the ${entityName}`)
+  async function fetch(key: string): Promise<T | undefined> {
+    const entity = await actions.get(key)
+    const error = state.loadError()
+    if (!entity || error) {
+      notificationStore.displayErrorNotification(error || `Couldn't load the ${entityName}`)
       return undefined
     }
     return entity
   }
 
-  async function save(id: string | undefined, data: CreateT) {
+  async function save(id: string | undefined, data: CreateT): Promise<void> {
     const saved = id ? await actions.update(id, data) : await actions.create(data)
-    if (state.saveError() || !saved) {
-      notificationStore.displayErrorNotification(state.saveError() || `Couldn't save the ${entityName}`)
+    const error = state.saveError()
+    if (!saved || error) {
+      notificationStore.displayErrorNotification(error || `Couldn't save the ${entityName}`)
       return
     }
-    notificationStore.displaySuccessNotification(`${capitalised} ${id ? 'updated' : 'created'} successfully`)
-    router.push(redirectRoute)
+    notificationStore.displaySuccessNotification(`${capitalise(entityName)} ${id ? 'updated' : 'created'} successfully`)
+    await router.push(savedRoute ? savedRoute(saved) : listRoute)
   }
 
-  async function remove(id: string) {
+  async function remove(id: string): Promise<void> {
     await actions.delete(id)
-    if (state.saveError()) {
-      notificationStore.displayErrorNotification(state.saveError() || `Couldn't delete the ${entityName}`)
+    const error = state.deleteError()
+    if (error) {
+      notificationStore.displayErrorNotification(error)
       return
     }
-    notificationStore.displaySuccessNotification(`${capitalised} deleted`)
-    router.push(redirectRoute)
+    notificationStore.displaySuccessNotification(`${capitalise(entityName)} deleted`)
+    await router.push(listRoute)
   }
 
-  function invalid() {
-    notificationStore.displayErrorNotification('Fix the highlighted fields')
+  function invalid(): void {
+    notificationStore.displayErrorNotification(INVALID_FORM_MESSAGE)
   }
 
   return { fetch, save, remove, invalid }

@@ -4,7 +4,6 @@ export default defineConfig({
     input: 'http://localhost:5105/swagger/v1/swagger.json',
     output: {
         path: 'api',
-        lint: 'eslint',
     },
     plugins: [
         ...defaultPlugins,

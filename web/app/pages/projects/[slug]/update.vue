@@ -4,6 +4,7 @@
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { definePageMeta } from '#imports'
 import useMeta from '~/composables/useMeta'
 import ProjectForm from '~/components/project/forms/ProjectForm.vue'
 

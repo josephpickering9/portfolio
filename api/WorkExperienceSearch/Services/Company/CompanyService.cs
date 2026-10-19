@@ -1,151 +1,127 @@
-using Work_Experience_Search.Requests;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Models;
+using Work_Experience_Search.Repositories;
+using Work_Experience_Search.Requests;
 using Work_Experience_Search.Services.Image;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Repositories;
-using Work_Experience_Search.Utils;
 
 namespace Work_Experience_Search.Services;
 
-public class CompanyService(ICompanyRepository repository, IFileService fileService, IImageService imageService, ILogger<CompanyService> logger) : ICompanyService
+public sealed class CompanyService(
+    ICompanyRepository repository,
+    IFileService fileService,
+    IImageService imageService,
+    ILogger<CompanyService> logger) : ICompanyService
 {
-    public async Task<Result<IEnumerable<Company>>> GetCompaniesAsync(string? search)
+    private const string SlugFallback = "company";
+
+    public async Task<Result<IReadOnlyList<Company>>> GetCompaniesAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var companies = await repository.SearchAsync(search);
-        return new Success<IEnumerable<Company>>(companies);
+        var companies = await repository.SearchAsync(search, cancellationToken);
+        return companies.ToOk();
     }
 
-    public async Task<Result<Company>> GetCompanyAsync(CompanyId id)
+    public async Task<Result<Company>> GetCompanyAsync(CompanyId id, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.CompanyNotFound);
+
+    public async Task<Result<Company>> GetCompanyBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(slug, cancellationToken)).ToResultOrFail(ErrorCodes.CompanyNotFound);
+
+    public async Task<Result<Company>> CreateCompanyAsync(CreateCompany createCompany, CancellationToken cancellationToken = default)
     {
-        var company = await repository.GetAsync(id);
-        if (company == null)
-        {
-            logger.LogWarning("Company {CompanyId} not found.", id);
-            return new NotFoundFailure<Company>("Company not found.");
-        }
-
-        return new Success<Company>(company);
-    }
-
-    public async Task<Result<Company>> GetCompanyBySlugAsync(string slug)
-    {
-        var company = await repository.GetAsync(slug);
-        if (company == null)
-        {
-            logger.LogWarning("Company with slug {Slug} not found.", slug);
-            return new NotFoundFailure<Company>("Company not found.");
-        }
-
-        return new Success<Company>(company);
-    }
-
-    public async Task<Result<Company>> CreateCompanyAsync(CreateCompany createCompany)
-    {
-        var companyExists = await repository.ExistsAsync(createCompany.Name);
-        if (companyExists)
+        if (await repository.ExistsAsync(createCompany.Name, cancellationToken))
         {
             logger.LogWarning("Company creation conflict: a company named {Name} already exists.", createCompany.Name);
-            return new ConflictFailure<Company>("A company with the same title already exists.");
+            return ErrorCodes.CompanyAlreadyExists.ToFail();
         }
 
-        string? logoPath = null;
-        if (createCompany.Logo is { Length: > 0 })
+        var logo = await SaveLogoIfPresentAsync(createCompany.Logo, cancellationToken);
+        if (!logo.IsSuccess)
         {
-            var logoFile = await SaveLogoAsync(createCompany.Logo);
-            if (!logoFile.IsSuccess)
-            {
-                logger.LogWarning("Logo could not be saved while creating company {Name}: {Reason}", createCompany.Name, logoFile.Error?.Message);
-                return new BadRequestFailure<Company>("Logo file could not be saved.");
-            }
-
-            logoPath = logoFile.Data;
+            logger.LogWarning("Logo could not be saved while creating company {Name}: {ErrorCode}", createCompany.Name, logo.Error);
+            return logo.Error!.ToFail();
         }
 
-        var company = new Company
-        {
-            Name = createCompany.Name,
-            Description = createCompany.Description,
-            Logo = logoPath,
-            Website = createCompany.Website,
-            StartDate = createCompany.StartDate,
-            EndDate = createCompany.EndDate,
-            Slug = createCompany.Name.ToSlug()
-        };
+        var company = new Company { Logo = logo.Value };
+        await ApplyDetailsAsync(company, createCompany, cancellationToken);
 
-        await repository.AddAsync(company);
+        await repository.AddAsync(company, cancellationToken);
 
-        return new Success<Company>(company);
+        return company.ToOk();
     }
 
-    public async Task<Result<Company>> UpdateCompanyAsync(CompanyId id, CreateCompany createCompany)
+    public async Task<Result<Company>> UpdateCompanyAsync(CompanyId id, CreateCompany updateCompany, CancellationToken cancellationToken = default)
     {
-        var company = await repository.GetAsync(id);
-        if (company == null)
+        var company = await repository.GetTrackedAsync(id, cancellationToken);
+        if (company is null)
         {
             logger.LogWarning("Company {CompanyId} not found for update.", id);
-            return new NotFoundFailure<Company>("Company not found.");
+            return ErrorCodes.CompanyNotFound.ToFail();
         }
 
-        var companyExists = await repository.ExistsAsync(createCompany.Name, id);
-        if (companyExists)
+        if (await repository.ExistsAsync(updateCompany.Name, id, cancellationToken))
         {
-            logger.LogWarning("Company {CompanyId} update conflict: a company named {Name} already exists.", id, createCompany.Name);
-            return new ConflictFailure<Company>("A company with the same title already exists.");
+            logger.LogWarning("Company {CompanyId} update conflict: a company named {Name} already exists.", id, updateCompany.Name);
+            return ErrorCodes.CompanyAlreadyExists.ToFail();
         }
 
-        string? logoPath = null;
-        if (createCompany.Logo is { Length: > 0 })
+        var logo = await SaveLogoIfPresentAsync(updateCompany.Logo, cancellationToken);
+        if (!logo.IsSuccess)
         {
-            var logoFile = await SaveLogoAsync(createCompany.Logo);
-            if (!logoFile.IsSuccess)
-            {
-                logger.LogWarning("Logo could not be saved while updating company {CompanyId}: {Reason}", id, logoFile.Error?.Message);
-                return new BadRequestFailure<Company>("Logo file could not be saved.");
-            }
-
-            logoPath = logoFile.Data;
+            logger.LogWarning("Logo could not be saved while updating company {CompanyId}: {ErrorCode}", id, logo.Error);
+            return logo.Error!.ToFail();
         }
 
-        if (logoPath != null) company.Logo = logoPath;
+        if (logo.Value is not null) company.Logo = logo.Value;
+        await ApplyDetailsAsync(company, updateCompany, cancellationToken);
 
-        company.Name = createCompany.Name;
-        company.Description = createCompany.Description;
-        company.Website = createCompany.Website;
-        company.StartDate = createCompany.StartDate;
-        company.EndDate = createCompany.EndDate;
-        company.Slug = createCompany.Name.ToSlug();
+        await repository.UpdateAsync(company, cancellationToken);
 
-        await repository.UpdateAsync(company);
-
-        return new Success<Company>(company);
+        return company.ToOk();
     }
 
-    public async Task<Result<Company>> DeleteCompanyAsync(CompanyId id)
+    public async Task<Result> DeleteCompanyAsync(CompanyId id, CancellationToken cancellationToken = default)
     {
-        var company = await repository.GetAsync(id);
-        if (company == null)
+        var company = await repository.GetTrackedAsync(id, cancellationToken);
+        if (company is null)
         {
             logger.LogWarning("Company {CompanyId} not found for deletion.", id);
-            return new NotFoundFailure<Company>("Company not found.");
+            return ErrorCodes.CompanyNotFound.ToFail();
         }
 
-        await repository.DeleteAsync(company);
+        await repository.DeleteAsync(company, cancellationToken);
 
-        return new Success<Company>(company);
+        return Result.Ok();
     }
 
-    private async Task<Result<string>> SaveLogoAsync(IFormFile file)
+    private async Task ApplyDetailsAsync(Company company, CreateCompany request, CancellationToken cancellationToken)
     {
-        var optimisedImage = await imageService.OptimiseImageAsync(await FileExtensions.FileToByteArray(file));
-        var formFile = optimisedImage is { Data: not null, IsSuccess: true }
-            ? FileExtensions.ByteArrayToFile(optimisedImage.Data, file.FileName, file.ContentType)
-            : file;
-        var savedFile = await fileService.SaveFileAsync(formFile);
-        if (!savedFile.IsSuccess) return new BadRequestFailure<string>("Logo file could not be saved.");
+        if (company.Name != request.Name)
+            company.Slug = await request.Name.ToUniqueSlugAsync(
+                SlugFallback, (slug, ct) => repository.SlugExistsAsync(slug, company.Id, ct), cancellationToken);
 
-        var fileName = Path.GetFileName(savedFile.Data);
-        if (fileName == null) return new BadRequestFailure<string>("Logo file path is null or empty.");
+        company.Name = request.Name;
+        company.Description = request.Description;
+        company.Website = request.Website;
+        company.StartDate = request.StartDate;
+        company.EndDate = request.EndDate;
+    }
 
-        return new Success<string>(fileName);
+    private async Task<Result<string?>> SaveLogoIfPresentAsync(IFormFile? logo, CancellationToken cancellationToken)
+    {
+        if (logo is not { Length: > 0 }) return Result<string?>.Ok(null);
+
+        var optimisedImage = await imageService.OptimiseImageAsync(await logo.ReadAllBytesAsync(cancellationToken), cancellationToken);
+        var formFile = optimisedImage is { IsSuccess: true, Value: { } optimised }
+            ? optimised.ToFormFile(logo.FileName, logo.ContentType)
+            : logo;
+
+        var savedFile = await fileService.SaveFileAsync(formFile, cancellationToken);
+        if (!savedFile.IsSuccess) return savedFile.Error!.ToFail();
+
+        var fileName = Path.GetFileName(savedFile.Value);
+        return string.IsNullOrEmpty(fileName)
+            ? ErrorCodes.FileUploadFailed.ToFail()
+            : Result<string?>.Ok(fileName);
     }
 }

@@ -27,7 +27,8 @@ export default withNuxt()
       // TypeScript specific rules
       '@typescript-eslint/no-var-requires': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
-      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-dynamic-delete': 'off',
 

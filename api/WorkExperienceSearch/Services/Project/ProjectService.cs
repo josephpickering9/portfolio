@@ -1,12 +1,12 @@
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
 
 namespace Work_Experience_Search.Services;
 
-public class ProjectService(
+public sealed class ProjectService(
     IProjectRepository projectRepository,
     IProjectImageService projectImageService,
     IProjectRepositoryService projectRepositoryService,
@@ -15,197 +15,132 @@ public class ProjectService(
     ILogger<ProjectService> logger
 ) : IProjectService
 {
-    public async Task<Result<IEnumerable<Project>>> GetProjectsAsync(string? search)
+    private const string SlugFallback = "project";
+
+    public async Task<Result<IReadOnlyList<Project>>> GetProjectsAsync(string? search, CancellationToken cancellationToken = default)
     {
-        var projects = await projectRepository.SearchAsync(search);
-        return new Success<IEnumerable<Project>>(projects);
+        var projects = await projectRepository.SearchAsync(search, cancellationToken);
+        return projects.ToOk();
     }
 
-    public async Task<Result<Project>> GetProjectAsync(ProjectId id)
-    {
-        var project = await projectRepository.GetAsync(id);
-        if (project == null)
-        {
-            logger.LogWarning("Project {ProjectId} not found.", id);
-            return new NotFoundFailure<Project>("Project not found.");
-        }
+    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default) =>
+        (await projectRepository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.ProjectNotFound);
 
-        return new Success<Project>(project);
+    public async Task<Result<Project>> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+        (await projectRepository.GetAsync(slug, cancellationToken)).ToResultOrFail(ErrorCodes.ProjectNotFound);
+
+    public async Task<Result<IReadOnlyList<Project>>> GetRelatedProjectsAsync(ProjectId projectId, CancellationToken cancellationToken = default)
+    {
+        var projects = await projectRepository.GetRelatedAsync(projectId, cancellationToken);
+        return projects.ToOk();
     }
 
-    public async Task<Result<Project>> GetProjectBySlugAsync(string slug)
+    public async Task<Result<Project>> CreateProjectAsync(CreateProject createProject, CancellationToken cancellationToken = default)
     {
-        var project = await projectRepository.GetAsync(slug);
-        if (project == null)
-        {
-            logger.LogWarning("Project with slug {Slug} not found.", slug);
-            return new NotFoundFailure<Project>("Project not found.");
-        }
-
-        return new Success<Project>(project);
-    }
-
-    public async Task<Result<IEnumerable<Project>>> GetRelatedProjectsAsync(ProjectId projectId)
-    {
-        var projects = await projectRepository.GetRelatedAsync(projectId);
-        return new Success<IEnumerable<Project>>(projects);
-    }
-
-    public async Task<Result<Project>> CreateProjectAsync(CreateProject createProject)
-    {
-        var projectExists = await projectRepository.ExistsAsync(createProject.Title);
-        if (projectExists)
+        if (await projectRepository.ExistsAsync(createProject.Title, cancellationToken))
         {
             logger.LogWarning("Project creation conflict: a project titled {Title} already exists.", createProject.Title);
-            return new ConflictFailure<Project>("A project with the same title already exists");
+            return ErrorCodes.ProjectAlreadyExists.ToFail();
         }
 
-        var project = new Project
-        {
-            Title = createProject.Title,
-            ShortDescription = createProject.ShortDescription,
-            Description = createProject.Description,
-            ProblemStatement = createProject.ProblemStatement,
-            KeyDecision = createProject.KeyDecision,
-            Outcome = createProject.Outcome,
-            CompanyId = createProject.CompanyId,
-            StartDate = createProject.StartDate,
-            EndDate = createProject.EndDate,
-            Website = createProject.Website,
-            ShowMockup = createProject.ShowMockup,
-            Slug = createProject.Title.ToSlug()
-        };
+        var project = new Project();
+        await ApplyDetailsAsync(project, createProject, cancellationToken);
 
-        await projectRepository.AddAsync(project);
+        await projectRepository.AddAsync(project, cancellationToken);
 
-        var relationsResult = await SyncProjectRelations(project, createProject);
+        var relationsResult = await SyncProjectRelationsAsync(project, createProject, cancellationToken);
         if (!relationsResult.IsSuccess)
         {
-            logger.LogWarning("Project {ProjectId} relations sync failed during creation: {Reason}", project.Id, relationsResult.Error?.Message);
-            await projectRepository.DeleteAsync(project);
+            logger.LogWarning("Project {ProjectId} relations sync failed during creation: {ErrorCode}", project.Id, relationsResult.Error);
+            await projectRepository.DeleteAsync(project, cancellationToken);
             return relationsResult;
         }
 
-        await projectRepository.SaveChangesAsync();
+        await projectRepository.SaveChangesAsync(cancellationToken);
 
-        return new Success<Project>(project);
+        return project.ToOk();
     }
 
-    public async Task<Result<Project>> UpdateProjectAsync(ProjectId id, CreateProject createProject)
+    public async Task<Result<Project>> UpdateProjectAsync(ProjectId id, CreateProject createProject, CancellationToken cancellationToken = default)
     {
-        var project = await projectRepository.GetForUpdateAsync(id);
-        if (project == null)
+        var project = await projectRepository.GetTrackedAsync(id, cancellationToken);
+        if (project is null)
         {
             logger.LogWarning("Project {ProjectId} not found for update.", id);
-            return new NotFoundFailure<Project>("Project not found.");
+            return ErrorCodes.ProjectNotFound.ToFail();
         }
 
-        var projectExists = await projectRepository.ExistsAsync(createProject.Title, id);
-        if (projectExists)
+        if (await projectRepository.ExistsAsync(createProject.Title, id, cancellationToken))
         {
             logger.LogWarning("Project {ProjectId} update conflict: a project titled {Title} already exists.", id, createProject.Title);
-            return new ConflictFailure<Project>("A project with the same title already exists");
+            return ErrorCodes.ProjectAlreadyExists.ToFail();
         }
 
-        project.Title = createProject.Title;
-        project.ShortDescription = createProject.ShortDescription;
-        project.Description = createProject.Description;
-        project.ProblemStatement = createProject.ProblemStatement;
-        project.KeyDecision = createProject.KeyDecision;
-        project.Outcome = createProject.Outcome;
-        project.CompanyId = createProject.CompanyId;
-        project.StartDate = createProject.StartDate;
-        project.EndDate = createProject.EndDate;
-        project.Website = createProject.Website;
-        project.ShowMockup = createProject.ShowMockup;
-        project.Slug = createProject.Title.ToSlug();
+        await ApplyDetailsAsync(project, createProject, cancellationToken);
 
-        var relationsResult = await SyncProjectRelations(project, createProject);
+        var relationsResult = await SyncProjectRelationsAsync(project, createProject, cancellationToken);
         if (!relationsResult.IsSuccess)
         {
-            logger.LogWarning("Project {ProjectId} relations sync failed during update: {Reason}", id, relationsResult.Error?.Message);
+            logger.LogWarning("Project {ProjectId} relations sync failed during update: {ErrorCode}", id, relationsResult.Error);
             return relationsResult;
         }
 
-        await projectRepository.UpdateAsync(project);
+        await projectRepository.UpdateAsync(project, cancellationToken);
 
-        return new Success<Project>(project);
+        return project.ToOk();
     }
 
-    public async Task<Result<Project>> DeleteProjectAsync(ProjectId id)
+    public async Task<Result> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
     {
-        var project = await projectRepository.GetAsync(id);
-        if (project == null)
+        var project = await projectRepository.GetTrackedAsync(id, cancellationToken);
+        if (project is null)
         {
             logger.LogWarning("Project {ProjectId} not found for deletion.", id);
-            return new NotFoundFailure<Project>("Project not found.");
+            return ErrorCodes.ProjectNotFound.ToFail();
         }
 
-        await projectRepository.DeleteAsync(project);
+        await projectRepository.DeleteAsync(project, cancellationToken);
 
-        return new Success<Project>(project);
+        return Result.Ok();
     }
 
-    private async Task<Result<Project>> SyncProjectRelations(Project project, CreateProject createProject)
+    private async Task ApplyDetailsAsync(Project project, CreateProject request, CancellationToken cancellationToken)
     {
-        var tagsResult = await SyncProjectTags(project, createProject);
-        if (!tagsResult.IsSuccess) return tagsResult;
+        if (project.Title != request.Title)
+            project.Slug = await request.Title.ToUniqueSlugAsync(
+                SlugFallback, (slug, ct) => projectRepository.SlugExistsAsync(slug, project.Id, ct), cancellationToken);
 
-        var imagesResult = await SyncProjectImages(project, createProject);
-        if (!imagesResult.IsSuccess) return imagesResult;
-
-        var repositoriesResult = await SyncProjectRepositories(project, createProject);
-        if (!repositoriesResult.IsSuccess) return repositoriesResult;
-
-        var statsResult = await SyncProjectStats(project, createProject);
-        if (!statsResult.IsSuccess) return statsResult;
-
-        return new Success<Project>(project);
+        project.Title = request.Title;
+        project.ShortDescription = request.ShortDescription;
+        project.Description = request.Description;
+        project.ProblemStatement = request.ProblemStatement;
+        project.KeyDecision = request.KeyDecision;
+        project.Outcome = request.Outcome;
+        project.CompanyId = request.CompanyId;
+        project.StartDate = request.StartDate;
+        project.EndDate = request.EndDate;
+        project.Website = request.Website;
+        project.ShowMockup = request.ShowMockup;
     }
 
-    private async Task<Result<Project>> SyncProjectTags(Project project, CreateProject createProject)
+    private async Task<Result<Project>> SyncProjectRelationsAsync(Project project, CreateProject createProject, CancellationToken cancellationToken)
     {
-        var tags = await tagService.SyncTagsAsync(createProject.Tags);
-        if (!tags.IsSuccess || tags.Data == null) return new BadRequestFailure<Project>("Tags could not be created");
+        var tags = await tagService.SyncTagsAsync(createProject.Tags, cancellationToken);
+        if (!tags.IsSuccess) return tags.Error!.ToFail();
+        project.Tags = [.. tags.Value!];
 
-        var projectTagsToDelete = project.Tags.Where(t => tags.Data.All(x => x.Id != t.Id)).ToList();
-        foreach (var tag in projectTagsToDelete)
-        {
-            project.Tags.Remove(tag);
-        }
+        var images = await projectImageService.SyncProjectImagesAsync(project, createProject.Images, cancellationToken);
+        if (!images.IsSuccess) return images.Error!.ToFail();
+        project.Images = [.. images.Value!];
 
-        project.Tags = tags.Data;
+        var repositories = await projectRepositoryService.SyncProjectRepositoriesAsync(project, createProject.Repositories, cancellationToken);
+        if (!repositories.IsSuccess) return repositories.Error!.ToFail();
+        project.Repositories = [.. repositories.Value!];
 
-        return new Success<Project>(project);
-    }
+        var stats = await projectStatService.SyncProjectStatsAsync(project, createProject.Stats, cancellationToken);
+        if (!stats.IsSuccess) return stats.Error!.ToFail();
+        project.Stats = [.. stats.Value!];
 
-    private async Task<Result<Project>> SyncProjectImages(Project project, CreateProject createProject)
-    {
-        var images = await projectImageService.SyncProjectImagesAsync(project, createProject.Images);
-        if (!images.IsSuccess || images.Data == null) return new BadRequestFailure<Project>("Images could not be created");
-
-        project.Images = images.Data;
-
-        return new Success<Project>(project);
-    }
-
-    private async Task<Result<Project>> SyncProjectRepositories(Project project, CreateProject createProject)
-    {
-        var repositories = await projectRepositoryService.SyncProjectRepositoriesAsync(project, createProject.Repositories);
-        if (!repositories.IsSuccess || repositories.Data == null) return new BadRequestFailure<Project>("Repositories could not be created");
-
-        project.Repositories = repositories.Data;
-
-        return new Success<Project>(project);
-    }
-
-    private async Task<Result<Project>> SyncProjectStats(Project project, CreateProject createProject)
-    {
-        var stats = await projectStatService.SyncProjectStatsAsync(project, createProject.Stats);
-        if (!stats.IsSuccess || stats.Data == null) return new BadRequestFailure<Project>("Stats could not be created");
-
-        project.Stats = stats.Data;
-
-        return new Success<Project>(project);
+        return project.ToOk();
     }
 }

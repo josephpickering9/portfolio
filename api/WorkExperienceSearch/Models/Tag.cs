@@ -5,7 +5,7 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Models;
 
-public class Tag
+public sealed class Tag
 {
     [Required] public TagId Id { get; set; } = TagId.New();
 
@@ -24,13 +24,13 @@ public class Tag
 
 public enum TagType
 {
-    [Description("Default")] Default, // 0
-    [Description("Backend")] Backend, // 1
-    [Description("Frontend")] Frontend, // 2
-    [Description("DevOps")] DevOps, // 3
-    [Description("Other")] Other, // 4
-    [Description("Data")] Data, // 5
-    [Description("CMS")] CMS, // 6
-    [Description("Mobile")] Mobile, // 7
-    [Description("AI")] AI // 8
+    [Description("Default")] Default,
+    [Description("Backend")] Backend,
+    [Description("Frontend")] Frontend,
+    [Description("DevOps")] DevOps,
+    [Description("Other")] Other,
+    [Description("Data")] Data,
+    [Description("CMS")] CMS,
+    [Description("Mobile")] Mobile,
+    [Description("AI")] AI
 }

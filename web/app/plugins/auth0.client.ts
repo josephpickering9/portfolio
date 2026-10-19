@@ -1,4 +1,5 @@
-import { createAuth0, useAuth0 } from '@auth0/auth0-vue'
+import { createAuth0 } from '@auth0/auth0-vue'
+import { addRouteMiddleware, defineNuxtPlugin, useRuntimeConfig } from '#imports'
 import { client } from '@api/client.gen'
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -14,37 +15,22 @@ export default defineNuxtPlugin((nuxtApp) => {
     cacheLocation: 'localstorage',
   })
 
-  if (import.meta.client) nuxtApp.vueApp.use(auth0)
+  nuxtApp.vueApp.use(auth0)
 
-  addRouteMiddleware('auth', async () => {
-    if (import.meta.client) {
-      auth0.checkSession()
-      if (!auth0.isAuthenticated.value) {
-        auth0.loginWithRedirect({
-          appState: {
-            target: useRoute().path,
-          },
-        })
-      } else {
-        try {
-          const { getAccessTokenSilently } = useAuth0()
+  addRouteMiddleware('auth', async (to) => {
+    const redirectToLogin = () => auth0.loginWithRedirect({ appState: { target: to.path } })
 
-          const token = await getAccessTokenSilently()
-          if (token) {
-            client.setConfig({
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            })
-          }
-        } catch {
-          auth0.loginWithRedirect({
-            appState: {
-              target: useRoute().path,
-            },
-          })
-        }
-      }
+    auth0.checkSession()
+    if (!auth0.isAuthenticated.value) {
+      redirectToLogin()
+      return
+    }
+
+    try {
+      const token = await auth0.getAccessTokenSilently()
+      if (token) client.setConfig({ headers: { Authorization: `Bearer ${token}` } })
+    } catch {
+      redirectToLogin()
     }
   })
 })

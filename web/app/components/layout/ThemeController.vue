@@ -1,12 +1,13 @@
 <template>
   <div class="flex items-center rounded-full border border-line p-0.5" role="group" aria-label="Theme">
     <button
-      v-for="theme in themes"
+      v-for="theme in THEMES"
       :key="theme"
       type="button"
       :title="theme"
       :aria-label="`${theme} theme`"
       :aria-pressed="theme === themeStore.theme"
+      :data-testid="`theme-${theme}`"
       class="grid size-6 place-items-center rounded-full pointer-coarse:size-11"
       @click="themeStore.setSelectedTheme(theme)"
     >
@@ -24,6 +25,7 @@
 import { useThemeStore } from '~/store/ThemeStore'
 import { Theme } from '~/types/Theme'
 
-const themes = Object.values(Theme)
+const THEMES = Object.values(Theme)
+
 const themeStore = useThemeStore()
 </script>

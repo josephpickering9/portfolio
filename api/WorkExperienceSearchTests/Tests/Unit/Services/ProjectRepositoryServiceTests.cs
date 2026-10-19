@@ -1,33 +1,46 @@
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging.Abstractions;
+using Work_Experience_Search.Models;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Repositories;
 using Work_Experience_Search.Services;
-using Work_Experience_Search.Utils;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
+using ProjectRepository = Work_Experience_Search.Repositories.ProjectRepository;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
 
 public class ProjectRepositoryServiceTests : BaseServiceTests
 {
+    private readonly ProjectRepository _projectRepository;
     private readonly ProjectRepositoryService _projectRepositoryService;
 
     public ProjectRepositoryServiceTests()
     {
-        _projectRepositoryService = new ProjectRepositoryService(
-            new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator()),
-            new ProjectCodeRepository(Context),
-            NullLogger<ProjectRepositoryService>.Instance);
+        var cacheInvalidator = new CacheInvalidator();
+        _projectRepository = new ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), cacheInvalidator);
+        _projectRepositoryService = new ProjectRepositoryService(new ProjectCodeRepository(Context, cacheInvalidator));
+    }
+
+    [Fact]
+    public async Task SyncProjectRepositoriesAsync_NewRepository_CreatesIt()
+    {
+        var project = await GetTrackedProjectAsync();
+
+        var result = (await _projectRepositoryService.SyncProjectRepositoriesAsync(project, [new() { Title = "API", Url = "https://github.com/a/api" }])).ExpectSuccess();
+
+        Context.ChangeTracker.Clear();
+        var saved = Context.ProjectRepository.Single(repository => repository.Id == result.Single().Id);
+        Assert.Equal("API", saved.Title);
     }
 
     [Fact]
     public async Task SyncProjectRepositoriesAsync_EditingARepository_UpdatesTitleUrlAndOrder()
     {
-        var created = (await _projectRepositoryService.SyncProjectRepositoriesAsync(Project1Id, [new() { Title = "API", Url = "https://github.com/a/api" }])).ExpectSuccess();
+        var created = (await _projectRepositoryService.SyncProjectRepositoriesAsync(await GetTrackedProjectAsync(), [new() { Title = "API", Url = "https://github.com/a/api" }])).ExpectSuccess();
         var repositoryId = created.Single().Id;
 
         var edited = new List<CreateProjectRepository> { new() { Id = repositoryId, Title = "Backend", Url = "https://github.com/a/backend", Order = 2 } };
-        await _projectRepositoryService.SyncProjectRepositoriesAsync(Project1Id, edited);
+        await _projectRepositoryService.SyncProjectRepositoriesAsync(await GetTrackedProjectAsync(), edited);
 
         Context.ChangeTracker.Clear();
         var saved = Context.ProjectRepository.Single(repository => repository.Id == repositoryId);
@@ -35,4 +48,7 @@ public class ProjectRepositoryServiceTests : BaseServiceTests
         Assert.Equal("https://github.com/a/backend", saved.Url);
         Assert.Equal(2, saved.Order);
     }
+
+    private async Task<Project> GetTrackedProjectAsync() =>
+        await _projectRepository.GetTrackedAsync(Project1Id) ?? throw new InvalidOperationException("Seeded project missing.");
 }

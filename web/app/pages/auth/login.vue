@@ -15,7 +15,8 @@
       <button
         type="button"
         class="flex w-full items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-[15px] font-medium text-accent-ink"
-        @click="login?.()"
+        data-testid="login-button"
+        @click="login"
       >
         <Icon name="simple-icons:auth0" />
         Continue with Auth0

@@ -3,11 +3,14 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Exceptions;
 using Work_Experience_Search.Models;
+using Work_Experience_Search.Repositories;
+using ProjectRepositoryEntity = Work_Experience_Search.Models.ProjectRepository;
+using ProjectRepository = Work_Experience_Search.Repositories.ProjectRepository;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
@@ -26,17 +29,17 @@ public class ProjectServiceTests : BaseServiceTests
         _mockProjectImageService = new Mock<IProjectImageService>();
         _mockProjectRepositoryService = new Mock<IProjectRepositoryService>();
         _mockProjectStatService = new Mock<IProjectStatService>();
-        var projectRepository = new Work_Experience_Search.Repositories.ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator());
+        var projectRepository = new ProjectRepository(Context, new MemoryCache(new MemoryCacheOptions()), new CacheInvalidator());
         _projectService = new ProjectService(projectRepository, _mockProjectImageService.Object, _mockProjectRepositoryService.Object, _mockProjectStatService.Object, _mockTagService.Object, NullLogger<ProjectService>.Instance);
 
-        _mockProjectImageService.Setup(service => service.SyncProjectImagesAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectImage>>()))
-            .ReturnsAsync(() => new Success<List<ProjectImage>>([]));
+        _mockProjectImageService.Setup(service => service.SyncProjectImagesAsync(It.IsAny<Project>(), It.IsAny<IReadOnlyList<CreateProjectImage>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<ProjectImage>>.Ok([]));
 
-        _mockProjectRepositoryService.Setup(service => service.SyncProjectRepositoriesAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectRepository>>()))
-            .ReturnsAsync(() => new Success<List<ProjectRepository>>([]));
+        _mockProjectRepositoryService.Setup(service => service.SyncProjectRepositoriesAsync(It.IsAny<Project>(), It.IsAny<IReadOnlyList<CreateProjectRepository>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<ProjectRepositoryEntity>>.Ok([]));
 
-        _mockProjectStatService.Setup(service => service.SyncProjectStatsAsync(It.IsAny<Project>(), It.IsAny<List<CreateProjectStat>>()))
-            .ReturnsAsync(() => new Success<List<ProjectStat>>([]));
+        _mockProjectStatService.Setup(service => service.SyncProjectStatsAsync(It.IsAny<Project>(), It.IsAny<IReadOnlyList<CreateProjectStat>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<ProjectStat>>.Ok([]));
     }
 
     [Fact]
@@ -87,10 +90,7 @@ public class ProjectServiceTests : BaseServiceTests
     public async Task GetProjectBySlugAsync_ValidSlug_ReturnsProject()
     {
         const string validSlug = "client-portal";
-        await SaveProject(CreateProject(ProjectId.New(), "Client Portal", "Client Portal Description",
-            "Client Portal Short Description", Company1Id, new DateOnly(2021, 1, 1),
-            new DateOnly(2022, 1, 1),
-            "https://clientportal.com", []));
+        await SaveProject(CreateProject(new ProjectSeed(ProjectId.New(), "Client Portal") { CompanyId = Company1Id }));
 
         var result = (await _projectService.GetProjectBySlugAsync(validSlug)).ExpectSuccess();
 
@@ -104,9 +104,7 @@ public class ProjectServiceTests : BaseServiceTests
         const string invalidSlug = "non-existent-slug";
 
         var result = (await _projectService.GetProjectBySlugAsync(invalidSlug)).ExpectFailure();
-
-        Assert.IsType<NotFoundException>(result);
-        Assert.Equal("Project not found.", result.Message);
+        Assert.Equal(ErrorCodes.ProjectNotFound, result);
     }
 
     [Fact]
@@ -165,13 +163,13 @@ public class ProjectServiceTests : BaseServiceTests
             Tags = ["Test Tag"]
         };
 
-        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync((List<string> tags) =>
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((IReadOnlyList<string> tags, CancellationToken _) =>
             {
                 var createdTags = tags.Select(t => CreateTag(TagId.New(), t, TagType.Default)).ToList();
                 Context.Tag.AddRange(createdTags);
                 Context.SaveChanges();
-                return new Success<List<Tag>>(createdTags);
+                return Result<IReadOnlyList<Tag>>.Ok(createdTags);
             });
 
         var result = (await _projectService.CreateProjectAsync(newProject)).ExpectSuccess();
@@ -210,8 +208,8 @@ public class ProjectServiceTests : BaseServiceTests
             Tags = []
         };
 
-        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(() => new Success<List<Tag>>([]));
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<Tag>>.Ok([]));
 
         var result = (await _projectService.CreateProjectAsync(newProject)).ExpectSuccess();
 
@@ -239,8 +237,8 @@ public class ProjectServiceTests : BaseServiceTests
             Tags = []
         };
 
-        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(() => new Success<List<Tag>>([]));
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<Tag>>.Ok([]));
 
         var result = (await _projectService.CreateProjectAsync(newProject)).ExpectSuccess();
 
@@ -254,10 +252,12 @@ public class ProjectServiceTests : BaseServiceTests
     public async Task UpdateProjectAsync_ExistingProject_UpdatesProject()
     {
         var tag = CreateTag(TagId.New(), "Updated Tag", TagType.Backend);
-        var existingProject = await SaveProject(CreateProject(ProjectId.New(), "Test Update Project", "Test Description",
-            "Test Short Description", Company1Id, new DateOnly(2021, 1, 1),
-            new DateOnly(2022, 1, 1),
-            "https://example.com", [tag]));
+        var existingProject = await SaveProject(CreateProject(new ProjectSeed(ProjectId.New(), "Test Update Project")
+        {
+            CompanyId = Company1Id,
+            StartDate = new DateOnly(2021, 1, 1),
+            Tags = [tag]
+        }));
 
         var updateData = new CreateProject
         {
@@ -271,8 +271,8 @@ public class ProjectServiceTests : BaseServiceTests
             Tags = ["Updated Tag"]
         };
 
-        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(() => new Success<List<Tag>>([tag]));
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<Tag>>.Ok([tag]));
 
         var result = (await _projectService.UpdateProjectAsync(existingProject.Id, updateData)).ExpectSuccess();
 
@@ -304,12 +304,94 @@ public class ProjectServiceTests : BaseServiceTests
     {
         var existingProject = await SaveProject(CreateProject(ProjectId.New(), "Test Delete Project"));
 
-        var result = (await _projectService.DeleteProjectAsync(existingProject.Id)).ExpectSuccess();
-
-        Assert.NotNull(result);
-        Assert.Equal(existingProject.Id, result.Id);
+        (await _projectService.DeleteProjectAsync(existingProject.Id)).ExpectSuccess();
 
         var projectInDb = await Context.Project.FindAsync(existingProject.Id);
         Assert.Null(projectInDb);
+    }
+
+    [Fact]
+    public async Task GetProjectAsync_InvalidId_ReturnsProjectNotFound()
+    {
+        var error = (await _projectService.GetProjectAsync(ProjectId.New())).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectNotFound, error);
+    }
+
+    [Fact]
+    public async Task CreateProjectAsync_DuplicateTitle_ReturnsProjectAlreadyExists()
+    {
+        var duplicate = new CreateProject
+        {
+            Title = "visit northumberland",
+            Description = "Description",
+            ShortDescription = "Short Description",
+            StartDate = new DateOnly(2021, 1, 1)
+        };
+
+        var error = (await _projectService.CreateProjectAsync(duplicate)).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectAlreadyExists, error);
+    }
+
+    [Fact]
+    public async Task CreateProjectAsync_RelationSyncFails_PropagatesErrorAndRemovesProject()
+    {
+        _mockTagService.Setup(ts => ts.SyncTagsAsync(It.IsAny<IReadOnlyList<string>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<Tag>>.Ok([]));
+        _mockProjectImageService.Setup(service => service.SyncProjectImagesAsync(It.IsAny<Project>(), It.IsAny<IReadOnlyList<CreateProjectImage>>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => Result<IReadOnlyList<ProjectImage>>.Fail(ErrorCodes.FileRequired));
+        var request = new CreateProject
+        {
+            Title = "Project With Broken Image",
+            Description = "Description",
+            ShortDescription = "Short Description",
+            StartDate = new DateOnly(2021, 1, 1)
+        };
+
+        var error = (await _projectService.CreateProjectAsync(request)).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.FileRequired, error);
+        Assert.DoesNotContain(Context.Project, p => p.Title == request.Title);
+    }
+
+    [Fact]
+    public async Task UpdateProjectAsync_InvalidId_ReturnsProjectNotFound()
+    {
+        var update = new CreateProject
+        {
+            Title = "Missing",
+            Description = "Description",
+            ShortDescription = "Short Description",
+            StartDate = new DateOnly(2021, 1, 1)
+        };
+
+        var error = (await _projectService.UpdateProjectAsync(ProjectId.New(), update)).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectNotFound, error);
+    }
+
+    [Fact]
+    public async Task UpdateProjectAsync_TitleTakenByAnotherProject_ReturnsProjectAlreadyExists()
+    {
+        var update = new CreateProject
+        {
+            Title = "BeatCovidNE",
+            Description = "Description",
+            ShortDescription = "Short Description",
+            StartDate = new DateOnly(2021, 1, 1)
+        };
+
+        var error = (await _projectService.UpdateProjectAsync(Project1Id, update)).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectAlreadyExists, error);
+    }
+
+    [Fact]
+    public async Task DeleteProjectAsync_InvalidId_ReturnsProjectNotFound()
+    {
+        var error = (await _projectService.DeleteProjectAsync(ProjectId.New())).ExpectFailure();
+
+        Assert.Equal(ErrorCodes.ProjectNotFound, error);
     }
 }

@@ -38,14 +38,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{ (e: 'click'): void }>()
 
-const NuxtLink = resolveComponent('NuxtLink')
-
-const variants: Record<ButtonVariant, string> = {
+const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary: 'bg-accent text-accent-ink hover:text-accent-ink',
   outline: 'border border-line text-text',
   danger: 'border border-line text-danger hover:border-danger hover:text-danger',
   dashed: 'self-start border border-dashed border-line text-muted hover:text-text',
 }
 
-const variantClass = computed(() => variants[props.variant])
+const NuxtLink = resolveComponent('NuxtLink')
+
+const variantClass = computed(() => VARIANT_CLASSES[props.variant])
 </script>

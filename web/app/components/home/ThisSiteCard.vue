@@ -14,7 +14,7 @@
         <span class="text-[15px] font-medium text-accent">Read how it's built →</span>
       </div>
       <ul class="m-0 flex list-none flex-wrap gap-2.5 p-0 font-mono text-[13px]">
-        <li v-for="tech in stack" :key="tech.label" class="flex items-center gap-2 rounded-tag border border-line px-3 py-2">
+        <li v-for="tech in STACK" :key="tech.label" class="flex items-center gap-2 rounded-tag border border-line px-3 py-2">
           <Icon :name="tech.icon" />
           {{ tech.label }}
         </li>
@@ -24,7 +24,7 @@
 </template>
 
 <script setup lang="ts">
-const stack = [
+const STACK = [
   { label: 'Nuxt 4', icon: 'simple-icons:nuxt' },
   { label: 'Vue 3', icon: 'simple-icons:vuedotjs' },
   { label: 'TypeScript', icon: 'simple-icons:typescript' },

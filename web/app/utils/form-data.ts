@@ -1,72 +1,23 @@
-export function objectToFormData(
-    obj: any,
-    form?: FormData,
-    namespace?: string
-): FormData {
-    const fd = form || new FormData()
-    let formKey: string
+function appendValue(formData: FormData, key: string, value: unknown) {
+  if (value === null || value === undefined) return
 
-    for (const property in obj) {
-        if (!Object.prototype.hasOwnProperty.call(obj, property)) continue
-
-        if (namespace) {
-            formKey = namespace + '[' + property + ']'
-        } else {
-            formKey = property
-        }
-
-        // if the property is an object, but not a File, use recursivity.
-        if (
-            typeof obj[property] === 'object' &&
-            !(obj[property] instanceof File) &&
-            !(obj[property] instanceof Blob) &&
-            !(obj[property] instanceof Date) &&
-            obj[property] !== null
-        ) {
-            objectToFormData(obj[property], fd, formKey)
-        } else {
-            if (obj[property] !== undefined && obj[property] !== null) {
-                if (obj[property] instanceof Date) {
-                    fd.append(formKey, obj[property].toISOString())
-                } else {
-                    fd.append(formKey, obj[property])
-                }
-            }
-        }
-    }
-
-    return fd
+  if (value instanceof Blob) {
+    formData.append(key, value)
+  } else if (value instanceof Date) {
+    formData.append(key, value.toISOString())
+  } else if (Array.isArray(value)) {
+    value.forEach((item, index) => appendValue(formData, `${key}[${index}]`, item))
+  } else if (typeof value === 'object') {
+    Object.entries(value).forEach(([childKey, child]) => appendValue(formData, key ? `${key}.${childKey}` : childKey, child))
+  } else {
+    formData.append(key, String(value))
+  }
 }
 
-export function serializeToFormData(body: any): FormData {
-    const formData = new FormData()
-
-    const append = (data: any, parentKey: string) => {
-        if (data === null || data === undefined) return
-
-        if (data instanceof Blob || data instanceof File) {
-            formData.append(parentKey, data)
-        } else if (data instanceof Date) {
-            formData.append(parentKey, data.toISOString())
-        } else if (Array.isArray(data)) {
-            data.forEach((item, index) => {
-                append(item, `${parentKey}[${index}]`)
-            })
-        } else if (typeof data === 'object' && data !== null) {
-            Object.keys(data).forEach(key => {
-                const fullKey = parentKey ? `${parentKey}.${key}` : key
-                append(data[key], fullKey)
-            })
-        } else {
-            formData.append(parentKey, String(data))
-        }
-    }
-
-    if (typeof body === 'object' && body !== null && !Array.isArray(body)) {
-        Object.keys(body).forEach(key => {
-            append(body[key], key)
-        })
-    }
-
-    return formData
+export function serializeToFormData(body: unknown): FormData {
+  const formData = new FormData()
+  if (typeof body === 'object' && body !== null && !Array.isArray(body)) {
+    Object.entries(body).forEach(([key, value]) => appendValue(formData, key, value))
+  }
+  return formData
 }

@@ -1,6 +1,6 @@
 namespace Work_Experience_Search.Requests;
 
-public record CreateCompany
+public sealed record CreateCompany
 {
     public required string Name { get; init; }
     public required string Description { get; init; }

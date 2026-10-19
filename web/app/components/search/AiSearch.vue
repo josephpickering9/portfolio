@@ -7,106 +7,77 @@
     <AiSearchHeader :compact="compact" />
     <AiSearchInput v-model="query" @submit="ask" />
     <AiSuggestedPrompts :prompts="prompts" @select="ask" @shuffle="shufflePrompts" />
-    <AiSearchResult
-      v-if="askedQuestion"
-      :question="askedQuestion"
-      :thinking="thinking"
-      :error="failed"
-      :answer="answer"
-      :citations="citations"
-      :citations-loading="aiStore.citedProjectsLoading ?? false"
-      @reset="reset"
-      @retry="ask(askedQuestion)"
-    />
+    <AiSearchResult v-if="askedQuestion" :result="result" @reset="reset" @retry="ask(askedQuestion)" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { sampleSize } from 'lodash-es'
 import { useRoute, useRouter } from 'vue-router'
-import { useAiStore } from '~/store/AiStore'
-import { aiPrompts, SUGGESTED_PROMPT_COUNT } from '~/data/AiPrompts'
-import type { AiPrompt } from '~/data/AiPrompts'
-import { uniqueBy } from '~/utils/markdown-helper'
+import { useAiSearchStore } from '~/store/AiSearchStore'
+import { useSuggestedPrompts } from '~/composables/useSuggestedPrompts'
 import { useViewTransition } from '~/composables/useViewTransition'
+import type { AiAnswer } from '~/types/AiAnswer'
 import AiSearchHeader from './AiSearchHeader.vue'
 import AiSearchInput from './AiSearchInput.vue'
 import AiSuggestedPrompts from './AiSuggestedPrompts.vue'
 import AiSearchResult from './AiSearchResult.vue'
 
+const PROMPTS_STATE_KEY = 'search-prompts'
+const QUESTION_QUERY_KEY = 'q'
+
 const route = useRoute()
 const router = useRouter()
-const aiStore = useAiStore()
+const aiSearchStore = useAiSearchStore()
 const { withViewTransition } = useViewTransition()
-
-const query = ref('')
-const prompts = ref<AiPrompt[]>([])
-const askedQuestion = ref('')
-const thinking = ref(false)
-const failed = ref(false)
-const answer = ref('')
-let requestId = 0
+const { prompts, shufflePrompts } = useSuggestedPrompts(PROMPTS_STATE_KEY)
 
 const initialQuestion = readInitialQuestion()
-const openedWithQuestion = ref(initialQuestion !== '')
-const compact = computed(() => openedWithQuestion.value || askedQuestion.value !== '')
 
-const citations = computed(() => uniqueBy(aiStore.citedProjects, (project) => project.slug))
+const query = ref('')
+const askedQuestion = ref('')
+const openedWithQuestion = ref(initialQuestion !== '')
+
+const compact = computed(() => openedWithQuestion.value || askedQuestion.value !== '')
+const result = computed<AiAnswer>(() => ({
+  question: askedQuestion.value,
+  thinking: aiSearchStore.queryPending,
+  failed: Boolean(aiSearchStore.queryError),
+  answer: aiSearchStore.answer,
+  citations: aiSearchStore.citedProjects,
+  citationsLoading: aiSearchStore.citedProjectsLoading,
+}))
 
 function readInitialQuestion(): string {
-  const value = route.query['q']
+  const value = route.query[QUESTION_QUERY_KEY]
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function shufflePrompts() {
-  prompts.value = sampleSize(aiPrompts, SUGGESTED_PROMPT_COUNT)
-}
-
 async function ask(question: string) {
-  const id = ++requestId
   const start = () => {
     query.value = question
     askedQuestion.value = question
-    thinking.value = true
-    failed.value = false
-    answer.value = ''
+    aiSearchStore.reset()
   }
   if (compact.value) start()
   else await withViewTransition(start)
-  aiStore.getCitedProjects([])
-  router.replace({ query: { q: question } })
 
-  const result = await aiStore.query(question)
-  if (id !== requestId) return
-
-  thinking.value = false
-  if (aiStore.queryForm.error || !result) {
-    failed.value = true
-    return
-  }
-
-  answer.value = result.answer ?? ''
-  aiStore.getCitedProjects(result.citations ?? [])
+  await router.replace({ query: { [QUESTION_QUERY_KEY]: question } })
+  await aiSearchStore.query(question)
 }
 
 async function reset() {
-  requestId++
   await withViewTransition(() => {
     openedWithQuestion.value = false
     query.value = ''
     askedQuestion.value = ''
-    thinking.value = false
-    failed.value = false
-    answer.value = ''
+    aiSearchStore.reset()
   })
-  aiStore.getCitedProjects([])
   shufflePrompts()
-  router.replace({ query: {} })
+  await router.replace({ query: {} })
 }
 
 onMounted(() => {
-  shufflePrompts()
   if (initialQuestion) ask(initialQuestion)
 })
 </script>

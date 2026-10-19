@@ -8,7 +8,7 @@
       <div class="flex items-center gap-3.5">
         <NuxtImg
           src="/profile.png"
-          alt="Joseph Pickering"
+          :alt="SITE_NAME"
           format="webp"
           width="104"
           height="104"
@@ -30,17 +30,16 @@
       <HeroAiPrompt />
 
       <div class="flex flex-wrap gap-5.5 text-sm text-muted">
-        <a :href="linkedInUrl" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.75">
-          <Icon name="mdi:linkedin" />
-          LinkedIn
-        </a>
-        <a :href="GITHUB_URL" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.75">
-          <Icon name="mdi:github" />
-          GitHub
-        </a>
-        <a :href="`mailto:${EMAIL}`" class="flex items-center gap-1.75">
-          <Icon name="heroicons:envelope" />
-          Email me
+        <a
+          v-for="link in contactLinks"
+          :key="link.label"
+          :href="link.href"
+          :target="link.external ? '_blank' : undefined"
+          :rel="link.external ? 'noopener noreferrer' : undefined"
+          class="flex items-center gap-1.75"
+        >
+          <Icon :name="link.icon" />
+          {{ link.label }}
         </a>
       </div>
     </div>
@@ -48,14 +47,13 @@
 </template>
 
 <script setup lang="ts">
-import useLinkedInUrl from '~/composables/useLinkedInUrl'
-import { EMAIL, GITHUB_URL } from '~/data/NavItems'
+import { useContactLinks } from '~/composables/useContactLinks'
+import { CAREER_START } from '~/data/NavItems'
+import { wholeYearsSince } from '~/utils/date-helper'
+import { SITE_NAME } from '~/utils/meta-helper'
 import HeroAiPrompt from '~/components/home/HeroAiPrompt.vue'
 
-const CAREER_START = new Date(2016, 6)
+const contactLinks = useContactLinks()
 
-const linkedInUrl = useLinkedInUrl()
-const now = new Date()
-const hasReachedAnniversary = now.getMonth() >= CAREER_START.getMonth()
-const yearsExperience = now.getFullYear() - CAREER_START.getFullYear() - (hasReachedAnniversary ? 0 : 1)
+const yearsExperience = wholeYearsSince(CAREER_START)
 </script>

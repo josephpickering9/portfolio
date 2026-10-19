@@ -1,24 +1,25 @@
-using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
+using ProjectRepositoryEntity = Work_Experience_Search.Models.ProjectRepository;
 
 namespace Work_Experience_Search.Repositories;
 
-public class ProjectCodeRepository(Database context) : IProjectCodeRepository
+public sealed class ProjectCodeRepository(Database context, CacheInvalidator cacheInvalidator) : IProjectCodeRepository
 {
-    public async Task AddAsync(Models.ProjectRepository repository, CancellationToken cancellationToken = default)
+    public async Task AddAsync(ProjectRepositoryEntity repository, CancellationToken cancellationToken = default)
     {
         context.ProjectRepository.Add(repository);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
-    public async Task RemoveAsync(Models.ProjectRepository repository, CancellationToken cancellationToken = default)
+    public async Task RemoveAsync(ProjectRepositoryEntity repository, CancellationToken cancellationToken = default)
     {
         context.ProjectRepository.Remove(repository);
-        await context.SaveChangesAsync(cancellationToken);
+        await SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         await context.SaveChangesAsync(cancellationToken);
+        cacheInvalidator.InvalidateProjects();
     }
 }

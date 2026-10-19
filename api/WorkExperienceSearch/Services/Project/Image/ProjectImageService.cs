@@ -1,177 +1,143 @@
-using Work_Experience_Search.Requests;
+using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Models;
+using Work_Experience_Search.Repositories;
+using Work_Experience_Search.Requests;
 using Work_Experience_Search.Services.Image;
 using Work_Experience_Search.Types;
-using Work_Experience_Search.Utils;
-
-using Work_Experience_Search.Repositories;
 
 namespace Work_Experience_Search.Services;
 
-public class ProjectImageService(IProjectRepository projectRepository, IProjectImageRepository projectImageRepository, IFileService fileService, IImageService imageService, ILogger<ProjectImageService> logger) : IProjectImageService
+public sealed class ProjectImageService(
+    IProjectImageRepository projectImageRepository,
+    IFileService fileService,
+    IImageService imageService,
+    ILogger<ProjectImageService> logger) : IProjectImageService
 {
-    public async Task<Result<IEnumerable<ProjectImage>>> GetProjectImagesAsync(ProjectId projectId)
-    {
-        var project = await projectRepository.GetAsync(projectId);
-        if (project == null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when listing images.", projectId);
-            return new NotFoundFailure<IEnumerable<ProjectImage>>("Project not found.");
-        }
+    private static readonly IReadOnlySet<ImageType> SingleInstanceImageTypes =
+        new HashSet<ImageType> { ImageType.Logo, ImageType.Banner, ImageType.Card };
 
-        return new Success<IEnumerable<ProjectImage>>(project.Images);
-    }
-
-    public async Task<Result<ProjectImage>> GetProjectImageAsync(ProjectId projectId, ProjectImageId id)
-    {
-        var project = await projectRepository.GetAsync(projectId);
-        if (project == null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when fetching image {ProjectImageId}.", projectId, id);
-            return new NotFoundFailure<ProjectImage>("Project not found.");
-        }
-
-        var image = project.Images.SingleOrDefault(i => i.Id == id);
-        if (image == null)
-        {
-            logger.LogWarning("Image {ProjectImageId} not found on project {ProjectId}.", id, projectId);
-            return new NotFoundFailure<ProjectImage>("Image not found.");
-        }
-
-        return new Success<ProjectImage>(image);
-    }
-
-    public async Task<Result<List<ProjectImage>>> SyncProjectImagesAsync(ProjectId projectId, List<CreateProjectImage> images)
-    {
-        var project = await projectRepository.GetAsync(projectId);
-        if (project == null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when syncing images.", projectId);
-            return new NotFoundFailure<List<ProjectImage>>("Project not found.");
-        }
-
-        return await SyncProjectImagesAsync(project, images);
-    }
-
-    public async Task<Result<List<ProjectImage>>> SyncProjectImagesAsync(Project project, List<CreateProjectImage> images)
+    public async Task<Result<IReadOnlyList<ProjectImage>>> SyncProjectImagesAsync(Project project, IReadOnlyList<CreateProjectImage> images, CancellationToken cancellationToken = default)
     {
         var imageIds = images.Select(i => i.Id).ToList();
         var imagesToDelete = project.Images.Where(i => !imageIds.Contains(i.Id)).ToList();
-        var imagesToCreate = images.Where(i => i.Id == null).ToList();
+        var imagesToCreate = images.Where(i => i.Id is null).ToList();
         var imagesToSave = project.Images.Where(i => images.Any(x => x.Id == i.Id)).ToList();
 
         foreach (var image in imagesToDelete)
         {
-            await projectImageRepository.RemoveAsync(image);
+            await projectImageRepository.RemoveAsync(image, cancellationToken);
             fileService.DeleteFile(image.Image);
         }
 
-        var singleTypes = new List<ImageType> { ImageType.Logo, ImageType.Banner, ImageType.Card };
         foreach (var image in imagesToCreate)
         {
-            if (singleTypes.Contains(image.Type))
+            if (SingleInstanceImageTypes.Contains(image.Type))
             {
                 var existingImage = project.Images.SingleOrDefault(i => i.Type == image.Type);
-                if (existingImage != null)
+                if (existingImage is not null)
                 {
                     fileService.DeleteFile(existingImage.Image);
-                    await projectImageRepository.RemoveAsync(existingImage);
+                    await projectImageRepository.RemoveAsync(existingImage, cancellationToken);
                 }
             }
 
-            var imagePath = await SaveImage(image.Image);
-            if (imagePath.Data == null || !imagePath.IsSuccess)
+            var savedImage = await SaveUploadedImageAsync(image.Image, cancellationToken);
+            if (!savedImage.IsSuccess)
             {
-                logger.LogWarning("Failed to save image for project {ProjectId}: {Reason}", project.Id, imagePath.Error?.Message);
-                return new BadRequestFailure<List<ProjectImage>>(imagePath.Error?.Message ?? "Failed to save image");
+                logger.LogWarning("Failed to save image for project {ProjectId}: {ErrorCode}", project.Id, savedImage.Error);
+                return savedImage.Error!.ToFail();
             }
 
-            var projectImage = new ProjectImage
-            {
-                Image = imagePath.Data.FileName,
-                Type = image.Type,
-                Project = project,
-                IsOptimised = imagePath.Data.IsOptimsed
-            };
-
-            await projectImageRepository.AddAsync(projectImage);
-
+            var projectImage = CreateProjectImage(project, image, savedImage.Value!);
+            await projectImageRepository.AddAsync(projectImage, cancellationToken);
             imagesToSave.Add(projectImage);
         }
 
         foreach (var image in imagesToSave)
         {
-            var newImage = images.SingleOrDefault(i => i.Id == image.Id);
-            if (newImage?.Order != null) image.Order = newImage.Order;
+            var request = images.SingleOrDefault(i => i.Id == image.Id);
+            if (request?.Order is not null) image.Order = request.Order;
         }
 
-        if (imagesToCreate.Count > 0 || imagesToDelete.Count > 0 || imagesToSave.Count > 0) await projectImageRepository.SaveChangesAsync();
+        if (imagesToCreate.Count > 0 || imagesToDelete.Count > 0 || imagesToSave.Count > 0)
+            await projectImageRepository.SaveChangesAsync(cancellationToken);
 
-        return new Success<List<ProjectImage>>(imagesToSave);
+        return Result<IReadOnlyList<ProjectImage>>.Ok(imagesToSave);
     }
 
-    public async Task<Result<bool>> OptimiseImagesAsync()
+    public async Task<Result> OptimiseImagesAsync(CancellationToken cancellationToken = default)
     {
-        var images = await projectImageRepository.GetUnoptimisedImagesAsync();
+        var images = await projectImageRepository.GetUnoptimisedImagesTrackedAsync(cancellationToken);
         foreach (var image in images)
         {
-            var file = imageService.GetImage(image.Image);
-            if (file.Data == null || !file.IsSuccess) continue;
+            var file = await imageService.GetImageAsync(image.Image, cancellationToken);
+            if (!file.IsSuccess)
+            {
+                logger.LogWarning("Skipping optimisation of image {ProjectImageId}: {ErrorCode}", image.Id, file.Error);
+                continue;
+            }
 
-            var optimisedImage = await SaveImage(file.Data.File, image.Image);
-            if (optimisedImage.Data == null || !optimisedImage.IsSuccess) continue;
+            var optimisedImage = await SaveImageBytesAsync(file.Value!.File, image.Image, cancellationToken);
+            if (!optimisedImage.IsSuccess)
+            {
+                logger.LogWarning("Skipping optimisation of image {ProjectImageId}: {ErrorCode}", image.Id, optimisedImage.Error);
+                continue;
+            }
 
-            image.Image = optimisedImage.Data.FileName;
+            image.Image = optimisedImage.Value!.FileName;
             image.IsOptimised = true;
 
-            await projectImageRepository.UpdateAsync(image);
+            await projectImageRepository.UpdateAsync(image, cancellationToken);
 
-            fileService.DeleteFile(file.Data.FileName);
+            fileService.DeleteFile(file.Value.FileName);
         }
 
-        return new Success<bool>(true);
+        return Result.Ok();
     }
 
-    private async Task<Result<ImageSaveData>> SaveImage(byte[] file, string fileName = "image.png")
-    {
-        var optimisedImage = await imageService.OptimiseImageAsync(file);
-        var formFile = optimisedImage is { Data: not null, IsSuccess: true } ? FileExtensions.ByteArrayToFile(optimisedImage.Data, fileName, FileExtensions.GetContentType(fileName)) : null;
-        var imageFile = await fileService.SaveFileAsync(formFile);
-        var imagePath = Path.GetFileName(imageFile.Data);
-        if (!imageFile.IsSuccess || imagePath == null) return new BadRequestFailure<ImageSaveData>("Image path is null or empty");
-
-        var imageSaveData = new ImageSaveData
+    private static ProjectImage CreateProjectImage(Project project, CreateProjectImage request, ImageSaveData savedImage) =>
+        new()
         {
-            File = file,
-            FileName = imagePath,
-            IsOptimsed = optimisedImage.IsSuccess
+            Image = savedImage.FileName,
+            Type = request.Type,
+            Project = project,
+            IsOptimised = savedImage.IsOptimised
         };
 
-        return new Success<ImageSaveData>(imageSaveData);
+    private async Task<Result<ImageSaveData>> SaveImageBytesAsync(byte[] file, string fileName, CancellationToken cancellationToken)
+    {
+        var optimisedImage = await imageService.OptimiseImageAsync(file, cancellationToken);
+        var formFile = optimisedImage is { IsSuccess: true, Value: { } optimised }
+            ? optimised.ToFormFile(fileName, FileExtensions.GetContentType(fileName))
+            : null;
+
+        var savedFileName = await SaveFileAsync(formFile, cancellationToken);
+        if (!savedFileName.IsSuccess) return savedFileName.Error!.ToFail();
+
+        return new ImageSaveData(savedFileName.Value!, optimisedImage.IsSuccess).ToOk();
     }
 
-    private async Task<Result<ImageSaveData>> SaveImage(IFormFile? file)
+    private async Task<Result<ImageSaveData>> SaveUploadedImageAsync(IFormFile? file, CancellationToken cancellationToken)
     {
-        var optimisedImage = await imageService.OptimiseImageAsync(await FileExtensions.FileToByteArray(file));
-        var formFile = optimisedImage is { Data: not null, IsSuccess: true } ? FileExtensions.ByteArrayToFile(optimisedImage.Data, file?.FileName ?? "image.png", file?.ContentType ?? "application/octet-stream") : file;
-        var imageFile = await fileService.SaveFileAsync(formFile);
-        var imagePath = Path.GetFileName(imageFile.Data);
-        if (!imageFile.IsSuccess || imagePath == null) return new BadRequestFailure<ImageSaveData>("Image path is null or empty");
+        var optimisedImage = await imageService.OptimiseImageAsync(await file.ReadAllBytesAsync(cancellationToken), cancellationToken);
+        var formFile = optimisedImage is { IsSuccess: true, Value: { } optimised }
+            ? optimised.ToFormFile(file?.FileName ?? FileExtensions.DefaultFileName, file?.ContentType ?? FileExtensions.DefaultContentType)
+            : file;
 
-        var imageSaveData = new ImageSaveData
-        {
-            File = await FileExtensions.FileToByteArray(formFile),
-            FileName = imagePath,
-            IsOptimsed = optimisedImage.IsSuccess
-        };
+        var savedFileName = await SaveFileAsync(formFile, cancellationToken);
+        if (!savedFileName.IsSuccess) return savedFileName.Error!.ToFail();
 
-        return new Success<ImageSaveData>(imageSaveData);
+        return new ImageSaveData(savedFileName.Value!, optimisedImage.IsSuccess).ToOk();
+    }
+
+    private async Task<Result<string>> SaveFileAsync(IFormFile? formFile, CancellationToken cancellationToken)
+    {
+        var savedFile = await fileService.SaveFileAsync(formFile, cancellationToken);
+        if (!savedFile.IsSuccess) return savedFile.Error!.ToFail();
+
+        var fileName = Path.GetFileName(savedFile.Value);
+        return string.IsNullOrEmpty(fileName) ? ErrorCodes.FileUploadFailed.ToFail() : fileName.ToOk();
     }
 }
 
-public class ImageSaveData
-{
-    public required byte[] File { get; init; }
-    public required string FileName { get; init; }
-    public bool IsOptimsed { get; init; }
-}
+public sealed record ImageSaveData(string FileName, bool IsOptimised);

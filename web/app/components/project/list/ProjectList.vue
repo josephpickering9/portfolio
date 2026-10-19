@@ -3,14 +3,7 @@
     <div class="flex flex-wrap items-end justify-between gap-6">
       <PageHeader eyebrow="Projects" title="All projects" lede="All of the projects that I've been involved in" />
       <ClientOnly>
-        <NuxtLink
-          v-if="isAuthenticated"
-          to="/projects/new"
-          class="flex items-center gap-2 rounded-full bg-accent px-4 py-2.25 text-sm font-medium text-accent-ink hover:text-accent-ink"
-        >
-          <Icon name="heroicons:plus" />
-          New project
-        </NuxtLink>
+        <FormButton v-if="isAuthenticated" href="/projects/new" label="New project" icon="heroicons:plus" />
       </ClientOnly>
     </div>
 
@@ -24,18 +17,13 @@
 
     <h2 class="sr-only">Project list</h2>
 
-    <LoadError v-if="projectStore.projectsError && !projectStore.projectsLoading" @retry="load" />
+    <LoadError v-if="projectStore.projectsError && !projectStore.projectsLoading" @retry="projectStore.getProjects()" />
 
-    <div v-else-if="loading" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-8">
+    <div v-else-if="projectStore.projectsPending" class="grid grid-cols-[repeat(auto-fill,minmax(min(100%,340px),1fr))] gap-8">
       <Skeleton v-for="n in SKELETON_COUNT" :key="n" :type="LoadingType.CARD" />
     </div>
 
-    <div v-else-if="filteredProjects.length === 0" class="flex flex-col items-start gap-3 py-12">
-      <span class="font-display text-[32px]">No projects match.</span>
-      <button type="button" class="rounded-full border border-line px-4 py-2.25 text-sm text-text" @click="clearFilters">
-        Clear filters
-      </button>
-    </div>
+    <EmptyResults v-else-if="filteredProjects.length === 0" message="No projects match." @clear="clearFilters" />
 
     <div
       v-else-if="viewMode === ViewMode.CARD"
@@ -55,17 +43,18 @@
 import { computed } from 'vue'
 import { useProjectStore } from '~/store/ProjectStore'
 import { usePreferencesStore } from '~/store/PreferencesStore'
-import useProjectsData from '~/composables/useProjectsData'
 import { LoadingType } from '~/types/LoadingType'
 import { ViewMode } from '~/types/ViewMode'
 import useAuth from '~/composables/useAuth'
 import { useProjectFilters } from '~/composables/useProjectFilters'
 import PageHeader from '~/components/ui/layout/PageHeader.vue'
+import FormButton from '~/components/ui/form/FormButton.vue'
 import ViewToggle from '~/components/ui/button/ViewToggle.vue'
 import SearchField from '~/components/ui/input/SearchField.vue'
 import TagTypeFilterList from '~/components/tag/filter/TagTypeFilterList.vue'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 import LoadError from '~/components/feedback/LoadError.vue'
+import EmptyResults from '~/components/feedback/EmptyResults.vue'
 import ProjectListItem from './ProjectListItem.vue'
 import ProjectListRow from './ProjectListRow.vue'
 
@@ -74,19 +63,10 @@ const SKELETON_COUNT = 6
 const projectStore = useProjectStore()
 const preferencesStore = usePreferencesStore()
 const { isAuthenticated } = useAuth()
-
 const { search, type, filteredProjects, availableTypes, clearFilters } = useProjectFilters(() => projectStore.projects)
 
 const viewMode = computed({
   get: () => preferencesStore.projectsViewMode,
   set: (value: ViewMode) => preferencesStore.setProjectsViewMode(value),
 })
-
-const loading = computed(() => projectStore.projectsLoading || (!projectStore.projectsForm.data && !projectStore.projectsError))
-
-function load() {
-  projectStore.getProjects()
-}
-
-useProjectsData()
 </script>

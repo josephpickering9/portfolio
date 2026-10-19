@@ -1,22 +1,29 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { gotoHydrated } from './support/navigation'
 
-const SKELETON_CLASS = 'skeleton-pulse'
+const SKELETON = 'data-testid="skeleton"'
 const HYDRATION_WARNING = /hydration/i
-const PROJECT_LINK = /href="\/projects\/(?!new")([^"/]+)"/
+const PROJECT_CARD_SLUG = /<a[^>]*href="\/projects\/([^"/?]+)"[^>]*data-testid="project-card"/
+
+const SSR_PAGES: Array<{ path: string; content: string }> = [
+  { path: '/', content: 'data-testid="project-card"' },
+  { path: '/projects', content: 'data-testid="project-card"' },
+  { path: '/companies', content: 'data-testid="company-timeline-item"' },
+  { path: '/technologies', content: 'data-testid="tag-tile"' },
+]
 
 async function firstProjectSlug(request: APIRequestContext): Promise<string | undefined> {
   const html = await (await request.get('/projects')).text()
-  return html.match(PROJECT_LINK)?.[1]
+  return html.match(PROJECT_CARD_SLUG)?.[1]
 }
 
 test.describe('Server rendering', () => {
-  for (const path of ['/', '/projects', '/companies']) {
+  for (const { path, content } of SSR_PAGES) {
     test(`renders ${path} with its data instead of skeletons`, async ({ request }) => {
       const html = await (await request.get(path)).text()
 
-      expect(html).not.toContain(SKELETON_CLASS)
-      expect(html).toMatch(PROJECT_LINK)
+      expect(html).not.toContain(SKELETON)
+      expect(html).toContain(content)
     })
   }
 
@@ -28,20 +35,21 @@ test.describe('Server rendering', () => {
     const html = await response.text()
 
     expect(response.status()).toBe(200)
-    expect(html).not.toContain(SKELETON_CLASS)
+    expect(html).not.toContain(SKELETON)
     const title = html.match(/<title>([^<]+)<\/title>/)?.[1]
     expect(title).toMatch(/^.+ \| Joseph Pickering$/)
     expect(html).toContain(`<meta property="og:title" content="${title}"`)
   })
 
-  test('renders the hero prompt suggestions on the server', async ({ browser }) => {
+  test('renders the suggested prompts on the server', async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false })
     const page = await context.newPage()
 
     await page.goto('/')
+    expect(await page.getByTestId('hero-suggested-prompt').count()).toBeGreaterThan(1)
 
-    const suggestions = page.getByRole('group', { name: 'Suggested questions' }).getByRole('button')
-    expect(await suggestions.count()).toBeGreaterThan(1)
+    await page.goto('/search')
+    expect(await page.getByTestId('suggested-prompt').count()).toBeGreaterThan(1)
     await context.close()
   })
 
@@ -53,7 +61,7 @@ test.describe('Server rendering', () => {
 
   test('hydrates public pages without mismatches', async ({ page, request }) => {
     const slug = await firstProjectSlug(request)
-    const paths = ['/', '/projects', '/companies', ...(slug ? [`/projects/${slug}`] : [])]
+    const paths = ['/', '/projects', '/companies', '/technologies', '/search', ...(slug ? [`/projects/${slug}`] : [])]
     const warnings: string[] = []
     page.on('console', (message) => {
       if (HYDRATION_WARNING.test(message.text())) warnings.push(`${page.url()}: ${message.text()}`)

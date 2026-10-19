@@ -2,8 +2,8 @@
   <div class="mx-auto flex w-full max-w-300 flex-col gap-7 px-7 pt-10 pb-30">
     <div class="flex flex-wrap items-end justify-between gap-5">
       <div class="flex min-w-0 flex-col gap-2.5">
-        <span class="eyebrow text-accent">{{ eyebrow }}</span>
-        <h1 class="m-0 font-display text-[clamp(40px,5vw,60px)] leading-none font-normal tracking-[-0.02em]">{{ title }}</h1>
+        <span class="eyebrow text-accent">{{ copy.eyebrow }}</span>
+        <h1 class="m-0 font-display text-[clamp(40px,5vw,60px)] leading-none font-normal tracking-[-0.02em]">{{ copy.title }}</h1>
       </div>
       <div class="flex flex-wrap items-center gap-2.5">
         <FormButton
@@ -12,38 +12,38 @@
           variant="danger"
           icon="heroicons:trash"
           :disabled="loading"
+          data-testid="form-delete"
           @click="confirmOpen = true"
         />
-        <FormButton :label="saveLabel" :loading="saving" :disabled="loading" @click="emit('save')" />
+        <FormButton :label="copy.saveLabel" :loading="saving" :disabled="loading" data-testid="form-save" @click="emit('save')" />
       </div>
     </div>
 
     <slot />
 
-    <ConfirmDialog v-model:open="confirmOpen" :title="deleteTitle" :loading="saving" @confirm="confirmDelete" />
+    <ConfirmDialog v-model:open="confirmOpen" :title="copy.deleteTitle" :loading="deleting" @confirm="confirmDelete" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { EntityFormCopy } from '~/utils/entity-form-helper'
 import FormButton from '~/components/ui/form/FormButton.vue'
 import ConfirmDialog from '~/components/ui/layout/ConfirmDialog.vue'
 
 interface Props {
-  eyebrow: string
-  title: string
-  saveLabel: string
-  deleteTitle?: string
+  copy: EntityFormCopy
   showDelete?: boolean
   loading?: boolean
   saving?: boolean
+  deleting?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
-  deleteTitle: 'Delete this?',
   showDelete: false,
   loading: false,
   saving: false,
+  deleting: false,
 })
 
 const emit = defineEmits<{ (e: 'save' | 'delete'): void }>()

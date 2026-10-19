@@ -6,6 +6,7 @@ test.describe('Public navigation', () => {
     { path: '/projects', heading: 'Projects' },
     { path: '/companies', heading: 'Companies' },
     { path: '/technologies', heading: 'Technologies' },
+    { path: '/search', heading: 'AI Search' },
   ]
 
   for (const { path, heading } of publicPages) {
@@ -22,6 +23,13 @@ test.describe('Public navigation', () => {
       expect(consoleErrors, `console errors on ${path}: ${consoleErrors.join('; ')}`).toEqual([])
     })
   }
+
+  test('shows the sign-in page', async ({ page }) => {
+    await page.goto('/auth/login')
+
+    await expect(page.getByTestId('login-button')).toBeVisible()
+    await expect(page).toHaveTitle(/Sign in/)
+  })
 
   test('redirects an unauthenticated visitor away from a protected route', async ({ page }) => {
     await page.goto('/projects/new')
