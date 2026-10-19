@@ -35,7 +35,4 @@ public static class ResultFactory
     public static Result<T> ToOk<T>(this T value) => Result<T>.Ok(value);
 
     public static ResultFailure ToFail(this string errorCode) => new(errorCode);
-
-    public static Result<T> ToResultOrFail<T>(this T? value, string errorCode) where T : class =>
-        value is null ? Result<T>.Fail(errorCode) : Result<T>.Ok(value);
 }

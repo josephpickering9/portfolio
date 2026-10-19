@@ -10,9 +10,6 @@ public static class ErrorStatusCodes
             or ErrorCodes.ProjectNotFound
             or ErrorCodes.CompanyNotFound
             or ErrorCodes.TagNotFound
-            or ErrorCodes.ProjectImageNotFound
-            or ErrorCodes.ProjectRepositoryNotFound
-            or ErrorCodes.ProjectStatNotFound
             or ErrorCodes.FileNotFound => StatusCodes.Status404NotFound,
 
         ErrorCodes.Conflict

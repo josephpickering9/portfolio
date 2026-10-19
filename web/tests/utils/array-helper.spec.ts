@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { notEmpty, removeAt, replaceAt, typedEntries } from '~/utils/array-helper'
-
-describe('notEmpty', () => {
-  it('filters out null and undefined but keeps falsy values', () => {
-    expect([0, null, '', undefined, false].filter(notEmpty)).toEqual([0, '', false])
-  })
-})
+import { removeAt, replaceAt, typedEntries } from '~/utils/array-helper'
 
 describe('replaceAt', () => {
   it('replaces the item at the index without mutating the input', () => {

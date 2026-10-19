@@ -15,7 +15,7 @@ public sealed class ProjectController(IProjectService projectService) : Controll
 public sealed class ProjectService(IProjectRepository projectRepository, ITagService tagService) : IProjectService
 ```
 
-**`Result<T>` pattern, not exceptions, for expected failures.** `Types/Result.cs` defines a sealed `Result<T>` whose `Error` is an error code from `Types/ErrorCodes.cs`. Write `value.ToOk()` for success, `ErrorCodes.X.ToFail()` for failure (converts implicitly to any `Result<T>`), and `value.ToResultOrFail(ErrorCodes.X)` for a nullable lookup. Use `Result<IReadOnlyList<X>>.Ok(list)` when the value's static type isn't exactly `T` (e.g. a `List<X>`). Controllers call `.ToResponse()` (or `.ToFileResponse()`) from `Extensions/ResultExtensions.cs` and never branch on errors themselves:
+**`Result<T>` pattern, not exceptions, for expected failures.** `Types/Result.cs` defines a sealed `Result<T>` whose `Error` is an error code from `Types/ErrorCodes.cs`. Write `value.ToOk()` for success and `ErrorCodes.X.ToFail()` for failure (converts implicitly to any `Result<T>`). Use `Result<IReadOnlyList<X>>.Ok(list)` when the value's static type isn't exactly `T` (e.g. a `List<X>`). Controllers call `.ToResponse()` (or `.ToFileResponse()`) from `Extensions/ResultExtensions.cs` and never branch on errors themselves:
 ```csharp
 // Service
 public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default)

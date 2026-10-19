@@ -1,7 +1,3 @@
-export function notEmpty<T>(value: T | null | undefined): value is T {
-  return value !== null && value !== undefined
-}
-
 export function replaceAt<T>(items: readonly T[], index: number, item: T): T[] {
   return items.map((existing, itemIndex) => (itemIndex === index ? item : existing))
 }

@@ -5,54 +5,8 @@ using Work_Experience_Search.Types;
 
 namespace Work_Experience_Search.Services;
 
-public sealed class ProjectStatService(
-    IProjectRepository projectRepository,
-    IProjectStatRepository projectStatRepository,
-    ILogger<ProjectStatService> logger) : IProjectStatService
+public sealed class ProjectStatService(IProjectStatRepository projectStatRepository) : IProjectStatService
 {
-    public async Task<Result<IReadOnlyList<ProjectStat>>> GetProjectStatsAsync(ProjectId projectId, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when listing stats.", projectId);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return Result<IReadOnlyList<ProjectStat>>.Ok(project.Stats);
-    }
-
-    public async Task<Result<ProjectStat>> GetProjectStatAsync(ProjectId projectId, ProjectStatId id, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when fetching stat {ProjectStatId}.", projectId, id);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        var stat = project.Stats.SingleOrDefault(i => i.Id == id);
-        if (stat is null)
-        {
-            logger.LogWarning("Stat {ProjectStatId} not found on project {ProjectId}.", id, projectId);
-            return ErrorCodes.ProjectStatNotFound.ToFail();
-        }
-
-        return stat.ToOk();
-    }
-
-    public async Task<Result<IReadOnlyList<ProjectStat>>> SyncProjectStatsAsync(ProjectId projectId, IReadOnlyList<CreateProjectStat> stats, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetTrackedAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when syncing stats.", projectId);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return await SyncProjectStatsAsync(project, stats, cancellationToken);
-    }
-
     public async Task<Result<IReadOnlyList<ProjectStat>>> SyncProjectStatsAsync(Project project, IReadOnlyList<CreateProjectStat> stats, CancellationToken cancellationToken = default)
     {
         var statIds = stats.Select(i => i.Id).ToList();

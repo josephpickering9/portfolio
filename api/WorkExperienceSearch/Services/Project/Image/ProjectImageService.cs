@@ -8,7 +8,6 @@ using Work_Experience_Search.Types;
 namespace Work_Experience_Search.Services;
 
 public sealed class ProjectImageService(
-    IProjectRepository projectRepository,
     IProjectImageRepository projectImageRepository,
     IFileService fileService,
     IImageService imageService,
@@ -16,49 +15,6 @@ public sealed class ProjectImageService(
 {
     private static readonly IReadOnlySet<ImageType> SingleInstanceImageTypes =
         new HashSet<ImageType> { ImageType.Logo, ImageType.Banner, ImageType.Card };
-
-    public async Task<Result<IReadOnlyList<ProjectImage>>> GetProjectImagesAsync(ProjectId projectId, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when listing images.", projectId);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return Result<IReadOnlyList<ProjectImage>>.Ok(project.Images);
-    }
-
-    public async Task<Result<ProjectImage>> GetProjectImageAsync(ProjectId projectId, ProjectImageId id, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when fetching image {ProjectImageId}.", projectId, id);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        var image = project.Images.SingleOrDefault(i => i.Id == id);
-        if (image is null)
-        {
-            logger.LogWarning("Image {ProjectImageId} not found on project {ProjectId}.", id, projectId);
-            return ErrorCodes.ProjectImageNotFound.ToFail();
-        }
-
-        return image.ToOk();
-    }
-
-    public async Task<Result<IReadOnlyList<ProjectImage>>> SyncProjectImagesAsync(ProjectId projectId, IReadOnlyList<CreateProjectImage> images, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetTrackedAsync(projectId, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found when syncing images.", projectId);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return await SyncProjectImagesAsync(project, images, cancellationToken);
-    }
 
     public async Task<Result<IReadOnlyList<ProjectImage>>> SyncProjectImagesAsync(Project project, IReadOnlyList<CreateProjectImage> images, CancellationToken cancellationToken = default)
     {

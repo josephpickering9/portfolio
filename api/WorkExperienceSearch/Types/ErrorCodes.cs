@@ -8,9 +8,6 @@ public static class ErrorCodes
     public const string ProjectNotFound = "project_not_found";
     public const string CompanyNotFound = "company_not_found";
     public const string TagNotFound = "tag_not_found";
-    public const string ProjectImageNotFound = "project_image_not_found";
-    public const string ProjectRepositoryNotFound = "project_repository_not_found";
-    public const string ProjectStatNotFound = "project_stat_not_found";
     public const string FileNotFound = "file_not_found";
 
     public const string Conflict = "conflict";
