@@ -6877,10 +6877,10 @@ nuxt-csurf@^1.6.5:
     defu "^6.1.4"
     uncsrf "^1.2.0"
 
-nuxt-security@^2.6.0:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/nuxt-security/-/nuxt-security-2.6.0.tgz#478ae047b94c60c300e712c560b8b2a264913bca"
-  integrity sha512-5rEfyxw1gS+vl1s5q7GcGuFOL5g0I03Q/mz7Zfr+IRJFsaZKwRxNVMFNRbatfK3Dz65LuRPnLewLmJ+Yh9ujOA==
+nuxt-security@~2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/nuxt-security/-/nuxt-security-2.5.1.tgz#2c151099b04a586ab4f6e667290e1a445ad20db3"
+  integrity sha512-gXUhJiOqgkKkP0FHDAPOuREjoala0p6G/4TIlkti1ZafpJV8TkjjFqCNT6NuiWHxKzVYY00OIR1tbRcZuJ7LmQ==
   dependencies:
     "@nuxt/kit" "^4.2.1"
     basic-auth "^2.0.1"

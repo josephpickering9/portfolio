@@ -12,7 +12,7 @@ Code should be intuitive enough to read without comments. Default to writing no 
 - No `console.log`/`alert` in committed code — ESLint errors on both (`no-console`, `no-alert`).
 
 ## Tech stack
-Nuxt 4 (compatibility v4, `app/` source dir), Vue 3, TypeScript, Tailwind CSS v4 on the design tokens in `app/assets/css/tokens.css` (no component library — custom components live under `app/components/ui/`), Pinia for state, Auth0 (`@auth0/auth0-spa-js`) for auth, `nuxt-security` for headers/CSP, `@vuelidate` for form validation, TipTap for rich text, `@vite-pwa/nuxt` for PWA.
+Node 22 (`.nvmrc`; CI reads it, and the droplet runs it via nvm), Nuxt 4 (compatibility v4, `app/` source dir), Vue 3, TypeScript, Tailwind CSS v4 on the design tokens in `app/assets/css/tokens.css` (no component library — custom components live under `app/components/ui/`), Pinia for state, Auth0 (`@auth0/auth0-spa-js`) for auth, `nuxt-security` for headers/CSP, `@vuelidate` for form validation, TipTap for rich text, `@vite-pwa/nuxt` for PWA.
 
 ## API client — never hand-edit
 `api/`, `api/client/`, `api/core/` are generated from the backend's Swagger spec via `@hey-api/openapi-ts` (`openapi-ts.config.ts`). Regenerate with `yarn codegen` (backend must be running locally at `http://localhost:5105`, see the repo root `CLAUDE.md`). These files are overwritten on every run — never edit them by hand, and don't add business logic there.
