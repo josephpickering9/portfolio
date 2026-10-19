@@ -13,6 +13,7 @@ public interface ITagRepository
     Task<IReadOnlyList<Tag>> SearchAsync(string? search, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(string title, TagId excludeId, CancellationToken cancellationToken = default);
+    Task<bool> SlugExistsAsync(string slug, TagId? excludeId, CancellationToken cancellationToken = default);
     Task AddAsync(Tag tag, CancellationToken cancellationToken = default);
     Task UpdateAsync(Tag tag, CancellationToken cancellationToken = default);
     Task DeleteAsync(Tag tag, CancellationToken cancellationToken = default);

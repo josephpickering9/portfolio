@@ -182,6 +182,12 @@ export enum VertexFeatureType {
     TAG = 'Tag'
 }
 
+export type VertexIngestSummary = {
+    companiesIngested?: number;
+    tagsIngested?: number;
+    projectsIngested?: number;
+};
+
 export type VertexQueryRequest = {
     query?: string;
 };
@@ -259,9 +265,9 @@ export type PostCompanyData = {
 
 export type PostCompanyResponses = {
     /**
-     * OK
+     * Created
      */
-    200: Company;
+    201: Company;
 };
 
 export type PostCompanyResponse = PostCompanyResponses[keyof PostCompanyResponses];
@@ -277,10 +283,12 @@ export type DeleteCompanyByIdData = {
 
 export type DeleteCompanyByIdResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteCompanyByIdResponse = DeleteCompanyByIdResponses[keyof DeleteCompanyByIdResponses];
 
 export type GetCompanyByIdData = {
     body?: never;
@@ -383,9 +391,9 @@ export type PostProjectData = {
 
 export type PostProjectResponses = {
     /**
-     * OK
+     * Created
      */
-    200: Project;
+    201: Project;
 };
 
 export type PostProjectResponse = PostProjectResponses[keyof PostProjectResponses];
@@ -401,10 +409,12 @@ export type DeleteProjectByIdData = {
 
 export type DeleteProjectByIdResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteProjectByIdResponse = DeleteProjectByIdResponses[keyof DeleteProjectByIdResponses];
 
 export type GetProjectByIdData = {
     body?: never;
@@ -489,10 +499,12 @@ export type PutProjectimageOptimiseData = {
 
 export type PutProjectimageOptimiseResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type PutProjectimageOptimiseResponse = PutProjectimageOptimiseResponses[keyof PutProjectimageOptimiseResponses];
 
 export type GetTagData = {
     body?: never;
@@ -521,9 +533,9 @@ export type PostTagData = {
 
 export type PostTagResponses = {
     /**
-     * OK
+     * Created
      */
-    200: Tag;
+    201: Tag;
 };
 
 export type PostTagResponse = PostTagResponses[keyof PostTagResponses];
@@ -539,10 +551,12 @@ export type DeleteTagByIdData = {
 
 export type DeleteTagByIdResponses = {
     /**
-     * OK
+     * No Content
      */
-    200: unknown;
+    204: void;
 };
+
+export type DeleteTagByIdResponse = DeleteTagByIdResponses[keyof DeleteTagByIdResponses];
 
 export type GetTagByIdData = {
     body?: never;
@@ -609,8 +623,10 @@ export type PostVertexIngestResponses = {
     /**
      * OK
      */
-    200: unknown;
+    200: VertexIngestSummary;
 };
+
+export type PostVertexIngestResponse = PostVertexIngestResponses[keyof PostVertexIngestResponses];
 
 export type PostVertexQueryData = {
     body?: VertexQueryRequest;

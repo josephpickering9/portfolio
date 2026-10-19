@@ -31,7 +31,7 @@ public sealed class VertexProjectDescriptionService(
         var response = await generateContentClient.GenerateContentAsync(generateRequest, cancellationToken);
         if (!response.IsSuccess) return response.Error!.ToFail();
 
-        var answer = ExtractAnswer(response.Data!);
+        var answer = ExtractAnswer(response.Value!);
         if (string.IsNullOrWhiteSpace(answer))
         {
             logger.LogError("Vertex description generation returned no text for project {ProjectId}.", projectId);

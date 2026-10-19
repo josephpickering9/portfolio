@@ -1,12 +1,11 @@
 using System.Net;
 using System.Net.Http.Json;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class VertexControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {

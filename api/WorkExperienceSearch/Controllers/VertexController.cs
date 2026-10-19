@@ -18,19 +18,19 @@ public sealed class VertexController(
 {
     [HttpPost("ingest")]
     [Authorize]
-    public async Task<IActionResult> Ingest(CancellationToken cancellationToken) =>
-        (await ingestOrchestrator.IngestAllAsync(cancellationToken)).ToResponse();
+    public Task<ActionResult<VertexIngestSummary>> Ingest(CancellationToken cancellationToken) =>
+        ingestOrchestrator.IngestAllAsync(cancellationToken).ToResponse();
 
     [HttpPost("query")]
     [EnableRateLimiting(RateLimitPolicies.VertexQuery)]
-    public async Task<ActionResult<VertexQueryResult>> Query([FromBody] VertexQueryRequest request, CancellationToken cancellationToken) =>
-        (await queryService.QueryAsync(request.Query, cancellationToken)).ToResponse();
+    public Task<ActionResult<VertexQueryResult>> Query([FromBody] VertexQueryRequest request, CancellationToken cancellationToken) =>
+        queryService.QueryAsync(request.Query, cancellationToken).ToResponse();
 
     [HttpPost("projects/{id:guid}/description/suggest")]
     [Authorize]
-    public async Task<ActionResult<ProjectDescriptionSuggestionResponse>> SuggestProjectDescription(
+    public Task<ActionResult<ProjectDescriptionSuggestionResponse>> SuggestProjectDescription(
         ProjectId id,
         [FromBody] SuggestProjectDescriptionRequest request,
         CancellationToken cancellationToken) =>
-        (await projectDescriptionService.SuggestDescriptionAsync(id, request, cancellationToken)).ToResponse();
+        projectDescriptionService.SuggestDescriptionAsync(id, request, cancellationToken).ToResponse();
 }

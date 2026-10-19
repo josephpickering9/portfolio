@@ -3,11 +3,12 @@ using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
 using Work_Experience_Search.Types;
 using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Unit.Services;
 
-public class BaseServiceTests : IAsyncLifetime
+public abstract class BaseServiceTests : IAsyncLifetime
 {
     protected readonly Database Context;
     protected static readonly CompanyId Company1Id = new(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"));
@@ -25,26 +26,24 @@ public class BaseServiceTests : IAsyncLifetime
     protected static readonly ProjectImageId Image6Id = new(Guid.Parse("44444444-4444-4444-4444-444444444446"));
     protected static readonly ProjectImageId Image7Id = new(Guid.Parse("44444444-4444-4444-4444-444444444447"));
 
+    private string? _connectionString;
+
     protected BaseServiceTests()
     {
-        var options = new DbContextOptionsBuilder<Database>()
-            .UseInMemoryDatabase($"UnitTests-{Guid.NewGuid()}")
-            .Options;
-
-        Context = new Database(options);
-        Context.Database.EnsureCreated();
+        Context = new Database(new DbContextOptionsBuilder<Database>().UseNpgsql().Options);
     }
-    
+
     public async Task InitializeAsync()
     {
-        await ClearDatabase();
+        _connectionString = await TestDatabase.CreateAsync();
+        Context.Database.SetConnectionString(_connectionString);
         await SeedDatabase();
     }
 
     public async Task DisposeAsync()
     {
-        await Context.Database.EnsureDeletedAsync();
         await Context.DisposeAsync();
+        if (_connectionString is not null) await TestDatabase.DropAsync(_connectionString);
     }
     
     private async Task SeedDatabase()
@@ -56,16 +55,7 @@ public class BaseServiceTests : IAsyncLifetime
         await Context.SaveChangesAsync();
     }
 
-    protected async Task ClearDatabase()
-    {
-        Context.Project.RemoveRange(Context.Project);
-        Context.Tag.RemoveRange(Context.Tag);
-        Context.Company.RemoveRange(Context.Company);
-        Context.ProjectImage.RemoveRange(Context.ProjectImage);
-        Context.ProjectRepository.RemoveRange(Context.ProjectRepository);
-        Context.ProjectStat.RemoveRange(Context.ProjectStat);
-        await Context.SaveChangesAsync();
-    }
+    protected Task ClearDatabase() => Context.TruncateAllTablesAsync();
 
     protected static Tag CreateTag(TagId id, string title, TagType type, List<Project>? projects = null)
     {

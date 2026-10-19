@@ -13,31 +13,34 @@ namespace Work_Experience_Search.Controllers;
 public sealed class CompanyController(ICompanyService companyService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<Company>>> GetCompanies(string? search, CancellationToken cancellationToken) =>
-        (await companyService.GetCompaniesAsync(search, cancellationToken)).ToResponse();
+    public Task<ActionResult<IReadOnlyList<Company>>> GetCompanies([FromQuery] SearchQuery query, CancellationToken cancellationToken) =>
+        companyService.GetCompaniesAsync(query.Search, cancellationToken).ToResponse();
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Company>> GetCompany(CompanyId id, CancellationToken cancellationToken) =>
-        (await companyService.GetCompanyAsync(id, cancellationToken)).ToResponse();
+    public Task<ActionResult<Company>> GetCompanyById(CompanyId id, CancellationToken cancellationToken) =>
+        companyService.GetCompanyAsync(id, cancellationToken).ToResponse();
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<Company>> GetCompany(string slug, CancellationToken cancellationToken) =>
-        (await companyService.GetCompanyBySlugAsync(slug, cancellationToken)).ToResponse();
+    public Task<ActionResult<Company>> GetCompanyBySlug(string slug, CancellationToken cancellationToken) =>
+        companyService.GetCompanyBySlugAsync(slug, cancellationToken).ToResponse();
 
     [HttpPost]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Company>> PostCompany([FromForm] CreateCompany createCompany, CancellationToken cancellationToken) =>
-        (await companyService.CreateCompanyAsync(createCompany, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public Task<ActionResult<Company>> PostCompany([FromForm] CreateCompany createCompany, CancellationToken cancellationToken) =>
+        companyService.CreateCompanyAsync(createCompany, cancellationToken)
+            .ToCreatedResponse(nameof(GetCompanyById), company => new { id = company.Id });
 
     [HttpPut("{id:guid}")]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Company>> PutCompany(CompanyId id, [FromForm] CreateCompany createCompany, CancellationToken cancellationToken) =>
-        (await companyService.UpdateCompanyAsync(id, createCompany, cancellationToken)).ToResponse();
+    public Task<ActionResult<Company>> PutCompany(CompanyId id, [FromForm] CreateCompany createCompany, CancellationToken cancellationToken) =>
+        companyService.UpdateCompanyAsync(id, createCompany, cancellationToken).ToResponse();
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteCompany(CompanyId id, CancellationToken cancellationToken) =>
-        (await companyService.DeleteCompanyAsync(id, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public Task<IActionResult> DeleteCompany(CompanyId id, CancellationToken cancellationToken) =>
+        companyService.DeleteCompanyAsync(id, cancellationToken).ToNoContentOrError();
 }

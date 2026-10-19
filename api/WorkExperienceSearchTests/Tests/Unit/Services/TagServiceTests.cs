@@ -121,10 +121,7 @@ public class TagServiceTests : BaseServiceTests
     {
         var tagId = Tag1Id;
 
-        var result = (await _tagService.DeleteTagAsync(tagId)).ExpectSuccess();
-
-        Assert.NotNull(result);
-        Assert.Equal(tagId, result.Id);
+        (await _tagService.DeleteTagAsync(tagId)).ExpectSuccess();
 
         var tagInDb = await Context.Tag.FindAsync(tagId);
         Assert.Null(tagInDb);
@@ -166,5 +163,32 @@ public class TagServiceTests : BaseServiceTests
         Assert.Equal(Tag1Id, result[0].Id);
         Assert.Equal("Rust", result[1].Title);
         Assert.Contains(Context.Tag, t => t.Title == "Rust");
+    }
+
+    [Fact]
+    public async Task SyncTagsAsync_ExistingTitleContainsLikeWildcard_DoesNotMatchOtherTitles()
+    {
+        var existing = (await _tagService.SyncTagsAsync(["Go_"])).ExpectSuccess().Single();
+
+        var synced = (await _tagService.SyncTagsAsync(["GoX"])).ExpectSuccess().Single();
+
+        Assert.NotEqual(existing.Id, synced.Id);
+        Assert.Equal("GoX", synced.Title);
+    }
+
+    [Fact]
+    public async Task SyncTagsAsync_ExistingTitleDifferentCase_ReusesTag()
+    {
+        var synced = (await _tagService.SyncTagsAsync(["c#"])).ExpectSuccess().Single();
+
+        Assert.Equal(Tag1Id, synced.Id);
+    }
+
+    [Fact]
+    public async Task SyncTagsAsync_NewTitlesSharingSlug_GetDistinctSlugs()
+    {
+        var synced = (await _tagService.SyncTagsAsync(["Vue.js", "Vuejs"])).ExpectSuccess();
+
+        Assert.Equal(["vuejs", "vuejs-2"], synced.Select(tag => tag.Slug));
     }
 }

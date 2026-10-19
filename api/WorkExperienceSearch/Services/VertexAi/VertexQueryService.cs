@@ -41,13 +41,13 @@ public sealed class VertexQueryService(
         var response = await generateContentClient.GenerateContentAsync(BuildRequest(query), cancellationToken);
         if (!response.IsSuccess) return response.Error!.ToFail();
 
-        var candidate = response.Data!.Candidates.FirstOrDefault();
+        var candidate = response.Value!.Candidates.FirstOrDefault();
         var citations = await EnrichCitationsAsync(VertexCitationExtractor.Extract(candidate), cancellationToken);
 
         var answer = candidate?.Content?.Parts.FirstOrDefault()?.Text;
         if (string.IsNullOrEmpty(answer))
         {
-            var finishReasons = response.Data.Candidates.Select(c => c.FinishReason ?? "null");
+            var finishReasons = response.Value.Candidates.Select(c => c.FinishReason ?? "null");
             logger.LogWarning("Vertex query returned an empty answer. FinishReasons: [{FinishReasons}]", string.Join(", ", finishReasons));
             answer = FallbackAnswer;
         }

@@ -148,9 +148,13 @@ The test suite covers three levels:
 
 | Type | Location | Tooling |
 |---|---|---|
-| Unit | `WorkExperienceSearchTests/Tests/Unit/` | xUnit, Moq, EF Core `InMemoryDatabase` provider |
-| Integration | `WorkExperienceSearchTests/Tests/Integration/` | `WebApplicationFactory` (EF Core `InMemoryDatabase`), real HTTP client, stubbed Vertex AI upstream |
+| Unit | `WorkExperienceSearchTests/Tests/Unit/` | xUnit, Moq, real PostgreSQL (Testcontainers) |
+| Integration | `WorkExperienceSearchTests/Tests/Integration/` | `WebApplicationFactory` against real PostgreSQL, real HTTP client, locally-signed JWTs, stubbed Vertex AI upstream |
 | Architecture | `WorkExperienceSearchTests/Tests/Architecture/` | NetArchTest |
+
+Tests run against real PostgreSQL, so Docker must be running. `Tests/Fixtures/TestDatabase.cs` starts one `postgres:17-alpine` container per run, applies the migrations to a template database once, and clones a fresh database from it for every unit test and every integration test class. Set `TEST_POSTGRES_CONNECTION` to a server connection string to use an existing PostgreSQL instead of a container.
+
+The suite needs no network access and no secrets: integration tests sign their own JWTs (`Tests/Fixtures/TestJwt.cs`) and the factory points JwtBearer at that test key, so the real authentication pipeline (including the `401 { "error": "unauthorized" }` body) is exercised without calling Auth0.
 
 Run all tests:
 
@@ -177,7 +181,7 @@ dotnet test --collect:"XPlat Code Coverage"
 
 Two GitHub Actions workflows (path-filtered to `api/**`) run on push:
 
-**`.github/workflows/api-tests.yml`** — spins up a PostgreSQL container via Docker Compose, restores, builds, and runs the full test suite. Pull requests cannot be merged if this workflow fails.
+**`.github/workflows/api-tests.yml`** — restores, builds, and runs the full test suite (Testcontainers starts PostgreSQL on the runner's Docker). Pull requests cannot be merged if this workflow fails.
 
 **`.github/workflows/api-deploy.yml`** — triggers on push to `main`. Publishes the app, uploads the artifact to the Digital Ocean droplet via SCP, runs `dotnet ef database update` on the server, then stops the currently running process, symlinks the new release into place, and starts it — a brief restart window, not a zero-downtime swap.
 

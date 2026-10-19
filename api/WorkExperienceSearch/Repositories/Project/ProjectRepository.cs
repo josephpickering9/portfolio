@@ -21,10 +21,8 @@ public sealed class ProjectRepository(Database context, IMemoryCache cache, Cach
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var normalizedSearch = search.ToLowerInvariant();
-            projects = context.Database.SupportsILike()
-                ? projects.Where(p => EF.Functions.ILike(p.Title, $"%{search}%") || EF.Functions.ILike(p.ShortDescription, $"%{search}%"))
-                : projects.Where(p => p.Title.ToLower().Contains(normalizedSearch) || p.ShortDescription.ToLower().Contains(normalizedSearch));
+            var term = search.ToLower();
+            projects = projects.Where(p => p.Title.ToLower().Contains(term) || p.ShortDescription.ToLower().Contains(term));
         }
 
         var result = await projects.OrderByDescending(p => p.StartDate).ThenByDescending(p => p.EndDate).ToListAsync(cancellationToken);
@@ -109,19 +107,14 @@ public sealed class ProjectRepository(Database context, IMemoryCache cache, Cach
         return related;
     }
 
-    public async Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Project.AnyAsync(p => EF.Functions.ILike(p.Title, title), cancellationToken)
-            : await context.Project.AnyAsync(p => p.Title.Equals(title, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default) =>
+        context.Project.AnyAsync(p => p.Title.ToLower() == title.ToLower(), cancellationToken);
 
-    public async Task<bool> ExistsAsync(string title, ProjectId excludeId, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Project.AnyAsync(p => p.Id != excludeId && EF.Functions.ILike(p.Title, title), cancellationToken)
-            : await context.Project.AnyAsync(p => p.Id != excludeId && p.Title.Equals(title, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string title, ProjectId excludeId, CancellationToken cancellationToken = default) =>
+        context.Project.AnyAsync(p => p.Id != excludeId && p.Title.ToLower() == title.ToLower(), cancellationToken);
+
+    public Task<bool> SlugExistsAsync(string slug, ProjectId? excludeId, CancellationToken cancellationToken = default) =>
+        context.Project.AnyAsync(p => p.Slug == slug && p.Id != excludeId, cancellationToken);
 
     public async Task AddAsync(Project project, CancellationToken cancellationToken = default)
     {

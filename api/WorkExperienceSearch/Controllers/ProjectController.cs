@@ -13,35 +13,38 @@ namespace Work_Experience_Search.Controllers;
 public sealed class ProjectController(IProjectService projectService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<Project>>> GetProjects(string? search, CancellationToken cancellationToken) =>
-        (await projectService.GetProjectsAsync(search, cancellationToken)).ToResponse();
+    public Task<ActionResult<IReadOnlyList<Project>>> GetProjects([FromQuery] SearchQuery query, CancellationToken cancellationToken) =>
+        projectService.GetProjectsAsync(query.Search, cancellationToken).ToResponse();
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Project>> GetProject(ProjectId id, CancellationToken cancellationToken) =>
-        (await projectService.GetProjectAsync(id, cancellationToken)).ToResponse();
+    public Task<ActionResult<Project>> GetProjectById(ProjectId id, CancellationToken cancellationToken) =>
+        projectService.GetProjectAsync(id, cancellationToken).ToResponse();
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<Project>> GetProject(string slug, CancellationToken cancellationToken) =>
-        (await projectService.GetProjectBySlugAsync(slug, cancellationToken)).ToResponse();
+    public Task<ActionResult<Project>> GetProjectBySlug(string slug, CancellationToken cancellationToken) =>
+        projectService.GetProjectBySlugAsync(slug, cancellationToken).ToResponse();
 
     [HttpGet("{id:guid}/related")]
-    public async Task<ActionResult<IReadOnlyList<Project>>> GetRelatedProjects(ProjectId id, CancellationToken cancellationToken) =>
-        (await projectService.GetRelatedProjectsAsync(id, cancellationToken)).ToResponse();
+    public Task<ActionResult<IReadOnlyList<Project>>> GetRelatedProjects(ProjectId id, CancellationToken cancellationToken) =>
+        projectService.GetRelatedProjectsAsync(id, cancellationToken).ToResponse();
 
     [HttpPost]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Project>> PostProject([FromForm] CreateProject createProject, CancellationToken cancellationToken) =>
-        (await projectService.CreateProjectAsync(createProject, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public Task<ActionResult<Project>> PostProject([FromForm] CreateProject createProject, CancellationToken cancellationToken) =>
+        projectService.CreateProjectAsync(createProject, cancellationToken)
+            .ToCreatedResponse(nameof(GetProjectById), project => new { id = project.Id });
 
     [HttpPut("{id:guid}")]
     [Authorize]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<Project>> PutProject(ProjectId id, [FromForm] CreateProject createProject, CancellationToken cancellationToken) =>
-        (await projectService.UpdateProjectAsync(id, createProject, cancellationToken)).ToResponse();
+    public Task<ActionResult<Project>> PutProject(ProjectId id, [FromForm] CreateProject createProject, CancellationToken cancellationToken) =>
+        projectService.UpdateProjectAsync(id, createProject, cancellationToken).ToResponse();
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteProject(ProjectId id, CancellationToken cancellationToken) =>
-        (await projectService.DeleteProjectAsync(id, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public Task<IActionResult> DeleteProject(ProjectId id, CancellationToken cancellationToken) =>
+        projectService.DeleteProjectAsync(id, cancellationToken).ToNoContentOrError();
 }

@@ -7,5 +7,5 @@ namespace Work_Experience_Search.Services;
 public interface IProjectImageService
 {
     Task<Result<IReadOnlyList<ProjectImage>>> SyncProjectImagesAsync(Project project, IReadOnlyList<CreateProjectImage> images, CancellationToken cancellationToken = default);
-    Task<Result<bool>> OptimiseImagesAsync(CancellationToken cancellationToken = default);
+    Task<Result> OptimiseImagesAsync(CancellationToken cancellationToken = default);
 }

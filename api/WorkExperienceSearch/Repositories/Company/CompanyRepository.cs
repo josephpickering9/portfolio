@@ -51,31 +51,21 @@ public sealed class CompanyRepository(Database context, IMemoryCache cache, Cach
         var companies = context.Company.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
-        {
-            var normalizedSearch = search.ToLowerInvariant();
-            companies = context.Database.SupportsILike()
-                ? companies.Where(c => EF.Functions.ILike(c.Name, $"%{search}%"))
-                : companies.Where(c => c.Name.ToLower().Contains(normalizedSearch));
-        }
+            companies = companies.Where(c => c.Name.ToLower().Contains(search.ToLower()));
 
         var result = await companies.ToListAsync(cancellationToken);
         SetCache(cacheKey, result, cacheInvalidator.GetCompaniesChangeToken());
         return result;
     }
 
-    public async Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Company.AnyAsync(c => EF.Functions.ILike(c.Name, name), cancellationToken)
-            : await context.Company.AnyAsync(c => c.Name.Equals(name, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string name, CancellationToken cancellationToken = default) =>
+        context.Company.AnyAsync(c => c.Name.ToLower() == name.ToLower(), cancellationToken);
 
-    public async Task<bool> ExistsAsync(string name, CompanyId excludeId, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Company.AnyAsync(c => c.Id != excludeId && EF.Functions.ILike(c.Name, name), cancellationToken)
-            : await context.Company.AnyAsync(c => c.Id != excludeId && c.Name.Equals(name, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string name, CompanyId excludeId, CancellationToken cancellationToken = default) =>
+        context.Company.AnyAsync(c => c.Id != excludeId && c.Name.ToLower() == name.ToLower(), cancellationToken);
+
+    public Task<bool> SlugExistsAsync(string slug, CompanyId? excludeId, CancellationToken cancellationToken = default) =>
+        context.Company.AnyAsync(c => c.Slug == slug && c.Id != excludeId, cancellationToken);
 
     public async Task AddAsync(Company company, CancellationToken cancellationToken = default)
     {

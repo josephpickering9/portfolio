@@ -2,13 +2,12 @@ using System.Net;
 using System.Text;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Models;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class TagControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -85,11 +84,12 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
         };
 
         var httpResponse = await AuthenticatedClient.PostAsync("/tag", CreateJsonContent(createTag));
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, httpResponse.StatusCode);
         var stringResponse = await httpResponse.Content.ReadAsStringAsync();
         var tag = GetJsonContent<Tag>(stringResponse);
 
         Assert.NotNull(tag);
+        Assert.EndsWith($"/tag/{tag.Id}", httpResponse.Headers.Location?.ToString());
         Assert.Equal(createTag.Title, tag.Title);
         Assert.Equal(createTag.Type, tag.Type);
         Assert.Equal(createTag.Icon, tag.Icon);
@@ -184,7 +184,7 @@ public class TagControllerIntegrationTests(CustomWebApplicationFactory customWeb
         await CreateTagAsync(tagId);
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/tag/{tagId}");
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.NoContent, httpResponse.StatusCode);
     }
 
     [Fact]

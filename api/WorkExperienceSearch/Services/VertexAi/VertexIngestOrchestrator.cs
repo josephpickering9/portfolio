@@ -30,9 +30,9 @@ public sealed class VertexIngestOrchestrator(
         try
         {
             await vertexChatbotClient.InitialiseCachesAsync(ensureSchema: true, cancellationToken);
-            await Task.WhenAll(companies.Data!.Select(company => vertexIngestService.UpsertCompanyAsync(company, cancellationToken)));
-            await Task.WhenAll(tags.Data!.Select(tag => vertexIngestService.UpsertTagAsync(tag, cancellationToken)));
-            await Task.WhenAll(projects.Data!.Select(project => vertexIngestService.UpsertProjectAsync(project, cancellationToken)));
+            await Task.WhenAll(companies.Value!.Select(company => vertexIngestService.UpsertCompanyAsync(company, cancellationToken)));
+            await Task.WhenAll(tags.Value!.Select(tag => vertexIngestService.UpsertTagAsync(tag, cancellationToken)));
+            await Task.WhenAll(projects.Value!.Select(project => vertexIngestService.UpsertProjectAsync(project, cancellationToken)));
         }
         catch (RpcException ex) when (ex.StatusCode is not StatusCode.Cancelled)
         {
@@ -41,9 +41,9 @@ public sealed class VertexIngestOrchestrator(
         }
 
         return new VertexIngestSummary(
-            CompaniesIngested: companies.Data!.Count,
-            TagsIngested: tags.Data!.Count,
-            ProjectsIngested: projects.Data!.Count).ToOk();
+            CompaniesIngested: companies.Value!.Count,
+            TagsIngested: tags.Value!.Count,
+            ProjectsIngested: projects.Value!.Count).ToOk();
     }
 }
 

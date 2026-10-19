@@ -1,13 +1,12 @@
 using System.Net;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Requests;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class ProjectControllerFailureIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -103,12 +102,11 @@ public class ProjectControllerFailureIntegrationTests(CustomWebApplicationFactor
     }
 
     [Fact]
-    public async Task OptimiseImages_Authorized_ReturnsTrue()
+    public async Task OptimiseImages_Authorized_ReturnsNoContent()
     {
         var httpResponse = await AuthenticatedClient.PutAsync("/projectimage/optimise", null);
 
-        httpResponse.EnsureSuccessStatusCode();
-        Assert.True(GetJsonContent<bool>(await httpResponse.Content.ReadAsStringAsync()));
+        Assert.Equal(HttpStatusCode.NoContent, httpResponse.StatusCode);
     }
 
     private static CreateProject ValidProject(string title) =>

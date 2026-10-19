@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Moq;
 using Work_Experience_Search.Services.VertexAi;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 

@@ -48,7 +48,7 @@ public sealed class ProjectImageService(
                 return savedImage.Error!.ToFail();
             }
 
-            var projectImage = CreateProjectImage(project, image, savedImage.Data!);
+            var projectImage = CreateProjectImage(project, image, savedImage.Value!);
             await projectImageRepository.AddAsync(projectImage, cancellationToken);
             imagesToSave.Add(projectImage);
         }
@@ -65,7 +65,7 @@ public sealed class ProjectImageService(
         return Result<IReadOnlyList<ProjectImage>>.Ok(imagesToSave);
     }
 
-    public async Task<Result<bool>> OptimiseImagesAsync(CancellationToken cancellationToken = default)
+    public async Task<Result> OptimiseImagesAsync(CancellationToken cancellationToken = default)
     {
         var images = await projectImageRepository.GetUnoptimisedImagesTrackedAsync(cancellationToken);
         foreach (var image in images)
@@ -77,22 +77,22 @@ public sealed class ProjectImageService(
                 continue;
             }
 
-            var optimisedImage = await SaveImageBytesAsync(file.Data!.File, image.Image, cancellationToken);
+            var optimisedImage = await SaveImageBytesAsync(file.Value!.File, image.Image, cancellationToken);
             if (!optimisedImage.IsSuccess)
             {
                 logger.LogWarning("Skipping optimisation of image {ProjectImageId}: {ErrorCode}", image.Id, optimisedImage.Error);
                 continue;
             }
 
-            image.Image = optimisedImage.Data!.FileName;
+            image.Image = optimisedImage.Value!.FileName;
             image.IsOptimised = true;
 
             await projectImageRepository.UpdateAsync(image, cancellationToken);
 
-            fileService.DeleteFile(file.Data.FileName);
+            fileService.DeleteFile(file.Value.FileName);
         }
 
-        return true.ToOk();
+        return Result.Ok();
     }
 
     private static ProjectImage CreateProjectImage(Project project, CreateProjectImage request, ImageSaveData savedImage) =>
@@ -107,27 +107,27 @@ public sealed class ProjectImageService(
     private async Task<Result<ImageSaveData>> SaveImageBytesAsync(byte[] file, string fileName, CancellationToken cancellationToken)
     {
         var optimisedImage = await imageService.OptimiseImageAsync(file, cancellationToken);
-        var formFile = optimisedImage is { IsSuccess: true, Data: not null }
-            ? optimisedImage.Data.ToFormFile(fileName, FileExtensions.GetContentType(fileName))
+        var formFile = optimisedImage is { IsSuccess: true, Value: { } optimised }
+            ? optimised.ToFormFile(fileName, FileExtensions.GetContentType(fileName))
             : null;
 
         var savedFileName = await SaveFileAsync(formFile, cancellationToken);
         if (!savedFileName.IsSuccess) return savedFileName.Error!.ToFail();
 
-        return new ImageSaveData(savedFileName.Data!, optimisedImage.IsSuccess).ToOk();
+        return new ImageSaveData(savedFileName.Value!, optimisedImage.IsSuccess).ToOk();
     }
 
     private async Task<Result<ImageSaveData>> SaveUploadedImageAsync(IFormFile? file, CancellationToken cancellationToken)
     {
         var optimisedImage = await imageService.OptimiseImageAsync(await file.ReadAllBytesAsync(cancellationToken), cancellationToken);
-        var formFile = optimisedImage is { IsSuccess: true, Data: not null }
-            ? optimisedImage.Data.ToFormFile(file?.FileName ?? FileExtensions.DefaultFileName, file?.ContentType ?? FileExtensions.DefaultContentType)
+        var formFile = optimisedImage is { IsSuccess: true, Value: { } optimised }
+            ? optimised.ToFormFile(file?.FileName ?? FileExtensions.DefaultFileName, file?.ContentType ?? FileExtensions.DefaultContentType)
             : file;
 
         var savedFileName = await SaveFileAsync(formFile, cancellationToken);
         if (!savedFileName.IsSuccess) return savedFileName.Error!.ToFail();
 
-        return new ImageSaveData(savedFileName.Data!, optimisedImage.IsSuccess).ToOk();
+        return new ImageSaveData(savedFileName.Value!, optimisedImage.IsSuccess).ToOk();
     }
 
     private async Task<Result<string>> SaveFileAsync(IFormFile? formFile, CancellationToken cancellationToken)
@@ -135,7 +135,7 @@ public sealed class ProjectImageService(
         var savedFile = await fileService.SaveFileAsync(formFile, cancellationToken);
         if (!savedFile.IsSuccess) return savedFile.Error!.ToFail();
 
-        var fileName = Path.GetFileName(savedFile.Data);
+        var fileName = Path.GetFileName(savedFile.Value);
         return string.IsNullOrEmpty(fileName) ? ErrorCodes.FileUploadFailed.ToFail() : fileName.ToOk();
     }
 }

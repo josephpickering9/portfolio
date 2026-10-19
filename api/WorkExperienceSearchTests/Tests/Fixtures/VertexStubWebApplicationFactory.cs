@@ -7,9 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Work_Experience_Search.Services.VertexAi;
 
-namespace Work_Experience_Search.Tests;
+namespace WorkExperienceSearchTests.Tests.Fixtures;
 
-public sealed class VertexStubWebApplicationFactory : CustomWebApplicationFactory
+public sealed class VertexStubWebApplicationFactory : ApiWebApplicationFactory
 {
     private Func<HttpRequestMessage, HttpResponseMessage> _respond = _ => Json(HttpStatusCode.OK, "{}");
 

@@ -11,6 +11,7 @@ public sealed class ProjectImageController(IProjectImageService projectImageServ
 {
     [HttpPut("optimise")]
     [Authorize]
-    public async Task<ActionResult> OptimiseImages(CancellationToken cancellationToken) =>
-        (await projectImageService.OptimiseImagesAsync(cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public Task<IActionResult> OptimiseImages(CancellationToken cancellationToken) =>
+        projectImageService.OptimiseImagesAsync(cancellationToken).ToNoContentOrError();
 }

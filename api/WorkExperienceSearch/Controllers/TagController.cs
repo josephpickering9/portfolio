@@ -13,29 +13,32 @@ namespace Work_Experience_Search.Controllers;
 public sealed class TagController(ITagService tagService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<Tag>>> GetTags(string? search, CancellationToken cancellationToken) =>
-        (await tagService.GetTagsAsync(search, cancellationToken)).ToResponse();
+    public Task<ActionResult<IReadOnlyList<Tag>>> GetTags([FromQuery] SearchQuery query, CancellationToken cancellationToken) =>
+        tagService.GetTagsAsync(query.Search, cancellationToken).ToResponse();
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Tag>> GetTag(TagId id, CancellationToken cancellationToken) =>
-        (await tagService.GetTagAsync(id, cancellationToken)).ToResponse();
+    public Task<ActionResult<Tag>> GetTagById(TagId id, CancellationToken cancellationToken) =>
+        tagService.GetTagAsync(id, cancellationToken).ToResponse();
 
     [HttpGet("{slug}")]
-    public async Task<ActionResult<Tag>> GetTag(string slug, CancellationToken cancellationToken) =>
-        (await tagService.GetTagBySlugAsync(slug, cancellationToken)).ToResponse();
+    public Task<ActionResult<Tag>> GetTagBySlug(string slug, CancellationToken cancellationToken) =>
+        tagService.GetTagBySlugAsync(slug, cancellationToken).ToResponse();
 
     [HttpPost]
     [Authorize]
-    public async Task<ActionResult<Tag>> PostTag([FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
-        (await tagService.CreateTagAsync(createTag, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    public Task<ActionResult<Tag>> PostTag([FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
+        tagService.CreateTagAsync(createTag, cancellationToken)
+            .ToCreatedResponse(nameof(GetTagById), tag => new { id = tag.Id });
 
     [HttpPut("{id:guid}")]
     [Authorize]
-    public async Task<ActionResult<Tag>> PutTag(TagId id, [FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
-        (await tagService.UpdateTagAsync(id, createTag, cancellationToken)).ToResponse();
+    public Task<ActionResult<Tag>> PutTag(TagId id, [FromBody] CreateTag createTag, CancellationToken cancellationToken) =>
+        tagService.UpdateTagAsync(id, createTag, cancellationToken).ToResponse();
 
     [HttpDelete("{id:guid}")]
     [Authorize]
-    public async Task<IActionResult> DeleteTag(TagId id, CancellationToken cancellationToken) =>
-        (await tagService.DeleteTagAsync(id, cancellationToken)).ToResponse();
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public Task<IActionResult> DeleteTag(TagId id, CancellationToken cancellationToken) =>
+        tagService.DeleteTagAsync(id, cancellationToken).ToNoContentOrError();
 }

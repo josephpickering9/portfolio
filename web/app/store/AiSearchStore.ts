@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { toRef } from 'vue'
 import { uniqBy } from 'lodash-es'
 import { getProjectById, postVertexQuery, VertexFeatureType } from '@api'
 import type { Project, VertexCitation, VertexQueryResult } from '@api'
-import { asyncForm, isAwaitingData, tryCatchFinally, unwrap } from '~/utils/async-helper'
+import { asyncForm, isAwaitingData, tryCatchFinallyIfLatest, unwrap } from '~/utils/async-helper'
 
 type ProjectCitation = VertexCitation & { id: string }
 
@@ -32,25 +32,23 @@ export const useAiSearchStore = defineStore('aiSearchStore', {
   actions: {
     async query(question: string): Promise<void> {
       const request = this.reset()
-      this.queryForm.loading = true
-
-      const form = ref(asyncForm<VertexQueryResult>())
-      const result = await tryCatchFinally(form, async () => unwrap(await postVertexQuery({ body: { query: question } })))
-      if (request !== this.latestQueryRequest) return
-
-      this.queryForm = form.value
+      const result = await tryCatchFinallyIfLatest(
+        toRef(this, 'queryForm'),
+        () => request === this.latestQueryRequest,
+        async () => unwrap(await postVertexQuery({ body: { query: question } })),
+      )
       if (result) await this.getCitedProjects(result.citations ?? [], request)
     },
     async getCitedProjects(citations: VertexCitation[], request: number): Promise<void> {
       const projectCitations = citations.filter(isProjectCitation)
-      const form = ref(asyncForm<Project[]>())
-      this.citedProjectsForm.loading = true
-
-      await tryCatchFinally(form, async () => {
-        const results = await Promise.allSettled(projectCitations.map(resolveCitedProject))
-        return results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []))
-      })
-      if (request === this.latestQueryRequest) this.citedProjectsForm = form.value
+      await tryCatchFinallyIfLatest(
+        toRef(this, 'citedProjectsForm'),
+        () => request === this.latestQueryRequest,
+        async () => {
+          const results = await Promise.allSettled(projectCitations.map(resolveCitedProject))
+          return results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []))
+        },
+      )
     },
     reset(): number {
       this.queryForm = asyncForm()

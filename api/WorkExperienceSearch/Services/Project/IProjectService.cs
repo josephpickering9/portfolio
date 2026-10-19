@@ -12,5 +12,5 @@ public interface IProjectService
     Task<Result<IReadOnlyList<Project>>> GetRelatedProjectsAsync(ProjectId projectId, CancellationToken cancellationToken = default);
     Task<Result<Project>> CreateProjectAsync(CreateProject createProject, CancellationToken cancellationToken = default);
     Task<Result<Project>> UpdateProjectAsync(ProjectId id, CreateProject createProject, CancellationToken cancellationToken = default);
-    Task<Result<Project>> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken = default);
+    Task<Result> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken = default);
 }

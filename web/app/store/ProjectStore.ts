@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, toRef } from 'vue'
 import { deleteProjectById, getProject, getProjectBySlug, postProject, putProjectById } from '@api'
 import type { CreateProject, Project } from '@api'
-import { asyncForm, isAwaitingData, tryCatchFinally, unwrap } from '~/utils/async-helper'
+import { asyncForm, isAwaitingData, tryCatchFinally, tryCatchFinallyIfLatest, unwrap } from '~/utils/async-helper'
 import { isNotFoundCode } from '~/utils/error-helper'
 import { serializeToFormData } from '~/utils/form-data'
 
@@ -44,13 +44,11 @@ export const useProjectStore = defineStore('projectStore', {
       if (!slug) return undefined
 
       const request = ++this.latestProjectRequest
-      const form = ref({ ...asyncForm<Project>(), data: this.projectForm.data })
-      this.projectForm.loading = true
-      const loaded = await tryCatchFinally(form, async () => unwrap(await getProjectBySlug({ path: { slug } })))
-      if (request !== this.latestProjectRequest) return undefined
-
-      this.projectForm = form.value
-      return loaded
+      return tryCatchFinallyIfLatest(
+        toRef(this, 'projectForm'),
+        () => request === this.latestProjectRequest,
+        async () => unwrap(await getProjectBySlug({ path: { slug } })),
+      )
     },
     clearProject(slug: string) {
       if (this.projectForm.data?.slug === slug) this.projectForm.data = undefined

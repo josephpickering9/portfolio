@@ -12,5 +12,5 @@ public interface ITagService
     Task<Result<Tag>> CreateTagAsync(CreateTag createTag, CancellationToken cancellationToken = default);
     Task<Result<IReadOnlyList<Tag>>> SyncTagsAsync(IReadOnlyList<string> tags, CancellationToken cancellationToken = default);
     Task<Result<Tag>> UpdateTagAsync(TagId id, CreateTag updateTag, CancellationToken cancellationToken = default);
-    Task<Result<Tag>> DeleteTagAsync(TagId id, CancellationToken cancellationToken = default);
+    Task<Result> DeleteTagAsync(TagId id, CancellationToken cancellationToken = default);
 }

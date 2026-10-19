@@ -1,3 +1,4 @@
+import { ref } from 'vue'
 import type { Ref } from 'vue'
 import type { AsyncForm } from '~/types/AsyncForm'
 import { extractError, extractErrorCode, isCancelledError } from '~/utils/error-helper'
@@ -45,6 +46,20 @@ export async function tryCatchFinally<T>(form: Ref<AsyncForm<T>>, fn: () => Prom
   } finally {
     form.value.loading = false
   }
+}
+
+export async function tryCatchFinallyIfLatest<T>(
+  form: Ref<AsyncForm<T>>,
+  isLatest: () => boolean,
+  fn: () => Promise<T>,
+): Promise<T | undefined> {
+  form.value.loading = true
+  const request = ref<AsyncForm<T>>({ ...asyncForm<T>(), data: form.value.data }) as Ref<AsyncForm<T>>
+  const result = await tryCatchFinally(request, fn)
+  if (!isLatest()) return undefined
+
+  form.value = request.value
+  return result
 }
 
 export function asyncForm<T>(): AsyncForm<T> {

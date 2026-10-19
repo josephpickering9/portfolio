@@ -53,6 +53,7 @@ public static class ErrorCodes
     public const string CustomColourInvalid = "custom_colour_invalid";
     public const string QueryRequired = "query_required";
     public const string QueryTooLong = "query_too_long";
+    public const string SearchTooLong = "search_too_long";
 
     public static readonly IReadOnlySet<string> All = typeof(ErrorCodes)
         .GetFields(BindingFlags.Public | BindingFlags.Static)

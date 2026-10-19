@@ -304,10 +304,7 @@ public class ProjectServiceTests : BaseServiceTests
     {
         var existingProject = await SaveProject(CreateProject(ProjectId.New(), "Test Delete Project"));
 
-        var result = (await _projectService.DeleteProjectAsync(existingProject.Id)).ExpectSuccess();
-
-        Assert.NotNull(result);
-        Assert.Equal(existingProject.Id, result.Id);
+        (await _projectService.DeleteProjectAsync(existingProject.Id)).ExpectSuccess();
 
         var projectInDb = await Context.Project.FindAsync(existingProject.Id);
         Assert.Null(projectInDb);

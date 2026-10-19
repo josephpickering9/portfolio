@@ -59,23 +59,80 @@ public partial class ErrorContractTests
     }
 
     [Fact]
-    public void ToResponse_SuccessWithData_ReturnsOk()
+    public async Task ToResponse_SuccessWithValue_ReturnsOk()
     {
-        var response = "value".ToOk().ToResponse();
+        var response = await Task.FromResult("value".ToOk()).ToResponse();
 
-        var ok = Assert.IsType<OkObjectResult>(response);
+        var ok = Assert.IsType<OkObjectResult>(response.Result);
         Assert.Equal("value", ok.Value);
     }
 
     [Fact]
-    public void ToResponse_Failure_ReturnsErrorBody()
+    public async Task ToResponse_Failure_ReturnsErrorBody()
     {
         Result<string> result = ErrorCodes.UpstreamUnavailable.ToFail();
 
-        var response = Assert.IsType<ObjectResult>(result.ToResponse());
+        var response = await Task.FromResult(result).ToResponse();
 
-        Assert.Equal(StatusCodes.Status502BadGateway, response.StatusCode);
-        Assert.Equal(new ApiErrorDto(ErrorCodes.UpstreamUnavailable), response.Value);
+        var error = Assert.IsType<ObjectResult>(response.Result);
+        Assert.Equal(StatusCodes.Status502BadGateway, error.StatusCode);
+        Assert.Equal(new ApiErrorDto(ErrorCodes.UpstreamUnavailable), error.Value);
+    }
+
+    [Fact]
+    public async Task ToCreatedResponse_Success_ReturnsCreatedAtAction()
+    {
+        var response = await Task.FromResult("value".ToOk()).ToCreatedResponse("GetById", value => new { id = value });
+
+        var created = Assert.IsType<CreatedAtActionResult>(response.Result);
+        Assert.Equal("GetById", created.ActionName);
+        Assert.Equal("value", created.RouteValues?["id"]);
+        Assert.Equal("value", created.Value);
+    }
+
+    [Fact]
+    public async Task ToCreatedResponse_Failure_ReturnsErrorBody()
+    {
+        Result<string> result = ErrorCodes.ProjectAlreadyExists.ToFail();
+
+        var response = await Task.FromResult(result).ToCreatedResponse("GetById", value => new { id = value });
+
+        var error = Assert.IsType<ObjectResult>(response.Result);
+        Assert.Equal(StatusCodes.Status409Conflict, error.StatusCode);
+    }
+
+    [Fact]
+    public async Task ToNoContentOrError_Success_ReturnsNoContent()
+    {
+        var response = await Task.FromResult(Result.Ok()).ToNoContentOrError();
+
+        Assert.IsType<NoContentResult>(response);
+    }
+
+    [Fact]
+    public async Task ToNoContentOrError_Failure_ReturnsErrorBody()
+    {
+        Result result = ErrorCodes.TagNotFound.ToFail();
+
+        var response = await Task.FromResult(result).ToNoContentOrError();
+
+        var error = Assert.IsType<ObjectResult>(response);
+        Assert.Equal(StatusCodes.Status404NotFound, error.StatusCode);
+        Assert.Equal(new ApiErrorDto(ErrorCodes.TagNotFound), error.Value);
+    }
+
+    [Fact]
+    public void ToResultOrFail_Null_ReturnsFailure()
+    {
+        string? missing = null;
+
+        Assert.Equal(ErrorCodes.NotFound, missing.ToResultOrFail(ErrorCodes.NotFound).ExpectFailure());
+    }
+
+    [Fact]
+    public void ToResultOrFail_Value_ReturnsSuccess()
+    {
+        Assert.Equal("value", "value".ToResultOrFail(ErrorCodes.NotFound).ExpectSuccess());
     }
 
     [Fact]

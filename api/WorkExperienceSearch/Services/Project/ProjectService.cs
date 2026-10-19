@@ -15,35 +15,19 @@ public sealed class ProjectService(
     ILogger<ProjectService> logger
 ) : IProjectService
 {
+    private const string SlugFallback = "project";
+
     public async Task<Result<IReadOnlyList<Project>>> GetProjectsAsync(string? search, CancellationToken cancellationToken = default)
     {
         var projects = await projectRepository.SearchAsync(search, cancellationToken);
         return projects.ToOk();
     }
 
-    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(id, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found.", id);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
+    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default) =>
+        (await projectRepository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.ProjectNotFound);
 
-        return project.ToOk();
-    }
-
-    public async Task<Result<Project>> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(slug, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project with slug {Slug} not found.", slug);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return project.ToOk();
-    }
+    public async Task<Result<Project>> GetProjectBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+        (await projectRepository.GetAsync(slug, cancellationToken)).ToResultOrFail(ErrorCodes.ProjectNotFound);
 
     public async Task<Result<IReadOnlyList<Project>>> GetRelatedProjectsAsync(ProjectId projectId, CancellationToken cancellationToken = default)
     {
@@ -60,7 +44,7 @@ public sealed class ProjectService(
         }
 
         var project = new Project();
-        ApplyDetails(project, createProject);
+        await ApplyDetailsAsync(project, createProject, cancellationToken);
 
         await projectRepository.AddAsync(project, cancellationToken);
 
@@ -92,7 +76,7 @@ public sealed class ProjectService(
             return ErrorCodes.ProjectAlreadyExists.ToFail();
         }
 
-        ApplyDetails(project, createProject);
+        await ApplyDetailsAsync(project, createProject, cancellationToken);
 
         var relationsResult = await SyncProjectRelationsAsync(project, createProject, cancellationToken);
         if (!relationsResult.IsSuccess)
@@ -106,7 +90,7 @@ public sealed class ProjectService(
         return project.ToOk();
     }
 
-    public async Task<Result<Project>> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
     {
         var project = await projectRepository.GetTrackedAsync(id, cancellationToken);
         if (project is null)
@@ -117,11 +101,15 @@ public sealed class ProjectService(
 
         await projectRepository.DeleteAsync(project, cancellationToken);
 
-        return project.ToOk();
+        return Result.Ok();
     }
 
-    private static void ApplyDetails(Project project, CreateProject request)
+    private async Task ApplyDetailsAsync(Project project, CreateProject request, CancellationToken cancellationToken)
     {
+        if (project.Title != request.Title)
+            project.Slug = await request.Title.ToUniqueSlugAsync(
+                SlugFallback, (slug, ct) => projectRepository.SlugExistsAsync(slug, project.Id, ct), cancellationToken);
+
         project.Title = request.Title;
         project.ShortDescription = request.ShortDescription;
         project.Description = request.Description;
@@ -133,26 +121,25 @@ public sealed class ProjectService(
         project.EndDate = request.EndDate;
         project.Website = request.Website;
         project.ShowMockup = request.ShowMockup;
-        project.Slug = request.Title.ToSlug();
     }
 
     private async Task<Result<Project>> SyncProjectRelationsAsync(Project project, CreateProject createProject, CancellationToken cancellationToken)
     {
         var tags = await tagService.SyncTagsAsync(createProject.Tags, cancellationToken);
         if (!tags.IsSuccess) return tags.Error!.ToFail();
-        project.Tags = [.. tags.Data!];
+        project.Tags = [.. tags.Value!];
 
         var images = await projectImageService.SyncProjectImagesAsync(project, createProject.Images, cancellationToken);
         if (!images.IsSuccess) return images.Error!.ToFail();
-        project.Images = [.. images.Data!];
+        project.Images = [.. images.Value!];
 
         var repositories = await projectRepositoryService.SyncProjectRepositoriesAsync(project, createProject.Repositories, cancellationToken);
         if (!repositories.IsSuccess) return repositories.Error!.ToFail();
-        project.Repositories = [.. repositories.Data!];
+        project.Repositories = [.. repositories.Value!];
 
         var stats = await projectStatService.SyncProjectStatsAsync(project, createProject.Stats, cancellationToken);
         if (!stats.IsSuccess) return stats.Error!.ToFail();
-        project.Stats = [.. stats.Data!];
+        project.Stats = [.. stats.Value!];
 
         return project.ToOk();
     }

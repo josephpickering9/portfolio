@@ -1,13 +1,12 @@
 using System.Net;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Models;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class CompanyControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -89,11 +88,12 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.PostAsync("/company", content);
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, httpResponse.StatusCode);
         var stringResponse = await httpResponse.Content.ReadAsStringAsync();
         var actualCompany = GetJsonContent<Company>(stringResponse);
 
         Assert.NotNull(actualCompany);
+        Assert.EndsWith($"/company/{actualCompany.Id}", httpResponse.Headers.Location?.ToString());
         Assert.Equal(newCompany.Name, actualCompany.Name);
         Assert.Equal(newCompany.Description, actualCompany.Description);
         Assert.Equal(newCompany.StartDate, actualCompany.StartDate);
@@ -177,7 +177,7 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/company/{companyId}");
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.NoContent, httpResponse.StatusCode);
     }
 
     [Fact]

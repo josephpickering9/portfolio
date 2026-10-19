@@ -9,6 +9,6 @@ namespace Work_Experience_Search.Controllers;
 public sealed class MediaController(IImageService imageService) : ControllerBase
 {
     [HttpGet("uploads/{fileName}")]
-    public async Task<IActionResult> GetFile(string fileName, CancellationToken cancellationToken) =>
-        (await imageService.GetImageAsync(fileName, cancellationToken)).ToFileResponse();
+    public Task<IActionResult> GetFile(string fileName, CancellationToken cancellationToken) =>
+        imageService.GetImageAsync(fileName, cancellationToken).ToFileResponse();
 }

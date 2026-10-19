@@ -50,12 +50,8 @@ public sealed class TagRepository(Database context, IMemoryCache cache, CacheInv
         return await context.Tag.FindAsync([id], cancellationToken);
     }
 
-    public async Task<Tag?> GetByTitleTrackedAsync(string title, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Tag.FirstOrDefaultAsync(t => EF.Functions.ILike(title, t.Title), cancellationToken)
-            : await context.Tag.FirstOrDefaultAsync(t => t.Title.Equals(title, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<Tag?> GetByTitleTrackedAsync(string title, CancellationToken cancellationToken = default) =>
+        context.Tag.FirstOrDefaultAsync(t => t.Title.ToLower() == title.ToLower(), cancellationToken);
 
     public async Task<IReadOnlyList<Tag>> SearchAsync(string? search, CancellationToken cancellationToken = default)
     {
@@ -65,31 +61,21 @@ public sealed class TagRepository(Database context, IMemoryCache cache, CacheInv
         var tags = context.Tag.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(search))
-        {
-            var normalizedSearch = search.ToLowerInvariant();
-            tags = context.Database.SupportsILike()
-                ? tags.Where(t => EF.Functions.ILike(t.Title, $"%{search}%"))
-                : tags.Where(t => t.Title.ToLower().Contains(normalizedSearch));
-        }
+            tags = tags.Where(t => t.Title.ToLower().Contains(search.ToLower()));
 
         var result = await tags.ToListAsync(cancellationToken);
         SetCache(cacheKey, result, cacheInvalidator.GetTagsChangeToken());
         return result;
     }
 
-    public async Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Tag.AnyAsync(t => EF.Functions.ILike(t.Title, title), cancellationToken)
-            : await context.Tag.AnyAsync(t => t.Title.Equals(title, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default) =>
+        context.Tag.AnyAsync(t => t.Title.ToLower() == title.ToLower(), cancellationToken);
 
-    public async Task<bool> ExistsAsync(string title, TagId excludeId, CancellationToken cancellationToken = default)
-    {
-        return context.Database.SupportsILike()
-            ? await context.Tag.AnyAsync(t => t.Id != excludeId && EF.Functions.ILike(t.Title, title), cancellationToken)
-            : await context.Tag.AnyAsync(t => t.Id != excludeId && t.Title.Equals(title, StringComparison.OrdinalIgnoreCase), cancellationToken);
-    }
+    public Task<bool> ExistsAsync(string title, TagId excludeId, CancellationToken cancellationToken = default) =>
+        context.Tag.AnyAsync(t => t.Id != excludeId && t.Title.ToLower() == title.ToLower(), cancellationToken);
+
+    public Task<bool> SlugExistsAsync(string slug, TagId? excludeId, CancellationToken cancellationToken = default) =>
+        context.Tag.AnyAsync(t => t.Slug == slug && t.Id != excludeId, cancellationToken);
 
     public async Task AddAsync(Tag tag, CancellationToken cancellationToken = default)
     {

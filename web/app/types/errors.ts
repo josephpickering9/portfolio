@@ -43,6 +43,7 @@ export const ErrorCodes = {
   CustomColourInvalid: 'custom_colour_invalid',
   QueryRequired: 'query_required',
   QueryTooLong: 'query_too_long',
+  SearchTooLong: 'search_too_long',
 } as const
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes]
@@ -92,6 +93,7 @@ export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCodes.CustomColourInvalid]: "That colour isn't valid. Use a hex value like #1D232A.",
   [ErrorCodes.QueryRequired]: 'Type a question first.',
   [ErrorCodes.QueryTooLong]: 'That question is too long. Shorten it and try again.',
+  [ErrorCodes.SearchTooLong]: 'That search is too long. Shorten it and try again.',
 }
 
 export const NOT_FOUND_ERROR_CODES: readonly ErrorCode[] = [

@@ -13,6 +13,7 @@ public interface IProjectRepository
     Task<IReadOnlyList<Project>> GetRelatedAsync(ProjectId projectId, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(string title, CancellationToken cancellationToken = default);
     Task<bool> ExistsAsync(string title, ProjectId excludeId, CancellationToken cancellationToken = default);
+    Task<bool> SlugExistsAsync(string slug, ProjectId? excludeId, CancellationToken cancellationToken = default);
     Task AddAsync(Project project, CancellationToken cancellationToken = default);
     Task UpdateAsync(Project project, CancellationToken cancellationToken = default);
     Task DeleteAsync(Project project, CancellationToken cancellationToken = default);

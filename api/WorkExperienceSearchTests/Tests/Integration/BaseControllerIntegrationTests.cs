@@ -1,51 +1,40 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
-using Auth0.AuthenticationApi;
-using Auth0.AuthenticationApi.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Extensions;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-public class BaseControllerIntegrationTests : IAsyncLifetime
+public abstract class BaseControllerIntegrationTests : IAsyncLifetime
 {
-    private readonly IConfigurationSection _auth0Settings;
     protected readonly HttpClient AuthenticatedClient;
     protected readonly HttpClient Client;
-    protected readonly CustomWebApplicationFactory Factory;
-    private static string _cachedToken = "";
-    private static DateTime _tokenExpiryTime;
+    protected readonly ApiWebApplicationFactory Factory;
 
-    protected BaseControllerIntegrationTests(CustomWebApplicationFactory factory)
+    protected BaseControllerIntegrationTests(ApiWebApplicationFactory factory)
     {
-        _auth0Settings = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json")
-            .Build()
-            .GetSection("Auth0");
-
         Factory = factory;
         Client = Factory.CreateClient();
-        AuthenticatedClient = GetAuthenticatedClient().GetAwaiter().GetResult();
+        AuthenticatedClient = CreateClientWithToken(TestJwt.Create());
     }
 
-    public async Task InitializeAsync()
-    {
-        await ClearDatabase();
-    }
+    public Task InitializeAsync() => ClearDatabase();
 
-    public Task DisposeAsync()
+    public Task DisposeAsync() => Task.CompletedTask;
+
+    protected HttpClient CreateClientWithToken(string token)
     {
-        return Task.CompletedTask;
+        var client = Factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        return client;
     }
 
     private async Task ClearDatabase()
@@ -53,11 +42,7 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<Database>();
 
-        context.ProjectImage.RemoveRange(context.ProjectImage);
-        context.Project.RemoveRange(context.Project);
-        context.Tag.RemoveRange(context.Tag);
-        context.Company.RemoveRange(context.Company);
-        await context.SaveChangesAsync();
+        await context.TruncateAllTablesAsync();
         InvalidateCaches();
     }
 
@@ -101,7 +86,7 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         {
             var tagService = scope.ServiceProvider.GetRequiredService<ITagService>();
             var createdTags = await tagService.SyncTagsAsync(tags);
-            if (createdTags.Data is not null) project.Tags = [.. createdTags.Data];
+            if (createdTags.Value is not null) project.Tags = [.. createdTags.Value];
         }
 
         var context = scope.ServiceProvider.GetRequiredService<Database>();
@@ -190,7 +175,7 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         foreach (var property in data.GetType().GetProperties())
         {
             var value = property.GetValue(data);
-            if (value == null) continue;
+            if (value is null) continue;
 
             if (value is string stringValue)
                 content.Add(new StringContent(stringValue), property.Name);
@@ -212,35 +197,5 @@ public class BaseControllerIntegrationTests : IAsyncLifetime
         }
 
         return content;
-    }
-
-    private async Task<string> GetAccessToken()
-    {
-        if (!string.IsNullOrEmpty(_cachedToken) && DateTime.UtcNow < _tokenExpiryTime)
-        {
-            return _cachedToken;
-        }
-
-        var auth0Client = new AuthenticationApiClient(new Uri(_auth0Settings["Domain"] ?? ""));
-        var tokenRequest = new ClientCredentialsTokenRequest
-        {
-            ClientId = _auth0Settings["ApiClientId"] ?? string.Empty,
-            ClientSecret = _auth0Settings["ApiClientSecret"] ?? string.Empty,
-            Audience = _auth0Settings["Audience"] ?? string.Empty
-        };
-        var tokenResponse = await auth0Client.GetTokenAsync(tokenRequest);
-        
-        _cachedToken = tokenResponse.AccessToken ?? string.Empty;
-        _tokenExpiryTime = DateTime.UtcNow.AddSeconds(tokenResponse.ExpiresIn);
-
-        return _cachedToken;
-    }
-
-
-    private async Task<HttpClient> GetAuthenticatedClient()
-    {
-        var client = Factory.CreateClient();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", await GetAccessToken());
-        return client;
     }
 }

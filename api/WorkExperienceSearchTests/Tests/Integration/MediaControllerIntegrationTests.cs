@@ -1,13 +1,13 @@
 using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using Work_Experience_Search.Tests;
+using Work_Experience_Search.Extensions;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class MediaControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -17,13 +17,9 @@ public class MediaControllerIntegrationTests(CustomWebApplicationFactory customW
         const string fileName = "testfile.txt";
         const string testContent = "This is a test file.";
         var webHostEnvironment = Factory.Services.GetRequiredService<IWebHostEnvironment>();
-        var webRoot = webHostEnvironment.WebRootPath ?? webHostEnvironment.ContentRootPath;
-        var filePath = Path.Combine(webRoot, "uploads", fileName);
-
-        // Ensure the directory exists
-        Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-        // Create a test file in the temporary directory
+        var uploadDirectory = webHostEnvironment.GetUploadDirectory();
+        var filePath = Path.Combine(uploadDirectory, fileName);
+        Directory.CreateDirectory(uploadDirectory);
         await File.WriteAllTextAsync(filePath, testContent);
 
         var response = await Client.GetAsync($"/media/uploads/{fileName}");
@@ -32,12 +28,7 @@ public class MediaControllerIntegrationTests(CustomWebApplicationFactory customW
         var content = await response.Content.ReadAsStringAsync();
         Assert.Equal(testContent, content);
 
-        // Cleanup - delete the test file and directory after the test
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-            Directory.Delete(Path.GetDirectoryName(filePath)!, true);
-        }
+        File.Delete(filePath);
     }
 
     [Fact]

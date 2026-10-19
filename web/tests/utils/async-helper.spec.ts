@@ -1,6 +1,6 @@
 import { ref } from 'vue'
 import { describe, expect, it } from 'vitest'
-import { ApiRequestError, asyncForm, isAwaitingData, tryCatchFinally, unwrap } from '~/utils/async-helper'
+import { ApiRequestError, asyncForm, isAwaitingData, tryCatchFinally, tryCatchFinallyIfLatest, unwrap } from '~/utils/async-helper'
 import { ERROR_MESSAGES, ErrorCodes, GENERIC_ERROR_MESSAGE } from '~/types/errors'
 
 describe('asyncForm', () => {
@@ -100,6 +100,48 @@ describe('tryCatchFinally', () => {
 
     expect(form.value.error).toBeUndefined()
     expect(form.value.errorCode).toBeUndefined()
+  })
+})
+
+describe('tryCatchFinallyIfLatest', () => {
+  it('commits the result when the request is still the latest', async () => {
+    const form = ref(asyncForm<string>())
+
+    const result = await tryCatchFinallyIfLatest(form, () => true, async () => 'fresh')
+
+    expect(result).toBe('fresh')
+    expect(form.value).toMatchObject({ data: 'fresh', loading: false, error: undefined })
+  })
+
+  it('keeps the previous data visible while loading', async () => {
+    const form = ref({ ...asyncForm<string>(), data: 'previous' })
+    let resolve: (value: string) => void = () => {}
+
+    const pending = tryCatchFinallyIfLatest(form, () => true, () => new Promise<string>((r) => (resolve = r)))
+
+    expect(form.value).toMatchObject({ data: 'previous', loading: true })
+    resolve('next')
+    await pending
+    expect(form.value.data).toBe('next')
+  })
+
+  it('discards the result and leaves the form untouched when a newer request has started', async () => {
+    const form = ref({ ...asyncForm<string>(), data: 'previous' })
+
+    const result = await tryCatchFinallyIfLatest(form, () => false, async () => 'stale')
+
+    expect(result).toBeUndefined()
+    expect(form.value).toMatchObject({ data: 'previous', loading: true })
+  })
+
+  it('records the error code of a failed latest request', async () => {
+    const form = ref(asyncForm<string>())
+
+    await tryCatchFinallyIfLatest(form, () => true, async () => {
+      throw new ApiRequestError({ error: ErrorCodes.ProjectNotFound }, 404)
+    })
+
+    expect(form.value).toMatchObject({ errorCode: ErrorCodes.ProjectNotFound, loading: false })
   })
 })
 

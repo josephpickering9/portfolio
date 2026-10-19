@@ -6,13 +6,12 @@ using Newtonsoft.Json;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Models;
 using Work_Experience_Search.Services;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class ProjectControllerIntegrationTests(CustomWebApplicationFactory customWebApplicationFactory)
     : BaseControllerIntegrationTests(customWebApplicationFactory), IClassFixture<CustomWebApplicationFactory>
 {
@@ -21,9 +20,9 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
     {
         var projects = new List<Project>
         {
-            await CreateProjectAsync(ProjectId.New()),
-            await CreateProjectAsync(ProjectId.New()),
-            await CreateProjectAsync(ProjectId.New())
+            await CreateProjectAsync(ProjectId.New(), "First Project"),
+            await CreateProjectAsync(ProjectId.New(), "Second Project"),
+            await CreateProjectAsync(ProjectId.New(), "Third Project")
         };
 
         var httpResponse = await Client.GetAsync("/project");
@@ -103,8 +102,8 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
     public async Task GetRelatedProjects_ExistingId_ReturnsProjects()
     {
         var tags = new List<string> { "Tag1", "Tag2" };
-        var expectedProject = await CreateProjectAsync(ProjectId.New(), tags: tags);
-        var relatedProject = await CreateProjectAsync(ProjectId.New(), tags: tags);
+        var expectedProject = await CreateProjectAsync(ProjectId.New(), "Expected Project", tags: tags);
+        var relatedProject = await CreateProjectAsync(ProjectId.New(), "Related Project", tags: tags);
 
         var httpResponse = await Client.GetAsync($"/project/{expectedProject.Id}/related");
 
@@ -138,11 +137,12 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.PostAsync("/project", content);
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.Created, httpResponse.StatusCode);
         var stringResponse = await httpResponse.Content.ReadAsStringAsync();
         var actualProject = GetJsonContent<Project>(stringResponse);
 
         Assert.NotNull(actualProject);
+        Assert.EndsWith($"/project/{actualProject.Id}", httpResponse.Headers.Location?.ToString());
         Assert.Equal(newProject.Title, actualProject.Title);
         Assert.Equal(newProject.Description, actualProject.Description);
         Assert.Equal(newProject.ShortDescription, actualProject.ShortDescription);
@@ -464,7 +464,7 @@ public class ProjectControllerIntegrationTests(CustomWebApplicationFactory custo
 
         var httpResponse = await AuthenticatedClient.DeleteAsync($"/project/{existingProject.Id}");
 
-        httpResponse.EnsureSuccessStatusCode();
+        Assert.Equal(HttpStatusCode.NoContent, httpResponse.StatusCode);
 
         using var scope = Factory.Services.CreateScope();
         var context = scope.ServiceProvider.GetRequiredService<Database>();

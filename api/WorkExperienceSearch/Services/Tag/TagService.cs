@@ -8,35 +8,19 @@ namespace Work_Experience_Search.Services;
 
 public sealed class TagService(ITagRepository repository, ILogger<TagService> logger) : ITagService
 {
+    private const string SlugFallback = "tag";
+
     public async Task<Result<IReadOnlyList<Tag>>> GetTagsAsync(string? search, CancellationToken cancellationToken = default)
     {
         var tags = await repository.SearchAsync(search, cancellationToken);
         return tags.ToOk();
     }
 
-    public async Task<Result<Tag>> GetTagAsync(TagId id, CancellationToken cancellationToken = default)
-    {
-        var tag = await repository.GetAsync(id, cancellationToken);
-        if (tag is null)
-        {
-            logger.LogWarning("Tag {TagId} not found.", id);
-            return ErrorCodes.TagNotFound.ToFail();
-        }
+    public async Task<Result<Tag>> GetTagAsync(TagId id, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.TagNotFound);
 
-        return tag.ToOk();
-    }
-
-    public async Task<Result<Tag>> GetTagBySlugAsync(string slug, CancellationToken cancellationToken = default)
-    {
-        var tag = await repository.GetAsync(slug, cancellationToken);
-        if (tag is null)
-        {
-            logger.LogWarning("Tag with slug {Slug} not found.", slug);
-            return ErrorCodes.TagNotFound.ToFail();
-        }
-
-        return tag.ToOk();
-    }
+    public async Task<Result<Tag>> GetTagBySlugAsync(string slug, CancellationToken cancellationToken = default) =>
+        (await repository.GetAsync(slug, cancellationToken)).ToResultOrFail(ErrorCodes.TagNotFound);
 
     public async Task<Result<Tag>> CreateTagAsync(CreateTag createTag, CancellationToken cancellationToken = default)
     {
@@ -47,7 +31,7 @@ public sealed class TagService(ITagRepository repository, ILogger<TagService> lo
         }
 
         var tag = new Tag();
-        ApplyDetails(tag, createTag);
+        await ApplyDetailsAsync(tag, createTag, cancellationToken);
 
         await repository.AddAsync(tag, cancellationToken);
 
@@ -67,7 +51,7 @@ public sealed class TagService(ITagRepository repository, ILogger<TagService> lo
                 continue;
             }
 
-            var newTag = CreateDefaultTag(title);
+            var newTag = await CreateDefaultTagAsync(title, cancellationToken);
             await repository.AddAsync(newTag, cancellationToken);
             syncedTags.Add(newTag);
         }
@@ -90,14 +74,14 @@ public sealed class TagService(ITagRepository repository, ILogger<TagService> lo
             return ErrorCodes.TagAlreadyExists.ToFail();
         }
 
-        ApplyDetails(tag, updateTag);
+        await ApplyDetailsAsync(tag, updateTag, cancellationToken);
 
         await repository.UpdateAsync(tag, cancellationToken);
 
         return tag.ToOk();
     }
 
-    public async Task<Result<Tag>> DeleteTagAsync(TagId id, CancellationToken cancellationToken = default)
+    public async Task<Result> DeleteTagAsync(TagId id, CancellationToken cancellationToken = default)
     {
         var tag = await repository.GetTrackedAsync(id, cancellationToken);
         if (tag is null)
@@ -108,25 +92,30 @@ public sealed class TagService(ITagRepository repository, ILogger<TagService> lo
 
         await repository.DeleteAsync(tag, cancellationToken);
 
-        return tag.ToOk();
+        return Result.Ok();
     }
 
-    private static void ApplyDetails(Tag tag, CreateTag request)
+    private async Task ApplyDetailsAsync(Tag tag, CreateTag request, CancellationToken cancellationToken)
     {
+        if (tag.Title != request.Title)
+            tag.Slug = await ResolveSlugAsync(request.Title, tag.Id, cancellationToken);
+
         tag.Title = request.Title;
         tag.Type = request.Type;
         tag.Icon = request.Icon;
         tag.CustomColour = request.CustomColour;
-        tag.Slug = request.Title.ToSlug();
     }
 
-    private static Tag CreateDefaultTag(string title) =>
+    private async Task<Tag> CreateDefaultTagAsync(string title, CancellationToken cancellationToken) =>
         new()
         {
             Title = title,
             Type = TagType.Default,
             Icon = string.Empty,
             CustomColour = null,
-            Slug = title.ToSlug()
+            Slug = await ResolveSlugAsync(title, null, cancellationToken)
         };
+
+    private Task<string> ResolveSlugAsync(string title, TagId? excludeId, CancellationToken cancellationToken) =>
+        title.ToUniqueSlugAsync(SlugFallback, (slug, ct) => repository.SlugExistsAsync(slug, excludeId, ct), cancellationToken);
 }

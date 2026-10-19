@@ -344,3 +344,33 @@ Frontend checked with knip (components are explicitly imported, so it traces the
 - **E2E against local data:** 4 console-error checks fail locally because `_ipx` 404s on upload images missing from the local `wwwroot/uploads`; they need the real uploads.
 - **Auth-gated CRUD E2E** — still needs a test Auth0 tenant/user.
 - `VertexAiOptions.QueryDataStoreSuffix` is unused but still set by workflows/Dockerfile/README; `Models/Project.cs` uses Newtonsoft `[JsonIgnore]`, so System.Text.Json still serialises `Logo`/`Card`/`Banner` (fixing changes the success response).
+
+---
+
+## Pulse patterns pass (2026-10-19)
+
+Compared the code (not the checklist) against Pulse and ported what was missing. Branch `refactor/pulse-patterns`.
+
+### Backend — fixed
+- `Result` / `Result<T>` are `readonly record struct`s (`Value`, plus a non-generic `Result`); `ToResultOrFail` is back in use. `ResultExtensions` maps un-awaited tasks, so controllers are one expression: `ToResponse()`, `ToCreatedResponse()` (POST → **201** + `Location`), `ToNoContentOrError()` (DELETE and image optimise → **204**). Reverses audit 2's "no non-generic `Result`".
+- **Bug:** titles that differ but share a slug ("C#"/"C", "Vue.js"/"Vuejs") hit the unique index and returned 500. Slugs now go through `ToUniqueSlugAsync` (`c`, `c-2`, then a random suffix), only change when the title does, and fall back to the entity name when a title has no slug characters.
+- **Bug:** `TagRepository.GetByTitleTrackedAsync` passed its arguments to `ILike` reversed, and every "already exists" check used the user's title as a LIKE pattern, so `_`/`%` matched other rows (a tag titled `%` "already existed"). Exact matches are now `lower() = lower()`, search is `strpos`, and the `SupportsILike()` provider branches that existed only for the InMemory tests are gone.
+- List endpoints bind `[FromQuery] SearchQuery` with a validator (`search_too_long`, 100 chars) — also bounds the cache keys built from the search string.
+- Committed Auth0 `ClientSecret` / `ApiClientSecret` removed from `appsettings.json` (they were only there so the tests could fetch a real token).
+
+### Tests — fixed
+- Real PostgreSQL via Testcontainers instead of EF InMemory: template database migrated once, cloned per unit test and per integration class. It immediately caught two tests seeding duplicate slugs that InMemory let through.
+- Locally-signed JWTs (`TestJwt`) instead of a live Auth0 client-credentials call: no network or secrets; added expired / wrong-key / wrong-audience cases. CI no longer runs docker-compose or passes Vertex secrets to restore/build.
+- Integration classes run in parallel (own database each): 191 → 223 tests, ~6 s.
+
+### Frontend — fixed
+- `tryCatchFinallyIfLatest` replaces the two hand-rolled stale-request guards (`ProjectStore.getProjectBySlug`, `AiSearchStore`). Pulse's closure-based `createRequestGeneration` wasn't ported as-is: these are options stores whose state is SSR-serialised, so the counter stays in state.
+- Client regenerated (201/204 responses, typed `VertexIngestSummary`). `yarn codegen` used to exit 1 after generating because its ESLint post-step targeted the ESLint-ignored `api/` folder; the step is removed.
+
+### Kept as-is, deliberately
+- **No pagination.** Lists are a few dozen rows and the frontend filters, derives tag-type filters and builds the timeline from the full list client-side. The real cost is payload size, which the DTO work below addresses.
+
+### Open
+- **Response DTOs** (Pulse's `ToDto()` convention): controllers still return EF entities, which is also why `Project`'s Newtonsoft `[JsonIgnore]`s don't apply. Separate PR — summary DTO for lists, detail DTO for `GET /project/{slug}`, codegen, frontend types.
+- **Rotate the Auth0 secrets** that were committed: they remain in git history on a public repo.
+- **Auth-gated CRUD E2E** still needs a frontend-side test login (the backend half — tests that don't need Auth0 — now exists).

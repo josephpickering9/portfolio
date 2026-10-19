@@ -5,13 +5,12 @@ using Grpc.Core;
 using Moq;
 using Work_Experience_Search.Requests;
 using Work_Experience_Search.Services.VertexAi;
-using Work_Experience_Search.Tests;
+using WorkExperienceSearchTests.Tests.Fixtures;
 using Work_Experience_Search.Types;
 using Xunit;
 
 namespace WorkExperienceSearchTests.Tests.Integration;
 
-[Collection("Sequential")]
 public class VertexStubbedIntegrationTests(VertexStubWebApplicationFactory factory)
     : BaseControllerIntegrationTests(factory), IClassFixture<VertexStubWebApplicationFactory>
 {

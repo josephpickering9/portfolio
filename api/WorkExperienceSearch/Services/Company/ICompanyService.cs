@@ -11,5 +11,5 @@ public interface ICompanyService
     Task<Result<Company>> GetCompanyBySlugAsync(string slug, CancellationToken cancellationToken = default);
     Task<Result<Company>> CreateCompanyAsync(CreateCompany createCompany, CancellationToken cancellationToken = default);
     Task<Result<Company>> UpdateCompanyAsync(CompanyId id, CreateCompany updateCompany, CancellationToken cancellationToken = default);
-    Task<Result<Company>> DeleteCompanyAsync(CompanyId id, CancellationToken cancellationToken = default);
+    Task<Result> DeleteCompanyAsync(CompanyId id, CancellationToken cancellationToken = default);
 }
