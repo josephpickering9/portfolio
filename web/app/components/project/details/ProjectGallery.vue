@@ -16,11 +16,9 @@
             format="webp"
             :src="shot.src"
             :alt="shot.alt"
-            width="560"
-            height="350"
+            v-bind="shotSize"
             fit="cover"
             :modifiers="{ position: 'top' }"
-            sizes="100vw lg:560px"
             loading="lazy"
             class="block aspect-16/10 w-full object-cover object-top"
           />
@@ -78,6 +76,13 @@ const mobileShots = computed<LightboxImage[]>(() =>
     alt: `${props.title} mobile screenshot ${index + 1}`,
     kind: 'mobile',
   })),
+)
+// A lone desktop shot spans the whole row, so it needs a full-width source rather than a grid-cell one.
+// Every `sizes` entry is breakpoint-prefixed: @nuxt/image reads a bare `100vw` as a 1px screen.
+const shotSize = computed(() =>
+  desktopShots.value.length === 1
+    ? { width: 1142, height: 714, sizes: 'sm:100vw xl:1142px' }
+    : { width: 560, height: 350, sizes: 'sm:100vw lg:560px' },
 )
 const lightboxImages = computed(() => [...desktopShots.value, ...mobileShots.value])
 
