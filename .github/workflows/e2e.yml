@@ -1,0 +1,107 @@
+name: E2E
+
+# Runs the Playwright suite against a production build of the frontend and a real API backed by a
+# seeded PostgreSQL database. Called by the API and Web workflows, so a change on either side is
+# checked against the other before it can deploy.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: Playwright against a seeded API
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: e2e
+          POSTGRES_PASSWORD: e2e
+          POSTGRES_DB: portfolio_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U e2e"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CONNECTION_STRING: Host=localhost;Port=5432;Database=portfolio_e2e;Username=e2e;Password=e2e
+      API_URL: http://localhost:5105
+      WEB_PORT: '3100'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: '10.0.x'
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: web/yarn.lock
+
+      - name: Migrate and seed the database
+        run: |
+          dotnet tool install --global dotnet-ef --version 10.0.13
+          dotnet ef database update --project api/Portfolio.Api --connection "$CONNECTION_STRING"
+          psql "postgresql://e2e:e2e@localhost:5432/portfolio_e2e" -v ON_ERROR_STOP=1 -f web/e2e/fixtures/seed.sql
+
+      - name: Start the API
+        working-directory: api/Portfolio.Api
+        env:
+          ASPNETCORE_URLS: ${{ env.API_URL }}
+          ConnectionStrings__DefaultConnection: ${{ env.CONNECTION_STRING }}
+          Auth0__Domain: https://e2e.invalid
+          Auth0__ClientId: e2e
+          Auth0__Audience: ${{ env.API_URL }}
+          Cors__AllowedOrigins__0: http://localhost:${{ env.WEB_PORT }}
+        run: |
+          mkdir -p wwwroot/uploads
+          cp ../../web/e2e/fixtures/uploads/* wwwroot/uploads/
+          nohup dotnet run --no-launch-profile > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 1 90); do
+            curl -sf "$API_URL/health" > /dev/null && exit 0
+            sleep 2
+          done
+          cat "$RUNNER_TEMP/api.log"
+          exit 1
+
+      - name: Install frontend dependencies
+        working-directory: web
+        run: yarn install --frozen-lockfile
+
+      - name: Check the generated API client matches the API
+        working-directory: web
+        run: |
+          yarn codegen
+          git diff --exit-code -- api || { echo "::error::web/api is out of date with the API's Swagger spec. Run 'yarn codegen' and commit the result."; exit 1; }
+
+      - name: Install Playwright's Chromium
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright
+        working-directory: web
+        env:
+          CI: 'true'
+          E2E_PORT: ${{ env.WEB_PORT }}
+          NUXT_PUBLIC_API_BASE: ${{ env.API_URL }}
+          NUXT_AUTH0_DOMAIN: e2e.invalid
+          NUXT_AUTH0_CLIENT_ID: e2e
+        run: yarn test:e2e
+
+      - name: Upload the Playwright report and API log
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: e2e-report
+          path: |
+            web/playwright-report
+            ${{ runner.temp }}/api.log
+          retention-days: 7

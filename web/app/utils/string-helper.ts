@@ -1,4 +1,5 @@
 const PAD_LENGTH = 2
+const SHORT_SHA_LENGTH = 7
 
 export function capitalise(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
@@ -22,4 +23,8 @@ export function getHost(url?: string | null): string {
 
 export function includesSearch(text: string, search: string): boolean {
   return text.toLowerCase().includes(search.trim().toLowerCase())
+}
+
+export function formatShortSha(sha: string): string {
+  return sha.slice(0, SHORT_SHA_LENGTH)
 }

@@ -1,0 +1,69 @@
+name: Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'api/Portfolio.Api/Types/ErrorCodes.cs'
+      - '.github/workflows/web.yml'
+      - '.github/workflows/web-deploy.yml'
+      - '.github/workflows/e2e.yml'
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'api/Portfolio.Api/Types/ErrorCodes.cs'
+      - '.github/workflows/web.yml'
+      - '.github/workflows/web-deploy.yml'
+      - '.github/workflows/e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint, typecheck, unit tests & coverage
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'yarn'
+          cache-dependency-path: web/yarn.lock
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint:full
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Unit tests
+        run: yarn test:coverage
+
+      - name: Coverage summary
+        run: node scripts/coverage-summary.mjs >> "$GITHUB_STEP_SUMMARY"
+
+  e2e:
+    uses: ./.github/workflows/e2e.yml
+
+  deploy:
+    name: Deploy
+    needs: [test, e2e]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Queue rather than overlap, so one run never deletes an artifact another run is still using
+    concurrency:
+      group: web-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: write
+    uses: ./.github/workflows/web-deploy.yml
+    secrets: inherit

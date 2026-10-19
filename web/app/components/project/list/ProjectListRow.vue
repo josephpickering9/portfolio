@@ -12,12 +12,12 @@
 </template>
 
 <script setup lang="ts">
-import type { Project } from '@api'
+import type { ProjectSummary } from '@api'
 import { getTagSummary } from '~/utils/project-helper'
 import { padNumber } from '~/utils/string-helper'
 
 interface Props {
-  project: Project
+  project: ProjectSummary
   index: number
 }
 

@@ -1,0 +1,9 @@
+name: Portfolio CodeQL config
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  - web/api
+  - api/Portfolio.Api/Migrations
+  - '**/node_modules'

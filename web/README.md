@@ -1,10 +1,10 @@
-# Work Experience (Frontend)
+# Portfolio (Frontend)
 
 A Nuxt 4 portfolio application showcasing my professional projects and the technologies used across them. Originally built as a personal tool to search projects by technology, it's now a full portfolio with AI search, company timelines, and a CMS for managing content.
 
-Consumes the [Work Experience API](../api) in this repo.
+Consumes the [Portfolio API](../api) in this repo.
 
-**Live:** [experience.josephpickering.co.uk](https://experience.josephpickering.co.uk)
+**Live:** [josephpickering.co.uk](https://josephpickering.co.uk)
 
 ## Table of Contents
 
@@ -38,13 +38,14 @@ Consumes the [Work Experience API](../api) in this repo.
 | Framework | Nuxt 4, Vue 3, TypeScript |
 | Styling | Tailwind CSS v4 with custom design tokens |
 | State | Pinia (with persisted state) |
-| Auth | Auth0 (`@auth0/auth0-vue`) |
+| Auth | Auth0 (`@auth0/auth0-spa-js`, loaded only when needed) |
 | API Client | `@hey-api/client-axios` (OpenAPI generated) |
 | Forms | Vuelidate |
 | Rich Text | Tiptap |
 | Drag & Drop | vuedraggable |
 | PWA | `@vite-pwa/nuxt` |
-| Testing | Vitest (unit), Playwright (E2E) |
+| Security | `nuxt-security` (nonce-based CSP, SRI, HSTS) |
+| Testing | Vitest (unit, coverage), Playwright + axe-core (E2E, accessibility) |
 | Linting | ESLint, Prettier, Husky + lint-staged |
 
 ## Project Structure
@@ -66,7 +67,7 @@ e2e/                # Playwright E2E specs (data-testid selectors)
 
 ## Getting Started
 
-**Prerequisites:** Node.js (LTS), Yarn, a running instance of the [Work Experience API](../api), and an Auth0 application.
+**Prerequisites:** Node.js (LTS), Yarn, a running instance of the [Portfolio API](../api), and an Auth0 application.
 
 ```bash
 # Clone and install
@@ -89,8 +90,7 @@ yarn dev
 
 | Variable | Description |
 |---|---|
-| `NUXT_PUBLIC_API_BASE` | Base URL of the Work Experience API (e.g. `http://localhost:5105` locally) |
-| `NUXT_PUBLIC_BASE` | Base URL of this frontend (used for PWA and redirects, e.g. `http://localhost:3000` locally) |
+| `NUXT_PUBLIC_API_BASE` | Base URL of the Portfolio API (e.g. `http://localhost:5105` locally). Also read at build time for the CSP's `connect-src`/`img-src` |
 | `NUXT_AUTH0_CLIENT_ID` | Auth0 application client ID |
 | `NUXT_AUTH0_DOMAIN` | Auth0 domain (e.g. `your-tenant.auth0.com`) |
 | `NUXT_PUBLIC_LINKED_IN_URL` | LinkedIn profile URL displayed in the header |
@@ -125,10 +125,11 @@ Vitest for unit tests, Playwright for E2E:
 ```bash
 yarn test          # Unit tests (tests/**/*.spec.ts)
 yarn test:watch    # Unit tests in watch mode
-yarn test:e2e      # E2E tests (e2e/*.spec.ts) — starts its own dev server automatically
+yarn test:coverage # Unit tests with a coverage summary
+yarn test:e2e      # E2E tests (e2e/*.spec.ts) — builds and serves a production build on :3100 automatically
 ```
 
-E2E coverage is currently the public flows (home, project search/filter, project details, companies, technologies, AI search with a mocked upstream, theme and mobile menu, public page navigation) — the authenticated CMS flows (create/update/delete) sit behind a real Auth0 login with no bypass in this codebase, so they aren't covered yet. See `CLAUDE.md`'s Testing section for details.
+E2E coverage is the public flows (home, project search/filter, project details, companies, technologies, AI search with a mocked upstream, theme and mobile menu, public page navigation), axe-core WCAG 2.2 AA checks on every public page, and SEO/security-header assertions. In CI it runs against a seeded database (`e2e/fixtures/seed.sql`) — the authenticated CMS flows (create/update/delete) sit behind a real Auth0 login with no bypass in this codebase, so they aren't covered yet. See `CLAUDE.md`'s Testing section for details.
 
 ## Linting
 
@@ -142,7 +143,7 @@ yarn lint --fix    # Lint and auto-fix
 
 ## Deployment
 
-The project deploys automatically to a Digital Ocean droplet via GitHub Actions on push to `main`. The server runs the app with PM2 (`ecosystem.config.js`).
+`.github/workflows/web.yml` lints, typechecks and unit-tests every PR and push, runs the shared E2E suite, and only then, on `main`, deploys to a DigitalOcean droplet. There, [`deploy/activate.sh`](./deploy/activate.sh) starts the release under PM2 (`ecosystem.config.js`), health-checks it and rolls back to the previous release if it never responds. Lighthouse CI (`web/lighthouserc.json`) audits the live site after each deploy. See [`docs/deploy`](../docs/deploy/README.md), including the nginx settings the static assets depend on.
 
 ## Conventions
 

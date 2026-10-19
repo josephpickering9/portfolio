@@ -10,10 +10,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Project } from '@api'
+import type { ProjectSummary } from '@api'
 
 interface Props {
-  project: Project
+  project: ProjectSummary
 }
 
 defineProps<Props>()

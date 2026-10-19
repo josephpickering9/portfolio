@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { ErrorCodes } from '~/types/errors'
 
 const backendErrorCodesPath = fileURLToPath(
-  new URL('../../../api/WorkExperienceSearch/Types/ErrorCodes.cs', import.meta.url),
+  new URL('../../../api/Portfolio.Api/Types/ErrorCodes.cs', import.meta.url),
 )
 const backendConstPattern = /public const string \w+ = "([a-z_]+)";/g
 

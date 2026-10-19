@@ -1,306 +1,137 @@
-name: API Build & Deploy
+name: API Deploy
 
+# Only reachable from the API workflow, after its tests and the E2E suite have passed.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'api/**'
-      - '.github/workflows/api-deploy.yml'
+  workflow_call:
 
-# Queue rather than overlap, so one run never deletes an artifact another run is still using
-concurrency:
-  group: api-deploy
-  cancel-in-progress: false
+permissions:
+  contents: read
+  actions: write
 
 jobs:
-  delete-previous-artifacts:
-    name: Delete Old Artifacts
+  build:
+    name: Build release
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v7
-        id: artifact
-        with:
-          script: |
-            // Scoped by name: the web deploy shares this repo's artifact store
-            const res = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'api-build',
-            })
-            res.data.artifacts
-              .forEach(({ id }) => {
-                github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: id,
-                })
-              })
-
-  create-deployment-artifacts:
-    name: Create Deployment Artifacts
-    runs-on: ubuntu-latest
-    needs: delete-previous-artifacts
     defaults:
       run:
         working-directory: api
     outputs:
       deployment-matrix: ${{ steps.export-deployment-matrix.outputs.deployment-matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Set up .NET Core
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: '10.0.x'
 
-      - name: Build and Publish
-        run: |
-          dotnet publish -c Release
+      - name: Publish
+        run: dotnet publish Portfolio.Api -c Release
 
       # Self-contained migrations bundle so the server never has to restore/build
       - name: Build migrations bundle
         run: |
           dotnet tool install --global dotnet-ef --version 10.0.13
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet restore WorkExperienceSearch -r linux-x64
-          dotnet ef migrations bundle --project WorkExperienceSearch --configuration Release --runtime linux-x64 --self-contained -o efbundle
-          
-      - name: Prepare files for archiving
-        run: |
-          mkdir temp_dir
-            for file in *; do
-              if [[ ! "$file" =~ ^\.git$|^\.github$|^\.vs$|^\.vscode$|^obj$|^bin$|^temp_dir$ ]]; then
-                cp -r "$file" temp_dir/
-            fi
-          done
+          dotnet restore Portfolio.Api -r linux-x64
+          dotnet ef migrations bundle --project Portfolio.Api --configuration Release --runtime linux-x64 --self-contained -o efbundle
 
       - name: Create deployment artifact
-        run: tar -czf "${GITHUB_SHA}".tar.gz -C temp_dir .
+        run: tar -czf "$RUNNER_TEMP/${GITHUB_SHA}.tar.gz" --exclude=./Portfolio.Api.Tests --exclude=./Portfolio.Api/obj .
 
-      - name: Cleanup temporary files
-        run: |
-          rm -rf temp_dir
+      - name: Delete the previous API artifact
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            // Scoped by name: the web deploy shares this repo's artifact store
+            const { data } = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'api-build',
+            })
+            await Promise.all(data.artifacts.map(({ id }) =>
+              github.rest.actions.deleteArtifact({ owner: context.repo.owner, repo: context.repo.repo, artifact_id: id })))
 
       - name: Store artifact for distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: api-build
-          path: api/${{ github.sha }}.tar.gz
+          path: ${{ runner.temp }}/${{ github.sha }}.tar.gz
+          retention-days: 7
 
       - name: Export deployment matrix
         id: export-deployment-matrix
         run: |
           delimiter="$(openssl rand -hex 8)"
-          JSON="$(cat ./'WorkExperienceSearch'/deployment-config.json)"
-          echo "deployment-matrix<<${delimiter}" >> "${GITHUB_OUTPUT}"
-          echo "$JSON" >> "${GITHUB_OUTPUT}"
-          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
-          
-  prepare-release-on-server:
-    name: Prepare release on server
+          {
+            echo "deployment-matrix<<${delimiter}"
+            cat Portfolio.Api/deployment-config.json
+            echo "${delimiter}"
+          } >> "${GITHUB_OUTPUT}"
+
+  release:
+    name: '${{ matrix.server.name }}: Release'
     runs-on: ubuntu-latest
-    needs: create-deployment-artifacts
+    needs: build
     strategy:
       matrix:
-        server: ${{fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix)}}
+        server: ${{ fromJson(needs.build.outputs.deployment-matrix) }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: api-build
-  
+
       - name: Upload
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ matrix.server.ip }}
           username: ${{ matrix.server.username }}
           key: ${{ secrets.SSH_KEY }}
           source: ${{ github.sha }}.tar.gz
           target: ${{ matrix.server.path }}/artifacts
-  
-      - name: Extract archive and create directories
-        uses: appleboy/ssh-action@master
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-        with:
-          host: ${{ matrix.server.ip }}
-          username: ${{ matrix.server.username }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ matrix.server.port }}
-          command_timeout: 15m
-          envs: GITHUB_SHA
-          script: |
-            mkdir -p "${{ matrix.server.path }}/releases/${GITHUB_SHA}"
-            tar xzf ${{ matrix.server.path }}/artifacts/${GITHUB_SHA}.tar.gz -C "${{ matrix.server.path }}/releases/${GITHUB_SHA}"
 
-  run-before-hooks:
-    name: '${{ matrix.server.name }}: Before hook'
-    runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server]
-    strategy:
-      matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
-    steps:
-      - name: Run before hooks
-        uses: appleboy/ssh-action@master
+      - name: Activate release
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           GITHUB_SHA: ${{ github.sha }}
           RELEASE_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}
           ACTIVE_RELEASE_PATH: ${{ matrix.server.path }}/current
           BASE_PATH: ${{ matrix.server.path }}
-        with:
-          host: ${{ matrix.server.ip }}
-          username: ${{ matrix.server.username }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ matrix.server.port }}
-          envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH
-          script: |
-            ${{ matrix.server.beforeHooks }}
-            
-  activate-release:
-    name: '${{ matrix.server.name }}: Activate release'
-    runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server, run-before-hooks]
-    strategy:
-      matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
-    steps:
-      - name: Activate release
-        uses: appleboy/ssh-action@master
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          RELEASE_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}/WorkExperienceSearch
-          RELEASE_BIN_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}/WorkExperienceSearch/bin/Release/net10.0/publish
           ROOT_PATH: ${{ matrix.server.path }}/wwwroot
-          ACTIVE_RELEASE_PATH: ${{ matrix.server.path }}/current
-          BASE_PATH: ${{ matrix.server.path }}
           DATABASE_CONNECTION_STRING: ${{ secrets.DATABASE_CONNECTION_STRING }}
+          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
+          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
+          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
           VERTEX_AI_CREDENTIALS_JSON: ${{ secrets.VERTEX_AI_CREDENTIALS_JSON }}
+          VERTEX_AI_PROJECT_ID: ${{ secrets.VERTEX_AI_PROJECT_ID }}
+          VERTEX_AI_LOCATION: ${{ secrets.VERTEX_AI_LOCATION }}
+          VERTEX_AI_COLLECTION: ${{ secrets.VERTEX_AI_COLLECTION }}
+          VERTEX_AI_BRANCH: ${{ secrets.VERTEX_AI_BRANCH }}
+          VERTEX_AI_ENVIRONMENT: ${{ secrets.VERTEX_AI_ENVIRONMENT }}
+          VERTEX_AI_MODEL: ${{ secrets.VERTEX_AI_MODEL }}
+          VERTEX_AI_MODEL_LOCATION: ${{ secrets.VERTEX_AI_MODEL_LOCATION }}
+          VERTEX_AI_QUERY_DATASTORE_SUFFIX: ${{ secrets.VERTEX_AI_QUERY_DATASTORE_SUFFIX }}
         with:
           host: ${{ matrix.server.ip }}
           username: ${{ matrix.server.username }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ matrix.server.port }}
           command_timeout: 30m
-          envs: GITHUB_SHA,RELEASE_PATH,RELEASE_BIN_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,DATABASE_CONNECTION_STRING,ROOT_PATH,VERTEX_AI_CREDENTIALS_JSON
+          envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,ROOT_PATH,DATABASE_CONNECTION_STRING,AUTH0_DOMAIN,AUTH0_CLIENT_ID,AUTH0_AUDIENCE,VERTEX_AI_CREDENTIALS_JSON,VERTEX_AI_PROJECT_ID,VERTEX_AI_LOCATION,VERTEX_AI_COLLECTION,VERTEX_AI_BRANCH,VERTEX_AI_ENVIRONMENT,VERTEX_AI_MODEL,VERTEX_AI_MODEL_LOCATION,VERTEX_AI_QUERY_DATASTORE_SUFFIX
           script: |
             set -e
-
-            exec 9>/tmp/work-experience-deploy.lock
-            flock -x -w 1500 9 || { echo "Timed out waiting for deploy lock." >&2; exit 1; }
-
-            cd "$RELEASE_PATH"
-
-            SERVICE_ACCOUNT_PATH="$RELEASE_PATH/service-account.json"
-            if [ -n "$VERTEX_AI_CREDENTIALS_JSON" ]; then
-              echo "$VERTEX_AI_CREDENTIALS_JSON" | base64 -d > "$SERVICE_ACCOUNT_PATH"
-            else
-              echo "Vertex AI credential secret (VERTEX_AI_CREDENTIALS_JSON) is missing or empty." >&2
-              exit 1
-            fi
-
-            cat > appsettings.json << EOF
-            {
-              "ConnectionStrings": {
-                "DefaultConnection": "${{ secrets.DATABASE_CONNECTION_STRING }}"
-              },
-              "Auth0": {
-                "Domain": "${{ secrets.AUTH0_DOMAIN }}",
-                "ClientId": "${{ secrets.AUTH0_CLIENT_ID }}",
-                "Audience": "${{ secrets.AUTH0_AUDIENCE }}"
-              },
-              "VertexAi": {
-                "ProjectId": "${{ secrets.VERTEX_AI_PROJECT_ID }}",
-                "Location": "${{ secrets.VERTEX_AI_LOCATION }}",
-                "Collection": "${{ secrets.VERTEX_AI_COLLECTION }}",
-                "Branch": "${{ secrets.VERTEX_AI_BRANCH }}",
-                "Environment": "${{ secrets.VERTEX_AI_ENVIRONMENT }}",
-                "Model": "${{ secrets.VERTEX_AI_MODEL }}",
-                "ModelLocation": "${{ secrets.VERTEX_AI_MODEL_LOCATION }}",
-                "QueryDataStoreSuffix": "${{ secrets.VERTEX_AI_QUERY_DATASTORE_SUFFIX }}",
-                "CredentialsFile": "$SERVICE_ACCOUNT_PATH"
-              }
-            }
-            EOF
-
-            cat > .env << EOF
-            ConnectionStrings__DefaultConnection=${{ secrets.DATABASE_CONNECTION_STRING }}
-            Auth0:Domain=${{ secrets.AUTH0_DOMAIN }}
-            Auth0:ClientId=${{ secrets.AUTH0_CLIENT_ID }}
-            Auth0:Audience=${{ secrets.AUTH0_AUDIENCE }}
-            VertexAi:ProjectId=${{ secrets.VERTEX_AI_PROJECT_ID }}
-            VertexAi:Location=${{ secrets.VERTEX_AI_LOCATION }}
-            VertexAi:Collection=${{ secrets.VERTEX_AI_COLLECTION }}
-            VertexAi:Branch=${{ secrets.VERTEX_AI_BRANCH }}
-            VertexAi:Environment=${{ secrets.VERTEX_AI_ENVIRONMENT }}
-            VertexAi:Model=${{ secrets.VERTEX_AI_MODEL }}
-            VertexAi:ModelLocation=${{ secrets.VERTEX_AI_MODEL_LOCATION }}
-            VertexAi:QueryDataStoreSuffix=${{ secrets.VERTEX_AI_QUERY_DATASTORE_SUFFIX }}
-            VertexAi:CredentialsFile=$SERVICE_ACCOUNT_PATH
-            EOF
-
-            # Ensure configuration files are in the publish directory the app runs from
-            cp appsettings.json "$RELEASE_BIN_PATH"/
-            cp .env "$RELEASE_BIN_PATH"/
-
-            export DOTNET_ROOT=/usr/share/dotnet
-            export PATH="$PATH:$DOTNET_ROOT:$HOME/.dotnet/tools"
-            chmod +x ../efbundle
-            ../efbundle --connection "$DATABASE_CONNECTION_STRING"
-
-            # Stop any currently running instance to avoid port conflicts and stale configs
-            port_pid=$(lsof -t -i:5000 -sTCP:LISTEN 2>/dev/null | head -n1)
-            if [ -n "$port_pid" ]; then
-              kill "$port_pid" || true
-              sleep 2
-            fi
-
-            dir_pid=$(lsof -t +D "$ACTIVE_RELEASE_PATH" 2>/dev/null | head -n1)
-            if [ -n "$dir_pid" ]; then
-              kill "$dir_pid" || true
-            fi
-
-            ln -s -n -f "$RELEASE_BIN_PATH" "$ACTIVE_RELEASE_PATH"
-            ln -s -n -f "$ROOT_PATH" "$RELEASE_BIN_PATH/wwwroot"
-            cd "$RELEASE_BIN_PATH"
-            LOG_PATH="${BASE_PATH}/logs"
-            mkdir -p "$LOG_PATH"
-            # Close fd 9 so the long-running API doesn't hold the deploy lock, and detach stdin so SSH can exit
-            nohup dotnet "WorkExperienceSearch.dll" > "$LOG_PATH/api.log" 2>&1 < /dev/null 9>&- &
-  
-  run-after-hooks:
-    name: '${{ matrix.server.name }}: After hook'
-    runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server, run-before-hooks, activate-release]
-    strategy:
-      matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
-    steps:
-      - name: Run after hooks
-        uses: appleboy/ssh-action@master
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          RELEASE_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}
-          ACTIVE_RELEASE_PATH: ${{ matrix.server.path }}/current
-          BASE_PATH: ${{ matrix.server.path }}
-        with:
-          host: ${{ matrix.server.ip }}
-          username: ${{ matrix.server.username }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ matrix.server.port }}
-          envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH
-          script: |
-            ${{ matrix.server.afterHooks }}
+            mkdir -p "$RELEASE_PATH"
+            tar xzf "$BASE_PATH/artifacts/$GITHUB_SHA.tar.gz" -C "$RELEASE_PATH"
+            bash "$RELEASE_PATH/deploy/activate.sh"
 
   clean-up:
     name: '${{ matrix.server.name }}: Clean up'
     runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server, run-before-hooks, activate-release, run-after-hooks]
+    needs: [build, release]
     strategy:
       matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
+        server: ${{ fromJson(needs.build.outputs.deployment-matrix) }}
     steps:
-      - name: Run after hooks
-        uses: appleboy/ssh-action@master
+      - name: Keep the two most recent releases
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           RELEASES_PATH: ${{ matrix.server.path }}/releases
           ARTIFACTS_PATH: ${{ matrix.server.path }}/artifacts
@@ -309,7 +140,9 @@ jobs:
           username: ${{ matrix.server.username }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ matrix.server.port }}
-          envs: RELEASES_PATH
+          envs: RELEASES_PATH,ARTIFACTS_PATH
           script: |
-            cd $RELEASES_PATH && ls -t -1 | tail -n +3 | xargs rm -rf
-            cd $ARTIFACTS_PATH && ls -t -1 | tail -n +3 | xargs rm -rf
+            set -eu
+            : "${RELEASES_PATH:?}" "${ARTIFACTS_PATH:?}"
+            cd "$RELEASES_PATH" && ls -t -1 | tail -n +3 | xargs -r rm -rf
+            cd "$ARTIFACTS_PATH" && ls -t -1 | tail -n +3 | xargs -r rm -rf

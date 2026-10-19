@@ -1,8 +1,8 @@
-# Work Experience API
+# Portfolio API
 
-A .NET 10 REST API serving the [Work Experience](https://experience.josephpickering.co.uk) portfolio website. Built with clean architecture, a typed Result pattern, AI-powered search via Google Vertex AI, and automated CI/CD to Digital Ocean.
+A .NET 10 REST API serving the portfolio website at [josephpickering.co.uk](https://josephpickering.co.uk). Built with clean architecture, a typed Result pattern, AI-powered search via Google Vertex AI, and automated CI/CD to Digital Ocean.
 
-**Live API:** [api.experience.josephpickering.co.uk](https://api.experience.josephpickering.co.uk)
+**Live API:** [api.experience.josephpickering.co.uk](https://api.experience.josephpickering.co.uk/health)
 **Swagger UI:** [api.experience.josephpickering.co.uk/swagger](https://api.experience.josephpickering.co.uk/swagger)
 
 ---
@@ -38,28 +38,20 @@ Controllers  →  Services  →  Repositories  →  Database (EF Core / PostgreS
 **Result pattern** — every fallible service method returns `Result<T>` carrying an error code from `Types/ErrorCodes.cs`. Controllers never throw or branch; a single `result.ToResponse()` call maps success to 200/204 and failure to `{ "error": "<code>" }` with the status from `Extensions/ErrorStatusCodes.cs`. Validation, auth, rate-limit and unhandled-exception failures use the same body.
 
 ```csharp
-// Service — primary-constructor DI, sealed, CancellationToken plumbed through
+// Service — primary-constructor DI, sealed, CancellationToken plumbed through.
+// A not-found on a public read is the caller's problem, so it isn't logged.
 public sealed class ProjectService(IProjectRepository projectRepository, ILogger<ProjectService> logger) : IProjectService
 {
-    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default)
-    {
-        var project = await projectRepository.GetAsync(id, cancellationToken);
-        if (project is null)
-        {
-            logger.LogWarning("Project {ProjectId} not found.", id);
-            return ErrorCodes.ProjectNotFound.ToFail();
-        }
-
-        return project.ToOk();
-    }
+    public async Task<Result<Project>> GetProjectAsync(ProjectId id, CancellationToken cancellationToken = default) =>
+        (await projectRepository.GetAsync(id, cancellationToken)).ToResultOrFail(ErrorCodes.ProjectNotFound);
 }
 
-// Controller
+// Controller — one expression, never branches on the result
 public sealed class ProjectController(IProjectService projectService) : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<Project>> GetProject(ProjectId id, CancellationToken cancellationToken) =>
-        (await projectService.GetProjectAsync(id, cancellationToken)).ToResponse();
+    public Task<ActionResult<Project>> GetProjectById(ProjectId id, CancellationToken cancellationToken) =>
+        projectService.GetProjectAsync(id, cancellationToken).ToResponse();
 }
 ```
 
@@ -68,6 +60,10 @@ public sealed class ProjectController(IProjectService projectService) : Controll
 **Repository pattern with base class** — `BaseRepository` centralises the `IMemoryCache` get/set helpers so each concrete repository stays focused on building its own cache keys and queries.
 
 **Token-based cache invalidation** — `CacheInvalidator` issues `IChangeToken` instances per entity type. Write operations (add / update / delete) cancel the relevant token, atomically evicting all related cache entries without explicit key tracking.
+
+**List responses are summaries** — `GET /project` returns `ProjectSummary` records (`Responses/`) with only the fields list views render, plus a server-chosen `cardImageUrl`; the full `Project` comes from `GET /project/{slug}`. That cut the homepage's server-rendered payload from 227 KB to 76 KB.
+
+**Hardened for running behind nginx** — forwarded headers are trusted from loopback, so the AI search rate limit is per visitor rather than per proxy and HSTS is sent; every response carries `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` and a `default-src 'none'` CSP (`Extensions/SecurityExtensions.cs`); CORS only allows the configured frontend origin (`Cors:AllowedOrigins`).
 
 **Typed IDs** — every entity uses a strongly-typed ID wrapper (e.g. `ProjectId`, `CompanyId`) backed by `Guid`, surfaced as plain UUIDs in the OpenAPI spec.
 
@@ -94,12 +90,12 @@ public sealed class ProjectController(IProjectService projectService) : Controll
 2. **Start the database**
 
    ```bash
-   docker-compose -f WorkExperienceSearch/docker-compose.yml up -d
+   docker-compose -f Portfolio.Api/docker-compose.yml up -d
    ```
 
 3. **Configure environment variables**
 
-   Create a `.env` file in `WorkExperienceSearch/` (use `.env.example` as a reference). Most keys use a colon, matching `IConfiguration`'s path syntax directly — `dotenv.net` loads them as literal environment variable names and ASP.NET's `AddEnvironmentVariables()` binds a colon in the name straight through. The connection string uses `ConnectionStrings__DefaultConnection` so `GetConnectionString("DefaultConnection")` picks it up (`__` also maps to `:`):
+   Create a `.env` file in `Portfolio.Api/` (use `.env.example` as a reference). Most keys use a colon, matching `IConfiguration`'s path syntax directly — `dotenv.net` loads them as literal environment variable names and ASP.NET's `AddEnvironmentVariables()` binds a colon in the name straight through. The connection string uses `ConnectionStrings__DefaultConnection` so `GetConnectionString("DefaultConnection")` picks it up (`__` also maps to `:`):
 
    ```env
    ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=work_experience;Username=postgres;Password=postgres
@@ -121,17 +117,17 @@ public sealed class ProjectController(IProjectService projectService) : Controll
 4. **Apply database migrations**
 
    ```bash
-   cd WorkExperienceSearch
+   cd Portfolio.Api
    dotnet ef database update
    ```
 
 5. **Run the application**
 
    ```bash
-   dotnet run --project WorkExperienceSearch
+   dotnet run --project Portfolio.Api
    ```
 
-   The API starts at `http://localhost:5105`. Swagger is available at `http://localhost:5105/swagger`.
+   The API starts at `http://localhost:5105`. Swagger is available at `http://localhost:5105/swagger` (and publicly at [api.experience.josephpickering.co.uk/swagger](https://api.experience.josephpickering.co.uk/swagger)).
 
 6. **Check health**
 
@@ -147,13 +143,13 @@ The test suite covers three levels:
 
 | Type | Location | Tooling |
 |---|---|---|
-| Unit | `WorkExperienceSearchTests/Tests/Unit/` | xUnit, Moq, real PostgreSQL (Testcontainers) |
-| Integration | `WorkExperienceSearchTests/Tests/Integration/` | `WebApplicationFactory` against real PostgreSQL, real HTTP client, locally-signed JWTs, stubbed Vertex AI upstream |
-| Architecture | `WorkExperienceSearchTests/Tests/Architecture/` | NetArchTest |
+| Unit | `Portfolio.Api.Tests/Unit/` | xUnit, Moq, real PostgreSQL (Testcontainers) |
+| Integration | `Portfolio.Api.Tests/Integration/` | `WebApplicationFactory` against real PostgreSQL, real HTTP client, locally-signed JWTs, stubbed Vertex AI upstream |
+| Architecture | `Portfolio.Api.Tests/Architecture/` | NetArchTest |
 
-Tests run against real PostgreSQL, so Docker must be running. `Tests/Fixtures/TestDatabase.cs` starts one `postgres:17-alpine` container per run, applies the migrations to a template database once, and clones a fresh database from it for every unit test and every integration test class. Set `TEST_POSTGRES_CONNECTION` to a server connection string to use an existing PostgreSQL instead of a container.
+Tests run against real PostgreSQL, so Docker must be running. `Fixtures/TestDatabase.cs` starts one `postgres:17-alpine` container per run, applies the migrations to a template database once, and clones a fresh database from it for every unit test and every integration test class. Set `TEST_POSTGRES_CONNECTION` to a server connection string to use an existing PostgreSQL instead of a container.
 
-The suite needs no network access and no secrets: integration tests sign their own JWTs (`Tests/Fixtures/TestJwt.cs`) and the factory points JwtBearer at that test key, so the real authentication pipeline (including the `401 { "error": "unauthorized" }` body) is exercised without calling Auth0.
+The suite needs no network access and no secrets: integration tests sign their own JWTs (`Fixtures/TestJwt.cs`) and the factory points JwtBearer at that test key, so the real authentication pipeline (including the `401 { "error": "unauthorized" }` body) is exercised without calling Auth0.
 
 Run all tests:
 
@@ -178,32 +174,32 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## CI/CD
 
-Two GitHub Actions workflows (path-filtered to `api/**`) run on push:
+`.github/workflows/api.yml` (path-filtered to `api/**`) builds and tests the API with a coverage summary on every PR and push, runs the shared E2E suite (`e2e.yml`: the Playwright tests against a production frontend build and this API on a seeded PostgreSQL, plus a check that the generated frontend client still matches the Swagger spec), and only then, on `main`, calls `api-deploy.yml`.
 
-**`.github/workflows/api-tests.yml`** — restores, builds, and runs the full test suite (Testcontainers starts PostgreSQL on the runner's Docker). Pull requests cannot be merged if this workflow fails.
-
-**`.github/workflows/api-deploy.yml`** — triggers on push to `main`. Publishes the app, uploads the artifact to the Digital Ocean droplet via SCP, runs `dotnet ef database update` on the server, then stops the currently running process, symlinks the new release into place, and starts it — a brief restart window, not a zero-downtime swap.
+The deploy publishes the app and a self-contained migrations bundle, uploads them to the droplet and runs [`deploy/activate.sh`](./deploy/activate.sh): write config, migrate, switch the `current` symlink, restart the `portfolio-api` systemd service and poll `/health`, rolling back to the previous release if it never passes. See [`docs/deploy`](../docs/deploy/README.md).
 
 ---
 
 ## Project Structure
 
 ```
-WorkExperienceSearch/
+Portfolio.Api/
 ├── Controllers/          # Thin HTTP layer — receive, delegate, respond
 ├── Services/<Domain>/    # Business logic, one folder per domain (Project, Company, Tag, File, Image, VertexAi, Database)
 ├── Repositories/<Domain>/ # EF Core data access, one folder per domain; BaseRepository.cs at root for shared caching
-├── Requests/             # Immutable record DTOs for all endpoints
+├── Requests/             # Immutable record DTOs for inbound requests
+├── Responses/            # Response DTOs where the entity is too heavy (ProjectSummary)
 ├── Validators/           # FluentValidation validators (one per request type)
 ├── Models/               # EF Core entity models
 ├── Types/                # Result<T>, ErrorCodes, ApiErrorDto, typed IDs (Ids.cs)
 ├── Exceptions/           # Typed exception hierarchy (unexpected-failure paths only)
-└── Extensions/           # Startup registration, error contract, extension methods (string, enum, file)
+└── Extensions/           # Startup registration, security, error contract, extension methods (slug, enum, file)
 
-WorkExperienceSearchTests/
-├── Tests/Unit/           # Service-level tests with mocked dependencies
-├── Tests/Integration/    # Controller-level tests against a real HTTP server
-└── Tests/Architecture/   # NetArchTest layer-boundary assertions
+Portfolio.Api.Tests/
+├── Unit/                 # Service, model and contract tests against real PostgreSQL
+├── Integration/          # Controller-level tests against a real HTTP server
+├── Architecture/         # NetArchTest layer-boundary assertions
+└── Fixtures/             # Testcontainers database, test JWTs, web application factories
 ```
 
 ---

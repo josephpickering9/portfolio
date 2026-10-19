@@ -1,0 +1,11 @@
+The MIT licence in LICENSE covers the source code in this repository.
+
+It does not cover the following, which remain copyright (c) Joseph Pickering, all rights reserved:
+
+- web/public/Joseph Pickering CV.pdf
+- photographs of me (web/public/joe.png, web/app/assets/img/joe.png, web/app/assets/img/profile.png)
+- the screenshots in docs/images
+- the project, company and case-study content the site displays, which is served from its database
+  and isn't part of this repository
+
+Fonts in web/public/fonts are distributed under their own licences (SIL Open Font License 1.1).

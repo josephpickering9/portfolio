@@ -1,6 +1,7 @@
 import { computed } from 'vue'
 import type { ComputedRef } from 'vue'
-import { useAuth0 } from '@auth0/auth0-vue'
+import { useNuxtApp, useState } from '#imports'
+import { AUTHENTICATED_STATE_KEY } from '~/utils/auth-helper'
 
 interface Auth {
   isAuthenticated: ComputedRef<boolean>
@@ -17,12 +18,12 @@ const signedOut: Auth = {
 export default function useAuth(): Auth {
   if (import.meta.server) return signedOut
 
-  const auth0 = useAuth0()
-  if (!auth0) return signedOut
+  const isAuthenticated = useState(AUTHENTICATED_STATE_KEY, () => false)
+  const { $auth } = useNuxtApp()
 
   return {
-    isAuthenticated: computed(() => auth0.isAuthenticated.value),
-    login: () => auth0.loginWithRedirect(),
-    logout: () => auth0.logout({ logoutParams: { returnTo: window.location.origin } }),
+    isAuthenticated: computed(() => isAuthenticated.value),
+    login: () => void $auth.login(),
+    logout: () => void $auth.logout(),
   }
 }

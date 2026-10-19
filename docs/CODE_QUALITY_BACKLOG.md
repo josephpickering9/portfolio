@@ -18,7 +18,7 @@ re-application of the Pulse checklist.
   on the frontend)
 - No file over 400 lines anywhere in either project
 - Controller → Service → Repository layering enforced by an automated NetArchTest
-  suite (`WorkExperienceSearchTests/Tests/Architecture/ArchitectureTests.cs`) — zero
+  suite (`Portfolio.Api.Tests/Architecture/ArchitectureTests.cs`) — zero
   violations found
 - `Result<T>` pattern in use for fallible operations; strongly-typed IDs
   (`ProjectId`, `CompanyId`, `TagId`, etc.) used consistently, zero raw `Guid`
@@ -66,7 +66,7 @@ re-application of the Pulse checklist.
   it wholesale would mostly re-confirm the same findings for no new fixes.
 
 ## What already exists (reused, not rebuilt)
-- Backend test harness (`WorkExperienceSearchTests`) — the frontend test setup in
+- Backend test harness (`Portfolio.Api.Tests`) — the frontend test setup in
   Phase 1 should mirror its structure (unit/integration split) where it makes
   sense for Vitest/Playwright, not invent a new convention.
 - `app/utils/async-helper.ts` (`asyncForm<T>` + `tryCatchFinally`) — already the
@@ -377,3 +377,30 @@ Compared the code (not the checklist) against Pulse and ported what was missing.
 - **Response DTOs** (Pulse's `ToDto()` convention): controllers still return EF entities, which is also why `Project`'s Newtonsoft `[JsonIgnore]`s don't apply. Separate PR — summary DTO for lists, detail DTO for `GET /project/{slug}`, codegen, frontend types.
 - **Rotate the Auth0 secrets** that were committed: they remain in git history on a public repo.
 - **Auth-gated CRUD E2E** still needs a frontend-side test login (the backend half — tests that don't need Auth0 — now exists).
+
+---
+
+## Showcase hardening pass (2026-10-19)
+
+Reviewed the repo and the live site as an outside reviewer would. Branch `chore/portfolio-hardening`.
+
+### Renamed
+- "Work Experience" / "Work Experience Search" → **Portfolio**: `api/Portfolio.Api` + `api/Portfolio.Api.Tests` (namespaces `Portfolio.Api.*`; the redundant `Tests/` folder flattened), `Portfolio.sln`, Swagger title, PM2 app `PortfolioWeb`, PWA manifest, docs. The site's own case study moves from `/projects/work-experience` to `/projects/portfolio` (301 from the old URL). Server paths (`/var/www/experience/...`) and local database names are unchanged.
+
+### Fixed
+- **Bug:** the AI search rate limiter partitioned on `RemoteIpAddress`, which behind nginx was `127.0.0.1` for everyone, so all visitors shared 10 queries/minute. Forwarded headers are now trusted from loopback (test fails without the fix).
+- **Bug:** the deploy clean-up step used `ARTIFACTS_PATH` without passing it to the SSH session, so it ran `ls -t | tail -n +3 | xargs rm -rf` in `/root` on every deploy.
+- **Bug:** the auth middleware read `isAuthenticated` without awaiting `checkSession()`, and the login callback never returned the user to the page they were heading for.
+- Security headers on both sides (nonce CSP + SRI via `nuxt-security`; `nosniff`/DENY/CSP/HSTS on the API), CORS restricted to the frontend origin, `x-powered-by` removed, Swagger public.
+- `GET /project` returns `ProjectSummary` (the "Response DTOs" open item from the Pulse patterns pass, for lists); homepage HTML 227 KB → 76 KB.
+- Auth0 SDK lazy-loaded; `/_nuxt` assets precompressed (br/gz) and `immutable`; canonical links, `og:url`, JSON-LD (`Person`, `CreativeWork`).
+- CI: deploys gated on unit + integration + E2E; E2E in CI against a production build and a seeded API; codegen drift check; coverage summaries; CodeQL; Lighthouse CI; Dependabot; every action pinned to a SHA. Deploys health-check and roll back (API under systemd).
+- Deleted the broken, unused Dockerfile and `.http` template file, and the unused `public/site.webmanifest`. `NUXT_PUBLIC_BASE` is no longer used (absolute URLs come from `SITE_URL`).
+- Docs: showcase README, ADRs (`docs/adr/`), deployment guide (`docs/deploy/`), MIT `LICENSE` + `NOTICE`.
+
+### Open — needs action outside the repo
+- **nginx** (see `docs/deploy/README.md`): serve `/_nuxt/` with `gzip_static` + `immutable`, gzip JS/CSS, enable HTTP/2, `server_tokens off`, forward `X-Forwarded-For`/`-Proto` to the API. Until then the live site still serves JS uncompressed.
+- After deploying, rename the CMS project "Work Experience" to "Portfolio" so its slug becomes `portfolio`.
+- `NUXT_PUBLIC_BASE` can be removed from the `NUXT_ENV` secret.
+- Auth-gated CRUD E2E still needs a test login.
+

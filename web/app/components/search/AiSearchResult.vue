@@ -67,9 +67,9 @@
             data-testid="ai-search-citation"
           >
             <NuxtImg
-              v-if="getCardImage(project)"
+              v-if="project.cardImageUrl"
               format="webp"
-              :src="getImageUrl(getCardImage(project))"
+              :src="getImageUrl(project.cardImageUrl)"
               :alt="project.title"
               width="260"
               height="146"
@@ -97,7 +97,6 @@ import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import type { AiAnswer } from '~/types/AiAnswer'
 import { useReducedMotion } from '~/composables/useReducedMotion'
 import { useImageUrl } from '~/composables/useImageUrl'
-import { getCardImage } from '~/utils/project-helper'
 import { renderBasicMarkdown } from '~/utils/markdown-helper'
 import { formatCount } from '~/utils/string-helper'
 

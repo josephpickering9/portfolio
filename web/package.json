@@ -9,7 +9,7 @@
     "start": "nuxt start",
     "postinstall": "nuxt prepare",
     "prepare": "cd .. && husky web/.husky",
-    "codegen": "yarn openapi-ts",
+    "codegen": "curl -sf ${OPENAPI_URL:-http://localhost:5105/swagger/v1/swagger.json} -o .openapi.json && openapi-ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
@@ -17,7 +17,8 @@
     "lint:full": "eslint .",
     "lint:commit": "eslint",
     "typecheck": "vue-tsc --noEmit",
-    "generate-meta": "node scripts/generate-meta-image.js --include 'alnwick-castle,yorkshire-sculpture-park,storybook,beatcovidne,taxigoat,boiler-plan,visit-northumberland,glasgow-retina,research-portal,nightingale-design-research'"
+    "generate-meta": "node scripts/generate-meta-image.js --include 'alnwick-castle,yorkshire-sculpture-park,storybook,beatcovidne,taxigoat,boiler-plan,visit-northumberland,glasgow-retina,research-portal,nightingale-design-research'",
+    "test:coverage": "vitest run --coverage"
   },
   "lint-staged": {
     "*.{js,vue,ts}": "yarn lint:commit"
@@ -38,7 +39,7 @@
     "diff": "^4.0.4"
   },
   "dependencies": {
-    "@auth0/auth0-vue": "^2.5.0",
+    "@auth0/auth0-spa-js": "^2.28.4",
     "@pinia/nuxt": "^1.0.3",
     "@tailwindcss/vite": "^4.2.1",
     "@tiptap/core": "^3.20.2",
@@ -60,6 +61,7 @@
     "vuedraggable": "^4.1.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@hey-api/openapi-ts": "^0.97.3",
     "@iconify-json/heroicons": "^1.2.3",
     "@iconify-json/mdi": "^1.2.3",
@@ -74,11 +76,13 @@
     "@types/node": "^25.9.5",
     "@typescript-eslint/eslint-plugin": "^8.57.0",
     "@vite-pwa/nuxt": "^1.1.1",
+    "@vitest/coverage-v8": "5.0.5",
     "eslint": "^10.0.3",
     "eslint-plugin-unused-imports": "^4.4.1",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
     "nuxt": "^4.4.2",
+    "nuxt-security": "^2.6.0",
     "nuxt-umami": "^3.2.1",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
