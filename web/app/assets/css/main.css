@@ -55,6 +55,11 @@
     gap: 10px;
   }
 
+  & li > ul,
+  & li > ol {
+    margin-top: 10px;
+  }
+
   & ul {
     list-style: disc;
   }
@@ -63,9 +68,25 @@
     list-style: decimal;
   }
 
-  & strong {
+  & strong,
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
     color: var(--text);
     font-weight: 600;
+  }
+
+  & h1,
+  & h2,
+  & h3,
+  & h4,
+  & h5,
+  & h6 {
+    margin: 0;
+    font-size: 1em;
   }
 
   & a {
