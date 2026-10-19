@@ -1,6 +1,6 @@
 # Work Experience API
 
-A .NET 8 REST API serving the [Work Experience](https://experience.josephpickering.co.uk) portfolio website. Built with clean architecture, a typed Result pattern, AI-powered search via Google Vertex AI, and automated CI/CD to Digital Ocean.
+A .NET 10 REST API serving the [Work Experience](https://experience.josephpickering.co.uk) portfolio website. Built with clean architecture, a typed Result pattern, AI-powered search via Google Vertex AI, and automated CI/CD to Digital Ocean.
 
 **Live API:** [api.experience.josephpickering.co.uk](https://api.experience.josephpickering.co.uk)
 **Swagger UI:** [api.experience.josephpickering.co.uk/swagger](https://api.experience.josephpickering.co.uk/swagger)
@@ -11,7 +11,7 @@ A .NET 8 REST API serving the [Work Experience](https://experience.josephpickeri
 
 | Layer | Technology |
 |---|---|
-| Runtime | .NET 8 / C# 12 |
+| Runtime | .NET 10 / C# 14 |
 | Database | PostgreSQL (EF Core + Npgsql) |
 | Authentication | Auth0 (JWT Bearer) |
 | AI Search | Google Vertex AI Discovery Engine |
@@ -77,7 +77,7 @@ public sealed class ProjectController(IProjectService projectService) : Controll
 
 ### Prerequisites
 
-- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Docker](https://www.docker.com/) (for the local PostgreSQL instance)
 - An [Auth0](https://auth0.com/) application and API
 - *(Optional)* Google Cloud project with Vertex AI Discovery Engine for AI search

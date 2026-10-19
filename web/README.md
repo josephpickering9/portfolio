@@ -133,7 +133,7 @@ E2E coverage is currently the public flows (home, project search/filter, project
 
 ## Linting
 
-ESLint and Prettier are enforced via Husky pre-commit hooks.
+ESLint is enforced via a Husky pre-commit hook and CI; Prettier (`.prettierrc.json`) is editor formatting only.
 
 ```bash
 yarn lint          # Lint staged files

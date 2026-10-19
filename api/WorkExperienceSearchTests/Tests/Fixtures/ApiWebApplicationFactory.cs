@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
@@ -33,6 +34,7 @@ public abstract class ApiWebApplicationFactory : WebApplicationFactory<Program>,
         builder.ConfigureTestServices(services =>
         {
             services.RemoveAll<DbContextOptions<Database>>();
+            services.RemoveAll<IDbContextOptionsConfiguration<Database>>();
             services.AddDbContext<Database>(options => options.UseNpgsql(connectionString));
 
             services.Configure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>

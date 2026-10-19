@@ -51,7 +51,7 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.101'
+          dotnet-version: '10.0.x'
 
       - name: Build and Publish
         run: |
@@ -60,7 +60,7 @@ jobs:
       # Self-contained migrations bundle so the server never has to restore/build
       - name: Build migrations bundle
         run: |
-          dotnet tool install --global dotnet-ef --version 8.0.22
+          dotnet tool install --global dotnet-ef --version 10.0.13
           export PATH="$PATH:$HOME/.dotnet/tools"
           dotnet restore WorkExperienceSearch -r linux-x64
           dotnet ef migrations bundle --project WorkExperienceSearch --configuration Release --runtime linux-x64 --self-contained -o efbundle
@@ -169,7 +169,7 @@ jobs:
         env:
           GITHUB_SHA: ${{ github.sha }}
           RELEASE_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}/WorkExperienceSearch
-          RELEASE_BIN_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}/WorkExperienceSearch/bin/Release/net8.0/publish
+          RELEASE_BIN_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}/WorkExperienceSearch/bin/Release/net10.0/publish
           ROOT_PATH: ${{ matrix.server.path }}/wwwroot
           ACTIVE_RELEASE_PATH: ${{ matrix.server.path }}/current
           BASE_PATH: ${{ matrix.server.path }}
