@@ -45,4 +45,24 @@ public class AuthenticationIntegrationTests(CustomWebApplicationFactory customWe
 
         await AssertErrorAsync(httpResponse, HttpStatusCode.Unauthorized, ErrorCodes.Unauthorized);
     }
+
+    [Fact]
+    public async Task ProtectedEndpoint_ValidTokenWithoutPermission_ReturnsForbidden()
+    {
+        var client = CreateClientWithToken(TestJwt.Create(permissions: []));
+
+        var httpResponse = await client.DeleteAsync($"/tag/{TagId.New()}");
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Forbidden, ErrorCodes.Forbidden);
+    }
+
+    [Fact]
+    public async Task ProtectedEndpoint_ValidTokenWithOtherPermission_ReturnsForbidden()
+    {
+        var client = CreateClientWithToken(TestJwt.Create(permissions: ["read:content"]));
+
+        var httpResponse = await client.DeleteAsync($"/tag/{TagId.New()}");
+
+        await AssertErrorAsync(httpResponse, HttpStatusCode.Forbidden, ErrorCodes.Forbidden);
+    }
 }
