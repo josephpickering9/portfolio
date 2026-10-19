@@ -1,10 +1,10 @@
 ---
-name: Work Experience — Portfolio Frontend
+name: Portfolio Frontend
 description: Dark, cinematic developer portfolio with a bespoke visual identity. daisyUI is removed; styling is Tailwind CSS v4 on a small set of CSS custom properties.
 reference: Portfolio.dc.html (design source of truth)
 ---
 
-# Work Experience — Portfolio Frontend
+# Portfolio Frontend
 
 ## Overview
 

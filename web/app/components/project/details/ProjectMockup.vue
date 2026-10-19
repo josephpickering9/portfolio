@@ -22,7 +22,6 @@
 import { computed } from 'vue'
 import type { Project } from '@api'
 import { useImageUrl } from '~/composables/useImageUrl'
-import { getHeroImage } from '~/utils/project-helper'
 import { getHost } from '~/utils/string-helper'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 
@@ -34,5 +33,5 @@ const props = defineProps<Props>()
 
 const { getImageUrl } = useImageUrl()
 
-const heroImage = computed(() => getHeroImage(props.project))
+const heroImage = computed(() => props.project.heroImageUrl ?? '')
 </script>

@@ -1,9 +1,11 @@
 import { shallowRef, toValue, watch } from 'vue'
 import type { MaybeRefOrGetter } from 'vue'
-import { useHead, useRuntimeConfig, useSeoMeta } from '#imports'
-import { formatPageTitle } from '~/utils/meta-helper'
+import { useRoute } from 'vue-router'
+import { useHead, useSeoMeta } from '#imports'
+import { SITE_URL } from '~/data/Site'
+import { formatPageTitle, SITE_NAME } from '~/utils/meta-helper'
 
-const DEFAULT_META_IMAGE = '/meta.png'
+const DEFAULT_META_IMAGE = `${SITE_URL}/meta.png`
 
 interface Meta {
   title?: string
@@ -12,10 +14,9 @@ interface Meta {
 }
 
 export default function useMeta() {
-  const runtimeConfig = useRuntimeConfig()
+  const route = useRoute()
 
   function updateMeta(meta: MaybeRefOrGetter<Meta>) {
-    const defaultImage = `${runtimeConfig.public.base}${DEFAULT_META_IMAGE}`
     const resolved = shallowRef(toValue(meta))
     watch(
       () => toValue(meta),
@@ -24,15 +25,19 @@ export default function useMeta() {
 
     const fullTitle = () => formatPageTitle(resolved.value.title)
     const description = () => resolved.value.description
-    const image = () => resolved.value.image || defaultImage
+    const image = () => resolved.value.image || DEFAULT_META_IMAGE
+    const canonical = () => `${SITE_URL}${route.path}`
 
-    useHead({ title: fullTitle })
+    useHead({ title: fullTitle, link: [{ rel: 'canonical', href: canonical }] })
 
     useSeoMeta({
       title: fullTitle,
       ogTitle: fullTitle,
       description,
       ogDescription: description,
+      ogUrl: canonical,
+      ogType: 'website',
+      ogSiteName: SITE_NAME,
       ogImage: image,
       twitterImage: image,
       twitterCard: 'summary_large_image',

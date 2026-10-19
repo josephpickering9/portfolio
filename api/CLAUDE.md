@@ -1,4 +1,4 @@
-# Work Experience Search — Backend (.NET API)
+# Portfolio — Backend (.NET API)
 
 ## Code Style
 Code should be intuitive enough to read without comments. Default to writing no comments at all. Only add one when there's vital context a reader can't get from the code itself — a non-obvious constraint, a workaround for a specific bug, a subtle invariant. Never write a comment that restates what the code already says. When editing existing code, remove comments that don't meet this bar rather than leaving them.
@@ -7,7 +7,7 @@ Code should be intuitive enough to read without comments. Default to writing no 
 - No XML doc comments on internal methods.
 
 ## Layering
-`Controller → Service → Repository → EF Core (Database)`. This is enforced by `WorkExperienceSearchTests/Tests/Architecture/ArchitectureTests.cs` (NetArchTest rules) — Controllers can't reference Repositories directly, Services can't reference Controllers, Repositories can't reference Services/Controllers. Keep new code inside these boundaries; if a test starts failing after adding a dependency, that's the architecture test catching a layering violation, not a bug in the test.
+`Controller → Service → Repository → EF Core (Database)`. This is enforced by `Portfolio.Api.Tests/Architecture/ArchitectureTests.cs` (NetArchTest rules) — Controllers can't reference Repositories directly, Services can't reference Controllers, Repositories can't reference Services/Controllers. Keep new code inside these boundaries; if a test starts failing after adding a dependency, that's the architecture test catching a layering violation, not a bug in the test.
 
 **Primary constructors for DI everywhere** — no `readonly` field boilerplate. Every concrete class is `sealed` (enforced by `ArchitectureTests.ConcreteClasses_ShouldBeSealed`):
 ```csharp
@@ -51,6 +51,10 @@ Real exceptions (`Exceptions/NotFoundException`, `ConflictException`) still exis
 
 **Async conventions:** all repository/service methods are `async Task<...>` with an `Async` suffix and accept `CancellationToken cancellationToken = default`; controller actions take a `CancellationToken` and pass it all the way down. Never `.Result` or `.Wait()` on a `Task`.
 
+**List endpoints return summary DTOs.** A list response is a record in `Responses/` (e.g. `ProjectSummary`) carrying only what list views use, mapped by a private static method on the service; the full entity is for detail endpoints. Give DTO properties `[Required]` + `required` when they're always present, so codegen types them as non-optional. Derived values both sides need (e.g. `Project.CardImageUrl`'s card → banner → first desktop fallback) are computed `[NotMapped]` properties on the entity, not repeated on the frontend.
+
+**Security headers, CORS and the reverse proxy** (`Extensions/SecurityExtensions.cs`, `Extensions/CorsExtensions.cs`). The API runs behind nginx on loopback: `UseForwardedHeaders` trusts `X-Forwarded-For`/`-Proto` from loopback so `RemoteIpAddress` is the real visitor (the AI search rate limiter partitions on it) and HSTS is sent. Every response gets `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cross-Origin-Resource-Policy: same-site` and a `default-src 'none'` CSP (Swagger UI is exempt). CORS allows only `Cors:AllowedOrigins` (`http://localhost:3000` in `appsettings.json`; the deploy writes the production origin). Swagger is served in every environment. `SecurityIntegrationTests` and `VertexRateLimitIntegrationTests.Query_RateLimitIsPerForwardedClient` pin this.
+
 **`Program.cs` stays lean** — a short list of `builder.Services.AddXxx()` / `app.UseXxx()` calls. Register new integrations in an `Extensions/<Concern>Extensions.cs` method, never inline. `HttpClient` only via `IHttpClientFactory` (typed clients registered with `AddHttpClient<TInterface, TImpl>()`).
 
 ## Code quality standing rules
@@ -73,19 +77,22 @@ Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` 
 - `Repositories/<Domain>/` — EF Core queries, one per domain; `BaseRepository.cs` at root for shared caching behaviour.
 - `Models/` — EF entities.
 - `Requests/` — record DTOs for inbound requests, one file per domain, plus `SearchQuery` for list query strings.
+- `Responses/` — response DTOs where returning the entity would be too heavy (`ProjectSummary`).
 - `Validators/` — FluentValidation, one validator per request type.
 - `Filters/` — Swagger/OpenAPI filters.
 - `Exceptions/` — `NotFoundException`, `ConflictException` for unexpected-failure paths only.
-- `Extensions/` — startup registration (`*Extensions.cs` called from `Program.cs`), the error contract (`ResultExtensions`, `ErrorStatusCodes`, `ApiClientErrorFactory`, `GlobalExceptionHandler`) and general extension methods (slug, enum, file).
+- `Extensions/` — startup registration (`*Extensions.cs` called from `Program.cs`), security/CORS/forwarded headers, the error contract (`ResultExtensions`, `ErrorStatusCodes`, `ApiClientErrorFactory`, `GlobalExceptionHandler`) and general extension methods (slug, enum, file).
 - `Types/` — `Ids.cs` (strongly-typed IDs), `Result.cs`, `ErrorCodes.cs`, `ApiErrorDto.cs`, `RateLimitPolicies.cs`.
 - `Migrations/` — EF Core migrations, never hand-edited (see below).
+- `../deploy/activate.sh` — runs on the server for each release: config, migrations, systemd unit, health check, rollback. Migrations aren't rolled back with the code, so keep each one compatible with the previous release.
 
 ## Migrations
-Never create migration files manually. Always run `dotnet ef migrations add <Name>` from `api/WorkExperienceSearch/`. Manual migrations skip the `.Designer.cs` snapshot and cause EF to block `database update` with a `PendingModelChangesWarning`. Apply with `dotnet ef database update`.
+Never create migration files manually. Always run `dotnet ef migrations add <Name>` from `api/Portfolio.Api/`. Manual migrations skip the `.Designer.cs` snapshot and cause EF to block `database update` with a `PendingModelChangesWarning`. Apply with `dotnet ef database update`.
 
 ## Testing
-xUnit + Moq + `NetArchTest.Rules` + Testcontainers, tests live in `WorkExperienceSearchTests/Tests/`. **Tests hit real PostgreSQL — never an in-memory provider**, because unique indexes, `lower()`/`strpos` translation and FK cascades are exactly what an in-memory provider gets wrong. Docker must be running (or set `TEST_POSTGRES_CONNECTION`). Production code never branches on the database provider.
+xUnit + Moq + `NetArchTest.Rules` + Testcontainers, tests live in `Portfolio.Api.Tests/`. **Tests hit real PostgreSQL — never an in-memory provider**, because unique indexes, `lower()`/`strpos` translation and FK cascades are exactly what an in-memory provider gets wrong. Docker must be running (or set `TEST_POSTGRES_CONNECTION`). Production code never branches on the database provider.
 - `Fixtures/` — `TestDatabase` (one container per run, migrations applied once to a template database, a fresh clone per test/class), `TestJwt` (locally-signed tokens), `ApiWebApplicationFactory` (abstract: per-class database, temp web root, JwtBearer pointed at the test key) with sealed `CustomWebApplicationFactory` / `VertexStubWebApplicationFactory` (stubs the Vertex token provider, HTTP handler and chatbot client).
+- `Unit/Models/` — pure entity logic (computed properties) with no database.
 - `Unit/Services/` — real repositories against a fresh database per test, mock only sibling services. Seeded via `BaseServiceTests : IAsyncLifetime`.
 - `Integration/` — real `HttpClient` against the factory. `AuthenticatedClient` carries a valid test JWT; use `CreateClientWithToken(TestJwt.Create(...))` for expired/wrong-key/wrong-audience cases. No network or Auth0 secrets needed. Classes run in parallel (each has its own database). Assert failure bodies with `AssertErrorAsync` (exact error code) and success statuses exactly (`201` + `Location`, `204`), not `EnsureSuccessStatusCode`.
 - `Architecture/` — layering rules described above.
@@ -97,9 +104,9 @@ Every new feature needs happy-path, not-found/empty, upstream-failure (where it 
 
 ## Running locally
 ```
-docker-compose -f WorkExperienceSearch/docker-compose.yml up -d   # Postgres
-dotnet ef database update --project WorkExperienceSearch
-dotnet run --project WorkExperienceSearch                          # http://localhost:5105, Swagger at /swagger
+docker-compose -f Portfolio.Api/docker-compose.yml up -d   # Postgres
+dotnet ef database update --project Portfolio.Api
+dotnet run --project Portfolio.Api                          # http://localhost:5105, Swagger at /swagger
 ```
 `.env` (via `dotenv.net`) supplies `ConnectionStrings__DefaultConnection`, `Auth0__*`, `VertexAi__*` — see `README.md` for the full list. Never commit `.env`.
 

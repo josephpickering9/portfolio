@@ -21,9 +21,9 @@
         >
           <MockupBrowser>
             <NuxtImg
-              v-if="getCardImage(project)"
+              v-if="project.cardImageUrl"
               format="webp"
-              :src="getImageUrl(getCardImage(project))"
+              :src="getImageUrl(project.cardImageUrl)"
               :alt="project.title"
               width="556"
               height="348"
@@ -52,11 +52,11 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Project } from '@api'
+import type { ProjectSummary } from '@api'
 import { useProjectStore } from '~/store/ProjectStore'
 import { LoadingType } from '~/types/LoadingType'
 import { useImageUrl } from '~/composables/useImageUrl'
-import { getCardImage, getTagSummary, pickBySlug } from '~/utils/project-helper'
+import { getTagSummary, pickBySlug } from '~/utils/project-helper'
 import { padNumber } from '~/utils/string-helper'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 import Skeleton from '~/components/feedback/loading/Skeleton.vue'
@@ -70,7 +70,7 @@ const { getImageUrl } = useImageUrl()
 
 const featured = computed(() => pickBySlug(projectStore.projects, FEATURED_SLUGS))
 
-function isLeftAligned(project: Project): boolean {
+function isLeftAligned(project: ProjectSummary): boolean {
   return LEFT_ALIGNED_SLUGS.includes(project.slug)
 }
 </script>

@@ -6,9 +6,9 @@
   >
     <MockupBrowser size="sm">
       <NuxtImg
-        v-if="getCardImage(project)"
+        v-if="project.cardImageUrl"
         format="webp"
-        :src="getImageUrl(getCardImage(project))"
+        :src="getImageUrl(project.cardImageUrl)"
         :alt="project.title"
         width="358"
         height="224"
@@ -29,13 +29,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Project } from '@api'
+import type { ProjectSummary } from '@api'
 import { useImageUrl } from '~/composables/useImageUrl'
-import { getCardImage, getTagSummary } from '~/utils/project-helper'
+import { getTagSummary } from '~/utils/project-helper'
 import MockupBrowser from '~/components/mockup/MockupBrowser.vue'
 
 interface Props {
-  project: Project
+  project: ProjectSummary
 }
 
 defineProps<Props>()

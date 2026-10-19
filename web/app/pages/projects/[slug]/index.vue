@@ -24,7 +24,7 @@
       />
       <ProjectMockup :project="project" />
 
-      <WorkExperienceCaseStudy v-if="isThisSite" />
+      <ThisSiteCaseStudy v-if="isThisSite" />
       <ProjectCaseStudy v-else :project="project" />
 
       <NuxtLink v-if="isThisSite" to="/" class="self-start text-[15px] text-accent" data-testid="back-to-selected-work">
@@ -43,6 +43,7 @@ import { createError, showError, useAsyncData } from '#imports'
 import { useProjectStore } from '~/store/ProjectStore'
 import { useCompanyStore } from '~/store/CompanyStore'
 import useMeta from '~/composables/useMeta'
+import { usePersonDetails, useStructuredData } from '~/composables/useStructuredData'
 import useProjectsData from '~/composables/useProjectsData'
 import useCompaniesData from '~/composables/useCompaniesData'
 import { useImageUrl } from '~/composables/useImageUrl'
@@ -52,16 +53,17 @@ import LoadError from '~/components/feedback/LoadError.vue'
 import ProjectHeader from '~/components/project/details/ProjectHeader.vue'
 import ProjectMockup from '~/components/project/details/ProjectMockup.vue'
 import ProjectCaseStudy from '~/components/project/details/ProjectCaseStudy.vue'
-import WorkExperienceCaseStudy from '~/components/project/details/WorkExperienceCaseStudy.vue'
+import ThisSiteCaseStudy from '~/components/project/details/ThisSiteCaseStudy.vue'
 import NextProject from '~/components/project/details/NextProject.vue'
-
-const THIS_SITE_SLUG = 'work-experience'
+import { SITE_URL, THIS_SITE_SLUG } from '~/data/Site'
+import { buildProjectJsonLd } from '~/utils/structured-data-helper'
 
 const route = useRoute()
 const projectStore = useProjectStore()
 const companyStore = useCompanyStore()
 const { updateMeta } = useMeta()
 const { getImageUrl } = useImageUrl()
+const person = usePersonDetails()
 
 const slug = computed(() => String(route.params['slug']))
 
@@ -87,11 +89,19 @@ async function loadProject(): Promise<Project | null> {
   return loaded ?? null
 }
 
+const cardImage = computed(() => (project.value?.cardImageUrl ? getImageUrl(project.value.cardImageUrl) : undefined))
+
 updateMeta(() => ({
   title: project.value?.title,
   description: project.value?.shortDescription,
-  image: project.value?.cardUrl ? getImageUrl(project.value.cardUrl) : undefined,
+  image: cardImage.value,
 }))
+
+useStructuredData(() =>
+  project.value
+    ? buildProjectJsonLd(project.value, { url: `${SITE_URL}/projects/${project.value.slug}`, image: cardImage.value, author: person.value })
+    : undefined,
+)
 
 onBeforeUnmount(() => projectStore.clearProject(slug.value))
 

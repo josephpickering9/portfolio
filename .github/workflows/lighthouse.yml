@@ -1,0 +1,30 @@
+name: Lighthouse
+
+# Audits the live site after each web deploy and weekly, against the budgets in web/lighthouserc.json.
+on:
+  workflow_run:
+    workflows: [Web]
+    branches: [main]
+    types: [completed]
+  schedule:
+    - cron: '41 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lighthouse:
+    name: Audit josephpickering.co.uk
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version-file: web/.nvmrc
+
+      - name: Run Lighthouse CI
+        working-directory: web
+        run: npx --yes @lhci/cli@0.15.1 autorun

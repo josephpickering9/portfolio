@@ -1,15 +1,24 @@
 import { fileURLToPath, URL } from 'node:url'
 import { defineNuxtConfig } from 'nuxt/config'
+import { LEGACY_THIS_SITE_SLUG, SITE_URL, THIS_SITE_SLUG } from './app/data/Site'
 
-function apiImageHosts(): string[] {
-  const apiBase = process.env['NUXT_PUBLIC_API_BASE']
-  if (!apiBase) return []
+const UMAMI_HOST = 'https://cloud.umami.is'
+const ONE_YEAR_SECONDS = 31_536_000
+// The onerror marker @nuxt/image renders on SSR images, allowed by exact hash rather than 'unsafe-inline'
+const NUXT_IMAGE_ONERROR_HASH = "'sha256-bwK6T5wZVTANitXbrTsel7kl/PyCjCd/Dq5Qoz3imjM='"
+
+function toOrigin(value: string | undefined): URL | undefined {
+  if (!value) return undefined
   try {
-    return [new URL(apiBase).host]
+    return new URL(/^https?:\/\//.test(value) ? value : `https://${value}`)
   } catch {
-    return []
+    return undefined
   }
 }
+
+const apiUrl = toOrigin(process.env['NUXT_PUBLIC_API_BASE'])
+const apiOrigins = apiUrl ? [apiUrl.origin] : []
+const auth0Origins = [toOrigin(process.env['NUXT_AUTH0_DOMAIN'])?.origin].filter((origin) => origin !== undefined)
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-12-03',
@@ -54,13 +63,61 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  routeRules: {
+    [`/projects/${LEGACY_THIS_SITE_SLUG}`]: { redirect: { to: `/projects/${THIS_SITE_SLUG}`, statusCode: 301 } },
+    '/_nuxt/**': { headers: { 'cache-control': `public, max-age=${ONE_YEAR_SECONDS}, immutable` } },
+  },
+
+  nitro: {
+    compressPublicAssets: { gzip: true, brotli: true },
+  },
+
+  security: {
+    nonce: true,
+    sri: true,
+    rateLimiter: false,
+    removeLoggers: false,
+    corsHandler: false,
+    xssValidator: false,
+    headers: {
+      crossOriginEmbedderPolicy: false,
+      contentSecurityPolicy: {
+        'default-src': ["'self'"],
+        'base-uri': ["'none'"],
+        'object-src': ["'none'"],
+        'frame-ancestors': ["'none'"],
+        'form-action': ["'self'"],
+        'script-src': ["'self'", "'strict-dynamic'", "'nonce-{{nonce}}'"],
+        'script-src-attr': ["'unsafe-hashes'", NUXT_IMAGE_ONERROR_HASH],
+        'style-src': ["'self'", "'unsafe-inline'"],
+        'img-src': ["'self'", 'data:', 'blob:', ...apiOrigins],
+        'font-src': ["'self'"],
+        'connect-src': ["'self'", ...apiOrigins, ...auth0Origins, UMAMI_HOST],
+        'frame-src': auth0Origins,
+        'worker-src': ["'self'"],
+        'manifest-src': ["'self'"],
+        'upgrade-insecure-requests': apiUrl?.protocol === 'https:',
+      },
+      strictTransportSecurity: { maxAge: ONE_YEAR_SECONDS, includeSubdomains: false },
+      referrerPolicy: 'strict-origin-when-cross-origin',
+      xFrameOptions: 'DENY',
+      permissionsPolicy: {
+        camera: [],
+        microphone: [],
+        geolocation: [],
+        payment: [],
+        usb: [],
+      },
+    },
+  },
+
   runtimeConfig: {
     public: {
       apiBase: process.env['NUXT_PUBLIC_API_BASE'] ?? '',
-      base: process.env['NUXT_PUBLIC_BASE'] ?? '',
       auth0Domain: process.env['NUXT_AUTH0_DOMAIN'] ?? '',
       auth0ClientId: process.env['NUXT_AUTH0_CLIENT_ID'],
       linkedInUrl: process.env['NUXT_PUBLIC_LINKED_IN_URL'] ?? '',
+      commitSha: process.env['NUXT_PUBLIC_COMMIT_SHA'] ?? process.env['GITHUB_SHA'] ?? '',
     },
   },
 
@@ -72,9 +129,10 @@ export default defineNuxtConfig({
     '@vite-pwa/nuxt',
     '@nuxt/eslint',
     '@nuxt/image',
+    'nuxt-security',
     ['nuxt-umami', {
       id: process.env['NUXT_PUBLIC_UMAMI_ID'] ?? '',
-      host: 'https://cloud.umami.is',
+      host: UMAMI_HOST,
       autoTrack: true,
       ignoreLocalhost: true,
     }],
@@ -88,7 +146,7 @@ export default defineNuxtConfig({
       include: [
         '@vue/devtools-core',
         '@vue/devtools-kit',
-        '@auth0/auth0-vue',
+        '@auth0/auth0-spa-js',
         '@tiptap/extensions',
         '@tiptap/starter-kit',
         '@tiptap/vue-3',
@@ -107,6 +165,10 @@ export default defineNuxtConfig({
     '@api': fileURLToPath(new URL('./api', import.meta.url)),
   },
 
+  site: {
+    url: SITE_URL,
+  },
+
   sitemap: {
     sources: ['/api/sitemap'],
     exclude: ['/auth/*', '*/new'],
@@ -116,7 +178,7 @@ export default defineNuxtConfig({
     dir: 'assets/img',
     quality: 90,
     format: ['webp'],
-    domains: apiImageHosts(),
+    domains: apiUrl ? [apiUrl.host] : [],
   },
 
   pwa: {
@@ -132,9 +194,9 @@ export default defineNuxtConfig({
       runtimeCaching: [],
     },
     manifest: {
-      name: 'Work Experience',
-      short_name: 'Work Experience',
-      description: "Joseph Pickering | All of the projects that I've been involved in",
+      name: 'Joseph Pickering — Portfolio',
+      short_name: 'Portfolio',
+      description: 'Joseph Pickering, full stack developer. Selected work, case studies and an AI search over my projects.',
       theme_color: '#1D232A',
       icons: [
         {

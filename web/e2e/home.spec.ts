@@ -35,4 +35,12 @@ test.describe('Home page', () => {
     await expect(page).toHaveURL(/\/search\?q=/)
     await expect(page.getByTestId('ai-search-question')).toHaveText(text)
   })
+
+  test('links the "You\'re looking at it" card to the case study and the source', async ({ page }) => {
+    await gotoHydrated(page, '/')
+
+    await expect(page.getByTestId('this-site-case-study-link')).toHaveAttribute('href', '/projects/portfolio')
+    await expect(page.getByTestId('this-site-source-link')).toHaveAttribute('href', 'https://github.com/josephpickering9/portfolio')
+    await expect(page.getByTestId('footer-source-link')).toHaveAttribute('href', 'https://github.com/josephpickering9/portfolio')
+  })
 })

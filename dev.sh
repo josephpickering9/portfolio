@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-BE_DIR="$ROOT/api/WorkExperienceSearch"
+BE_DIR="$ROOT/api/Portfolio.Api"
 FE_DIR="$ROOT/web"
 API_URL="http://localhost:5105"
 

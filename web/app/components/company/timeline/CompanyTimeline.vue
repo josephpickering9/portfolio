@@ -64,7 +64,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { Company, Project } from '@api'
+import type { Company, ProjectSummary } from '@api'
 import { useImageUrl } from '~/composables/useImageUrl'
 import { formatDateRange } from '~/utils/date-helper'
 import { sortCompaniesNewestFirst } from '~/utils/company-helper'
@@ -74,7 +74,7 @@ import Skeleton from '~/components/feedback/loading/Skeleton.vue'
 
 interface Props {
   companies: Company[]
-  projects: Project[]
+  projects: ProjectSummary[]
   loading: boolean
 }
 

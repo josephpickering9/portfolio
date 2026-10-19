@@ -1,9 +1,9 @@
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { gotoHydrated } from './support/navigation'
+import { firstProjectSlug } from './support/projects'
 
 const SKELETON = 'data-testid="skeleton"'
 const HYDRATION_WARNING = /hydration/i
-const PROJECT_CARD_SLUG = /<a[^>]*href="\/projects\/([^"/?]+)"[^>]*data-testid="project-card"/
 
 const SSR_PAGES: Array<{ path: string; content: string }> = [
   { path: '/', content: 'data-testid="project-card"' },
@@ -11,11 +11,6 @@ const SSR_PAGES: Array<{ path: string; content: string }> = [
   { path: '/companies', content: 'data-testid="company-timeline-item"' },
   { path: '/technologies', content: 'data-testid="tag-tile"' },
 ]
-
-async function firstProjectSlug(request: APIRequestContext): Promise<string | undefined> {
-  const html = await (await request.get('/projects')).text()
-  return html.match(PROJECT_CARD_SLUG)?.[1]
-}
 
 test.describe('Server rendering', () => {
   for (const { path, content } of SSR_PAGES) {

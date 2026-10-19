@@ -31,10 +31,14 @@ test.describe('Public navigation', () => {
     await expect(page).toHaveTitle(/Sign in/)
   })
 
-  test('redirects an unauthenticated visitor away from a protected route', async ({ page }) => {
+  test('sends an unauthenticated visitor to the Auth0 login from a protected route', async ({ page, baseURL }) => {
+    await page.route('**/authorize?**', (route) => route.fulfill({ contentType: 'text/html', body: '<title>Auth0 login</title>' }))
+
     await page.goto('/projects/new')
 
-    await page.waitForURL((url) => !url.pathname.includes('/projects/new'), { timeout: 15_000 })
-    expect(page.url()).not.toContain('/projects/new')
+    await page.waitForURL((url) => url.pathname.endsWith('/authorize'), { timeout: 15_000 })
+    const authorizeUrl = new URL(page.url())
+    expect(authorizeUrl.searchParams.get('redirect_uri')).toBe(new URL(baseURL ?? '').origin)
+    expect(authorizeUrl.searchParams.get('response_type')).toBe('code')
   })
 })

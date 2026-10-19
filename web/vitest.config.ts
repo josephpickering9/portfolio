@@ -23,5 +23,10 @@ export default defineConfig({
     env: {
       TZ: 'UTC',
     },
+    coverage: {
+      provider: 'v8',
+      include: ['app/utils/**', 'app/store/**', 'app/composables/**', 'app/data/**', 'app/types/**'],
+      reporter: ['text-summary', 'json-summary'],
+    },
   },
 })

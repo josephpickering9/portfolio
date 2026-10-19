@@ -1,108 +1,89 @@
-name: Web Build & Deploy
+name: Web Deploy
 
+# Only reachable from the Web workflow, after its tests and the E2E suite have passed.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'web/**'
-      - '.github/workflows/web-deploy.yml'
+  workflow_call:
 
-# Queue rather than overlap, so one run never deletes an artifact another run is still using
-concurrency:
-  group: web-deploy
-  cancel-in-progress: false
+permissions:
+  contents: read
+  actions: write
 
 jobs:
-  delete-previous-artifacts:
-    name: Delete Old Artifacts
+  build:
+    name: Build release
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/github-script@v7
-        id: artifact
-        with:
-          script: |
-            // Scoped by name: the API deploy shares this repo's artifact store
-            const res = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              name: 'web-build',
-            })
-            res.data.artifacts
-              .forEach(({ id }) => {
-                github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: id,
-                })
-              })
-
-  create-deployment-artifacts:
-    name: Create Deployment Artifacts
-    runs-on: ubuntu-latest
-    needs: delete-previous-artifacts
     defaults:
       run:
         working-directory: web
     outputs:
       deployment-matrix: ${{ steps.export-deployment-matrix.outputs.deployment-matrix }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - name: Cache Yarn dependencies
-        uses: actions/cache@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          path: web/.yarn
-          key: ${{ runner.os }}-yarn-${{ hashFiles('web/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
+          node-version-file: web/.nvmrc
           cache: 'yarn'
           cache-dependency-path: web/yarn.lock
 
       - name: Create .env file
-        run: printf "%s" "${{ secrets.NUXT_ENV }}" > .env
+        env:
+          NUXT_ENV: ${{ secrets.NUXT_ENV }}
+        run: printf "%s" "$NUXT_ENV" > .env
 
-      - name: Compile CSS and JavaScript
+      # GITHUB_SHA is baked into the build as the footer's commit link
+      - name: Build
         run: |
           yarn install --frozen-lockfile
           yarn build
 
       - name: Create deployment artifact
-        run: tar -czf "${GITHUB_SHA}".tar.gz --exclude=.nuxt --exclude=.git --exclude=.github .output node_modules ecosystem.config.js package.json yarn.lock
+        run: tar -czf "$RUNNER_TEMP/${GITHUB_SHA}.tar.gz" .output node_modules deploy ecosystem.config.js package.json yarn.lock
+
+      - name: Delete the previous web artifact
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7.1.0
+        with:
+          script: |
+            // Scoped by name: the API deploy shares this repo's artifact store
+            const { data } = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'web-build',
+            })
+            await Promise.all(data.artifacts.map(({ id }) =>
+              github.rest.actions.deleteArtifact({ owner: context.repo.owner, repo: context.repo.repo, artifact_id: id })))
 
       - name: Store artifact for distribution
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: web-build
-          path: web/${{ github.sha }}.tar.gz
+          path: ${{ runner.temp }}/${{ github.sha }}.tar.gz
+          retention-days: 7
 
       - name: Export deployment matrix
         id: export-deployment-matrix
         run: |
           delimiter="$(openssl rand -hex 8)"
-          JSON="$(cat ./deployment-config.json)"
-          echo "deployment-matrix<<${delimiter}" >> "${GITHUB_OUTPUT}"
-          echo "$JSON" >> "${GITHUB_OUTPUT}"
-          echo "${delimiter}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "deployment-matrix<<${delimiter}"
+            cat deployment-config.json
+            echo "${delimiter}"
+          } >> "${GITHUB_OUTPUT}"
 
-  prepare-release-on-server:
-    name: Prepare release on server
+  release:
+    name: '${{ matrix.server.name }}: Release'
     runs-on: ubuntu-latest
-    needs: create-deployment-artifacts
+    needs: build
     strategy:
       matrix:
-        server: ${{fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix)}}
+        server: ${{ fromJson(needs.build.outputs.deployment-matrix) }}
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
           name: web-build
 
       - name: Upload
-        uses: appleboy/scp-action@master
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ matrix.server.ip }}
           username: ${{ matrix.server.username }}
@@ -110,30 +91,8 @@ jobs:
           source: ${{ github.sha }}.tar.gz
           target: ${{ matrix.server.path }}/artifacts
 
-      - name: Extract archive and create directories
-        uses: appleboy/ssh-action@master
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-        with:
-          host: ${{ matrix.server.ip }}
-          username: ${{ matrix.server.username }}
-          key: ${{ secrets.SSH_KEY }}
-          port: ${{ matrix.server.port }}
-          envs: GITHUB_SHA
-          script: |
-            mkdir -p "${{ matrix.server.path }}/releases/${GITHUB_SHA}"
-            tar xzf ${{ matrix.server.path }}/artifacts/${GITHUB_SHA}.tar.gz -C "${{ matrix.server.path }}/releases/${GITHUB_SHA}"
-
-  activate-release:
-    name: '${{ matrix.server.name }}: Activate release'
-    runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server]
-    strategy:
-      matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
-    steps:
       - name: Activate release
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           GITHUB_SHA: ${{ github.sha }}
           RELEASE_PATH: ${{ matrix.server.path }}/releases/${{ github.sha }}
@@ -145,32 +104,24 @@ jobs:
           username: ${{ matrix.server.username }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ matrix.server.port }}
-          envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,ENV_PATH,NUXT_ENV
+          command_timeout: 30m
+          envs: GITHUB_SHA,RELEASE_PATH,ACTIVE_RELEASE_PATH,BASE_PATH,NUXT_ENV
           script: |
-            exec 9>/tmp/work-experience-deploy.lock
-            flock -x -w 1500 9
-
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm use 22
-            printf "%s" "$NUXT_ENV" > "${RELEASE_PATH}/.env"
-            ln -s -n -f $RELEASE_PATH $ACTIVE_RELEASE_PATH
-            cd $ACTIVE_RELEASE_PATH
-            pm2 stop ecosystem.config.js || true
-            pm2 delete ecosystem.config.js || true
-            pm2 start ecosystem.config.js
-            pm2 save
+            set -e
+            mkdir -p "$RELEASE_PATH"
+            tar xzf "$BASE_PATH/artifacts/$GITHUB_SHA.tar.gz" -C "$RELEASE_PATH"
+            bash "$RELEASE_PATH/deploy/activate.sh"
 
   clean-up:
     name: '${{ matrix.server.name }}: Clean up'
     runs-on: ubuntu-latest
-    needs: [create-deployment-artifacts, prepare-release-on-server, activate-release]
+    needs: [build, release]
     strategy:
       matrix:
-        server: ${{ fromJson(needs.create-deployment-artifacts.outputs.deployment-matrix) }}
+        server: ${{ fromJson(needs.build.outputs.deployment-matrix) }}
     steps:
-      - name: Run after hooks
-        uses: appleboy/ssh-action@master
+      - name: Keep the two most recent releases
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
         env:
           RELEASES_PATH: ${{ matrix.server.path }}/releases
           ARTIFACTS_PATH: ${{ matrix.server.path }}/artifacts
@@ -179,7 +130,9 @@ jobs:
           username: ${{ matrix.server.username }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ matrix.server.port }}
-          envs: RELEASES_PATH
+          envs: RELEASES_PATH,ARTIFACTS_PATH
           script: |
-            cd $RELEASES_PATH && ls -t -1 | tail -n +3 | xargs rm -rf
-            cd $ARTIFACTS_PATH && ls -t -1 | tail -n +3 | xargs rm -rf
+            set -eu
+            : "${RELEASES_PATH:?}" "${ARTIFACTS_PATH:?}"
+            cd "$RELEASES_PATH" && ls -t -1 | tail -n +3 | xargs -r rm -rf
+            cd "$ARTIFACTS_PATH" && ls -t -1 | tail -n +3 | xargs -r rm -rf

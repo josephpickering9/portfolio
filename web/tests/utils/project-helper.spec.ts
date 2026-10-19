@@ -6,14 +6,13 @@ import {
   countProjectsUsingTag,
   filterProjects,
   filterTagUsages,
-  getCardImage,
-  getHeroImage,
   getImagesByType,
   getNextProject,
   getProjectEyebrow,
   getProjectsForCompany,
   getTagSummary,
   pickBySlug,
+  toProjectSummary,
 } from '~/utils/project-helper'
 
 function project(overrides: Partial<Project> = {}): Project {
@@ -37,23 +36,22 @@ function tag(title: string, type: TagType = TagType.FRONTEND) {
   return { id: title, title, type, slug: title.toLowerCase() }
 }
 
-describe('getCardImage', () => {
-  it('prefers the card image', () => {
-    expect(getCardImage(project({ cardUrl: 'card.png', bannerUrl: 'banner.png' }))).toBe('card.png')
-  })
+describe('toProjectSummary', () => {
+  it('keeps only the fields list views use', () => {
+    const tags = [tag('Vue')]
+    const detail = project({ id: '7', title: 'Pulse', slug: 'pulse', companyId: 'c1', tags, cardImageUrl: 'card.png' })
 
-  it('falls back to the banner, then the first desktop image', () => {
-    expect(getCardImage(project({ bannerUrl: 'banner.png' }))).toBe('banner.png')
-
-    const images = [
-      { id: 'm', image: 'mobile.png', type: ImageType.MOBILE },
-      { id: 'd', image: 'desktop.png', type: ImageType.DESKTOP },
-    ]
-    expect(getCardImage(project({ images }))).toBe('desktop.png')
-  })
-
-  it('returns an empty string when there are no images', () => {
-    expect(getCardImage(project())).toBe('')
+    expect(toProjectSummary(detail)).toEqual({
+      id: '7',
+      title: 'Pulse',
+      slug: 'pulse',
+      shortDescription: '',
+      companyId: 'c1',
+      startDate: '2024-01-01',
+      endDate: undefined,
+      tags,
+      cardImageUrl: 'card.png',
+    })
   })
 })
 
@@ -143,22 +141,6 @@ describe('filterTagUsages', () => {
 
   it('combines the search with the tag type', () => {
     expect(filterTagUsages(usages, 't', TagType.BACKEND).map((u) => u.tag.title)).toEqual(['Kotlin'])
-  })
-})
-
-describe('getHeroImage', () => {
-  it('prefers the first desktop screenshot by order', () => {
-    const images = [
-      { id: '2', image: 'second.png', type: ImageType.DESKTOP, order: 2 },
-      { id: '1', image: 'first.png', type: ImageType.DESKTOP, order: 1 },
-    ]
-    expect(getHeroImage(project({ images, bannerUrl: 'banner.png', cardUrl: 'card.png' }))).toBe('first.png')
-  })
-
-  it('falls back to the banner, then the card', () => {
-    expect(getHeroImage(project({ bannerUrl: 'banner.png', cardUrl: 'card.png' }))).toBe('banner.png')
-    expect(getHeroImage(project({ cardUrl: 'card.png' }))).toBe('card.png')
-    expect(getHeroImage(project())).toBe('')
   })
 })
 

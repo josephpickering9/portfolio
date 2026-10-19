@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { capitalise, formatCount, getHost, includesSearch, padNumber, pluralise } from '~/utils/string-helper'
+import { capitalise, formatCount, formatShortSha, getHost, includesSearch, padNumber, pluralise } from '~/utils/string-helper'
 
 describe('capitalise', () => {
   it('upper-cases the first character only', () => {
@@ -45,5 +45,15 @@ describe('includesSearch', () => {
 
   it('matches everything for an empty search', () => {
     expect(includesSearch('Vue', '')).toBe(true)
+  })
+})
+
+describe('formatShortSha', () => {
+  it('keeps the first seven characters of a commit SHA', () => {
+    expect(formatShortSha('142bad0f2c9e4f1a8b7d')).toBe('142bad0')
+  })
+
+  it('returns an empty string when no SHA is set', () => {
+    expect(formatShortSha('')).toBe('')
   })
 })

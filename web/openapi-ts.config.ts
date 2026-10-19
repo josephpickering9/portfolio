@@ -1,15 +1,18 @@
+import { resolve } from 'node:path';
 import { defaultPlugins, defineConfig } from '@hey-api/openapi-ts';
 
 export default defineConfig({
-    input: 'http://localhost:5105/swagger/v1/swagger.json',
+    input: resolve('.openapi.json'),
     output: {
         path: 'api',
     },
     plugins: [
         ...defaultPlugins,
-        '@hey-api/client-axios',
         {
             baseUrl: 'http://localhost:5105',
+            name: '@hey-api/client-axios',
+        },
+        {
             enums: 'typescript',
             name: '@hey-api/typescript',
         },

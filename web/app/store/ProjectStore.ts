@@ -1,14 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref, toRef } from 'vue'
 import { deleteProjectById, getProject, getProjectBySlug, postProject, putProjectById } from '@api'
-import type { CreateProject, Project } from '@api'
+import type { CreateProject, Project, ProjectSummary } from '@api'
 import { asyncForm, isAwaitingData, tryCatchFinally, tryCatchFinallyIfLatest, unwrap } from '~/utils/async-helper'
 import { isNotFoundCode } from '~/utils/error-helper'
 import { serializeToFormData } from '~/utils/form-data'
+import { toProjectSummary } from '~/utils/project-helper'
 
 export const useProjectStore = defineStore('projectStore', {
   state: () => ({
-    projectsForm: asyncForm<Project[]>(),
+    projectsForm: asyncForm<ProjectSummary[]>(),
     projectForm: asyncForm<Project>(),
     projectSaveForm: asyncForm<Project>(),
     projectDeleteForm: asyncForm<unknown>(),
@@ -29,7 +30,7 @@ export const useProjectStore = defineStore('projectStore', {
     projectDeleteError: (state) => state.projectDeleteForm.error,
   },
   actions: {
-    async getProjects(search?: string): Promise<Project[]> {
+    async getProjects(search?: string): Promise<ProjectSummary[]> {
       if (this.projectsForm.loading) return []
 
       const projects = await tryCatchFinally(ref(this.projectsForm), async () =>
@@ -85,8 +86,9 @@ export const useProjectStore = defineStore('projectStore', {
       const cached = this.projectsForm.data
       if (!cached) return
 
+      const summary = toProjectSummary(project)
       const index = cached.findIndex((item) => item.id === project.id)
-      this.projectsForm.data = index === -1 ? [...cached, project] : cached.map((item, i) => (i === index ? project : item))
+      this.projectsForm.data = index === -1 ? [...cached, summary] : cached.map((item, i) => (i === index ? summary : item))
     },
   },
 })
