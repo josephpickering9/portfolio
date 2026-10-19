@@ -38,7 +38,9 @@ nginx isn't managed from this repo, so these changes have to be made on the drop
 matter: as of October 2026 nginx serves `/_nuxt/` itself with `expires 7d` and no compression for
 JavaScript, which is most of the gap between the local and live Lighthouse scores.
 
-Once, at `http {}` level (e.g. `/etc/nginx/conf.d/portfolio.conf`):
+Once, in the `http {}` block of `/etc/nginx/nginx.conf`. Ubuntu's default file already has
+`gzip on;` and these lines commented out, so uncomment and edit them there. Adding them in a
+`conf.d` file as well fails `nginx -t` with a duplicate-directive error.
 
 ```nginx
 server_tokens off;
