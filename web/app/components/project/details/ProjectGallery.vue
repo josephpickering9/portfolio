@@ -77,8 +77,6 @@ const mobileShots = computed<LightboxImage[]>(() =>
     kind: 'mobile',
   })),
 )
-// A lone desktop shot spans the whole row, so it needs a full-width source rather than a grid-cell one.
-// Every `sizes` entry is breakpoint-prefixed: @nuxt/image reads a bare `100vw` as a 1px screen.
 const shotSize = computed(() =>
   desktopShots.value.length === 1
     ? { width: 1142, height: 714, sizes: 'sm:100vw xl:1142px' }
