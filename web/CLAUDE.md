@@ -70,7 +70,7 @@ Established by an audit-driven cleanup pass (see `docs/CODE_QUALITY_BACKLOG.md` 
 - **No magic values.** A literal with business meaning (a status string, a numeric limit) should be a named constant or enum member, not a bare literal at the call site.
 
 ## Linting / formatting
-ESLint (`eslint.config.mjs`): `@nuxt/eslint` flat config + `@stylistic`, `eslint-plugin-vue`, `unused-imports`, Prettier integration. Prettier (`.prettierrc.json`): printWidth 125, single quotes, no semicolons, `prettier-plugin-tailwindcss` for class sorting. Husky + lint-staged run `yarn lint:commit` on staged `*.{js,vue,ts}` files pre-commit — don't bypass with `--no-verify`.
+ESLint (`eslint.config.mjs`): `@nuxt/eslint` flat config (which brings the Vue and TypeScript plugins) + `@stylistic` and `unused-imports`. Prettier (`.prettierrc.json`: printWidth 125, single quotes, no semicolons, `prettier-plugin-tailwindcss` for class sorting) is editor formatting only — ESLint doesn't run it, so it isn't checked in CI or pre-commit. Husky + lint-staged run `yarn lint:commit` on staged `*.{js,vue,ts}` files pre-commit — don't bypass with `--no-verify`.
 
 Scripts: `yarn lint`, `yarn lint:full`, `yarn typecheck` (`vue-tsc --noEmit`), `yarn codegen`.
 

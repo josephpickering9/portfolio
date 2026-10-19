@@ -58,7 +58,7 @@ const DECISIONS = [
 const STACK = [
   { layer: 'Framework', tech: 'Nuxt 4, Vue 3', icon: 'simple-icons:nuxt' },
   { layer: 'Language', tech: 'TypeScript', icon: 'simple-icons:typescript' },
-  { layer: 'Backend', tech: '.NET 8', icon: 'simple-icons:dotnet' },
+  { layer: 'Backend', tech: '.NET 10', icon: 'simple-icons:dotnet' },
   { layer: 'AI', tech: 'Vertex AI', icon: 'simple-icons:googlecloud' },
   { layer: 'State', tech: 'Pinia', icon: 'simple-icons:pinia' },
   { layer: 'Auth', tech: 'Auth0', icon: 'simple-icons:auth0' },

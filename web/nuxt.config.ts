@@ -67,7 +67,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@nuxt/icon',
-    '@pinia-plugin-persistedstate/nuxt',
+    'pinia-plugin-persistedstate/nuxt',
     '@nuxtjs/sitemap',
     '@vite-pwa/nuxt',
     '@nuxt/eslint',

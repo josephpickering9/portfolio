@@ -31,7 +31,7 @@
 const NODES = [
   { title: 'Browser', caption: 'Installable PWA with offline support' },
   { title: 'Nuxt 4', caption: 'SSR, Vue 3, Pinia stores', icon: 'simple-icons:nuxt', primary: true },
-  { title: '.NET 8 API', caption: 'Projects, companies, technologies', icon: 'simple-icons:dotnet' },
+  { title: '.NET 10 API', caption: 'Projects, companies, technologies', icon: 'simple-icons:dotnet' },
   { title: 'Vertex AI', caption: 'Natural-language project search', icon: 'simple-icons:googlecloud' },
 ]
 
