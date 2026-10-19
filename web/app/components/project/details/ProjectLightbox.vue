@@ -46,7 +46,6 @@
           format="webp"
           :src="current.src"
           :alt="current.alt"
-          sizes="100vw"
           class="max-h-full max-w-full rounded-card object-contain shadow-glow-lg select-none"
           :class="{ 'border border-line': current.kind === 'mobile' }"
           draggable="false"

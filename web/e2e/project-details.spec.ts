@@ -62,7 +62,9 @@ test.describe('Project details page', () => {
     await galleryImages.first().click()
     const lightbox = page.getByTestId('project-lightbox')
     await expect(lightbox).toBeVisible()
-    await expect(lightbox.getByTestId('lightbox-image')).toBeVisible()
+    const lightboxImage = lightbox.getByTestId('lightbox-image')
+    await expect(lightboxImage).toBeVisible()
+    await expect.poll(() => lightboxImage.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBeGreaterThan(100)
     await expect(lightbox.getByTestId('lightbox-position')).toContainText(`1 / ${imageCount}`)
 
     if (imageCount > 1) {
