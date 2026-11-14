@@ -107,7 +107,7 @@ const copy = computed(() => getEntityFormCopy(ENTITY_NAME, Boolean(props.id), fo
 
 async function save() {
   if (!(await v$.value.$validate())) return entityForm.invalid()
-  await entityForm.save(props.id, { ...form.value, logo: logo.value?.file })
+  await entityForm.save(props.id, { ...form.value, logo: logo.value?.file, removeLogo: !logo.value })
 }
 
 async function remove() {

@@ -1,4 +1,7 @@
 using System.Net;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Portfolio.Api.Extensions;
 using Portfolio.Api.Requests;
 using Portfolio.Api.Models;
 using Portfolio.Api.Tests.Fixtures;
@@ -148,6 +151,27 @@ public class CompanyControllerIntegrationTests(CustomWebApplicationFactory custo
         Assert.Equal(updateCompany.StartDate, actualCompany.StartDate);
         Assert.Equal(updateCompany.EndDate, actualCompany.EndDate);
         Assert.Equal(updateCompany.Website, actualCompany.Website);
+    }
+
+    [Fact]
+    public async Task PutCompany_RemoveLogo_ClearsLogoAndStopsServingTheFile()
+    {
+        const string logo = "removed-logo.webp";
+        var uploadDirectory = Factory.Services.GetRequiredService<IWebHostEnvironment>().GetUploadDirectory();
+        Directory.CreateDirectory(uploadDirectory);
+        await File.WriteAllBytesAsync(Path.Combine(uploadDirectory, logo), [1, 2, 3]);
+        var companyId = CompanyId.New();
+        await CreateCompanyAsync(companyId, logo: logo);
+        Assert.Equal(HttpStatusCode.OK, (await Client.GetAsync($"/media/uploads/{logo}")).StatusCode);
+        var updateCompany = new CreateCompany { Name = "Test Company", Description = "Test Description", RemoveLogo = true };
+
+        var httpResponse = await AuthenticatedClient.PutAsync($"/company/{companyId}", GetMultipartFormDataContent(updateCompany));
+
+        httpResponse.EnsureSuccessStatusCode();
+        var company = GetJsonContent<Company>(await (await Client.GetAsync($"/company/{companyId}")).Content.ReadAsStringAsync());
+        Assert.NotNull(company);
+        Assert.Null(company.Logo);
+        Assert.Equal(HttpStatusCode.NotFound, (await Client.GetAsync($"/media/uploads/{logo}")).StatusCode);
     }
 
     [Fact]

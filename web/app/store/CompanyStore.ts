@@ -52,9 +52,13 @@ export const useCompanyStore = defineStore('companyStore', {
     async updateCompany(id: string, company: CreateCompany): Promise<Company | undefined> {
       if (this.companySaveForm.loading) return undefined
 
-      return await tryCatchFinally(ref(this.companySaveForm), async () =>
+      const updated = await tryCatchFinally(ref(this.companySaveForm), async () =>
         unwrap(await putCompanyById({ path: { id }, body: { createCompany: company }, bodySerializer: serializeToFormData })),
       )
+      if (updated && this.companiesForm.data) {
+        this.companiesForm.data = this.companiesForm.data.map((item) => (item.id === id ? updated : item))
+      }
+      return updated
     },
     async deleteCompany(id: string): Promise<void> {
       if (!id || this.companyDeleteForm.loading) return

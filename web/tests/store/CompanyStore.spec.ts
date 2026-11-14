@@ -121,6 +121,27 @@ describe('CompanyStore', () => {
       expect(api.putCompanyById).toHaveBeenCalledWith(expect.objectContaining({ path: { id: 'acme' } }))
     })
 
+    it('replaces the company in the cached list', async () => {
+      const store = useCompanyStore()
+      store.companiesForm.data = [{ ...company('acme'), logo: 'old.webp' }, company('other')]
+      api.putCompanyById.mockResolvedValue(ok(company('acme')))
+
+      await store.updateCompany('acme', payload)
+
+      expect(store.companies.map((item) => item.logo)).toEqual([undefined, undefined])
+      expect(store.companies.map((item) => item.id)).toEqual(['acme', 'other'])
+    })
+
+    it('leaves the cached list alone when the update fails', async () => {
+      const store = useCompanyStore()
+      store.companiesForm.data = [{ ...company('acme'), logo: 'old.webp' }]
+      api.putCompanyById.mockResolvedValue(fail(ErrorCodes.Conflict, 409))
+
+      await store.updateCompany('acme', payload)
+
+      expect(store.companies[0]?.logo).toBe('old.webp')
+    })
+
     it('records a conflict error', async () => {
       const store = useCompanyStore()
       api.putCompanyById.mockResolvedValue(fail(ErrorCodes.Conflict, 409))

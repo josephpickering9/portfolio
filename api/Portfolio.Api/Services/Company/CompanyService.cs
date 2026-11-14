@@ -72,10 +72,13 @@ public sealed class CompanyService(
             return logo.Error!.ToFail();
         }
 
-        if (logo.Value is not null) company.Logo = logo.Value;
+        var previousLogo = company.Logo;
+        if (logo.Value is not null || updateCompany.RemoveLogo) company.Logo = logo.Value;
         await ApplyDetailsAsync(company, updateCompany, cancellationToken);
 
         await repository.UpdateAsync(company, cancellationToken);
+
+        if (company.Logo != previousLogo) fileService.DeleteFile(previousLogo);
 
         return company.ToOk();
     }
