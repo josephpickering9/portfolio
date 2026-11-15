@@ -47,7 +47,6 @@ write_config() {
   },
   "Auth0": {
     "Domain": "$AUTH0_DOMAIN",
-    "ClientId": "$AUTH0_CLIENT_ID",
     "Audience": "$AUTH0_AUDIENCE"
   },
   "Cors": {

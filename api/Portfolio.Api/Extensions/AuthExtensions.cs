@@ -1,5 +1,5 @@
-using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Portfolio.Api.Types;
 
 namespace Portfolio.Api.Extensions;
@@ -7,23 +7,20 @@ namespace Portfolio.Api.Extensions;
 public static class AuthExtensions
 {
     private const string DomainKey = "Auth0:Domain";
-    private const string ClientIdKey = "Auth0:ClientId";
     private const string AudienceKey = "Auth0:Audience";
+
+    public const string PermissionsClaim = "permissions";
+    public const string ManageContentPermission = "manage:content";
 
     public static IServiceCollection AddAuth0Authentication(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthorization();
-        services.AddAuth0WebAppAuthentication(options =>
-        {
-            options.Domain = configuration[DomainKey] ?? string.Empty;
-            options.ClientId = configuration[ClientIdKey] ?? string.Empty;
-        });
+        services.AddAuthorizationBuilder()
+            .SetDefaultPolicy(new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+                .RequireAuthenticatedUser()
+                .RequireClaim(PermissionsClaim, ManageContentPermission)
+                .Build());
 
-        services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            })
+        services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
                 options.Authority = configuration[DomainKey];

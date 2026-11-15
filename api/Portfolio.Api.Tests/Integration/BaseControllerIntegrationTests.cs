@@ -129,7 +129,8 @@ public abstract class BaseControllerIntegrationTests : IAsyncLifetime
     protected async Task<Company> CreateCompanyAsync(
         CompanyId companyId,
         string name = "Test Company",
-        string description = "Test Description")
+        string description = "Test Description",
+        string? logo = null)
     {
         var company = new Company
         {
@@ -137,6 +138,7 @@ public abstract class BaseControllerIntegrationTests : IAsyncLifetime
             Name = name,
             Description = description,
             Website = "https://example.com",
+            Logo = logo,
             Slug = name.ToSlug()
         };
 

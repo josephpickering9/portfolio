@@ -61,7 +61,6 @@ jobs:
           ASPNETCORE_URLS: ${{ env.API_URL }}
           ConnectionStrings__DefaultConnection: ${{ env.CONNECTION_STRING }}
           Auth0__Domain: https://e2e.invalid
-          Auth0__ClientId: e2e
           Auth0__Audience: ${{ env.API_URL }}
           Cors__AllowedOrigins__0: http://localhost:${{ env.WEB_PORT }}
         run: |

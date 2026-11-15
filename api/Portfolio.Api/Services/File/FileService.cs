@@ -24,9 +24,18 @@ public sealed class FileService(IWebHostEnvironment hostEnvironment, ILogger<Fil
         return filePath.ToOk();
     }
 
-    public void DeleteFile(string? filePath)
+    public void DeleteFile(string? fileName)
     {
-        if (string.IsNullOrEmpty(filePath)) return;
-        if (File.Exists(filePath)) File.Delete(filePath);
+        if (string.IsNullOrEmpty(fileName)) return;
+
+        var filePath = Path.Combine(hostEnvironment.GetUploadDirectory(), Path.GetFileName(fileName));
+        try
+        {
+            if (File.Exists(filePath)) File.Delete(filePath);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            logger.LogWarning(e, "Could not delete uploaded file {FileName}.", fileName);
+        }
     }
 }

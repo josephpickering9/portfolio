@@ -7,6 +7,10 @@ export function sortCompaniesNewestFirst(companies: Company[]): Company[] {
   return [...companies].sort((a, b) => (b.startDate ?? UNDATED_SORT_KEY).localeCompare(a.startDate ?? UNDATED_SORT_KEY))
 }
 
+export function isLogoRemoved(loaded: Company | undefined, logo: unknown): boolean {
+  return Boolean(loaded?.logo) && !logo
+}
+
 export function companyToForm(company: Company): CreateCompany {
   return {
     name: company.name,

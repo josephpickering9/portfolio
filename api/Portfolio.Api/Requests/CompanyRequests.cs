@@ -7,5 +7,6 @@ public sealed record CreateCompany
     public DateOnly? StartDate { get; init; }
     public DateOnly? EndDate { get; init; }
     public IFormFile? Logo { get; init; }
+    public bool RemoveLogo { get; init; }
     public string? Website { get; init; }
 }

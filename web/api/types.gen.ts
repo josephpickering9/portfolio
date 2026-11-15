@@ -21,6 +21,7 @@ export type CreateCompany = {
     startDate?: string | null;
     endDate?: string | null;
     logo?: Blob | File | null;
+    removeLogo?: boolean;
     website?: string | null;
 };
 

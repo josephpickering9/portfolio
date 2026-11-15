@@ -106,6 +106,18 @@ curl -sI -H 'Accept-Encoding: gzip' https://josephpickering.co.uk/_nuxt/<any-has
 curl -sI https://josephpickering.co.uk/ | grep -iE 'server|content-security-policy'
 ```
 
+## Auth0 tenant prerequisites
+
+Every `[Authorize]` endpoint requires the access token's `permissions` claim to contain `manage:content`.
+Tests mint their own tokens, so they cannot catch a tenant that isn't set up. Before deploying:
+
+1. In the Auth0 API for the audience, enable **RBAC** and **Add Permissions in the Access Token**.
+2. Define the `manage:content` permission on that API.
+3. Create a role with it and assign the role to the admin user.
+
+Without this, the admin gets 403 on every write. The API reads only `Auth0:Domain` and `Auth0:Audience`;
+the `AUTH0_CLIENT_ID` repository secret is no longer used by the API deploy and can be removed.
+
 ## One-off checks after the first deploy of this setup
 
 - `systemctl status portfolio-api` shows the API running under systemd, and nothing else is listening

@@ -100,7 +100,6 @@ public sealed class ProjectController(IProjectService projectService) : Controll
    ```env
    ConnectionStrings__DefaultConnection=Host=localhost;Port=5432;Database=work_experience;Username=postgres;Password=postgres
    Auth0:Domain=your-auth0-domain.auth0.com
-   Auth0:ClientId=your-client-id
    Auth0:Audience=your-api-audience
 
    # Optional — required only for AI search
