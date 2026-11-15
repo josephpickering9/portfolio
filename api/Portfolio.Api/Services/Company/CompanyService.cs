@@ -92,7 +92,9 @@ public sealed class CompanyService(
             return ErrorCodes.CompanyNotFound.ToFail();
         }
 
+        var logo = company.Logo;
         await repository.DeleteAsync(company, cancellationToken);
+        fileService.DeleteFile(logo);
 
         return Result.Ok();
     }

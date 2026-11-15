@@ -35,7 +35,7 @@ Every API failure body is `{ "error": "<snake_case_code>" }`. The codes are defi
 
 ## Auth
 
-Both sides use Auth0 — the backend validates JWT bearer tokens (`Auth0.AspNetCore.Authentication`), the frontend obtains them via `@auth0/auth0-vue`. Auth0 tenant/client config must stay in sync between `api/.env` and `web/.env` — see each project's `.env.example`.
+Both sides use Auth0 — the backend validates JWT bearer tokens (`Microsoft.AspNetCore.Authentication.JwtBearer`, Domain and Audience only) and requires the `manage:content` permission on every `[Authorize]` endpoint, the frontend obtains tokens via `@auth0/auth0-vue`. Auth0 domain/audience config must stay in sync between `api/.env` and `web/.env` — see each project's `.env.example`. The tenant must have RBAC on, "Add Permissions in the Access Token" on, and `manage:content` granted to the admin (see `docs/deploy/README.md`).
 
 ## Docs
 

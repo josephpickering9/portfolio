@@ -50,7 +50,7 @@ import { helpers, required } from '@vuelidate/validators'
 import type { Company, CreateCompany } from '@api'
 import { useCompanyStore } from '~/store/CompanyStore'
 import { useEntityForm } from '~/composables/useEntityForm'
-import { companyToForm } from '~/utils/company-helper'
+import { companyToForm, isLogoRemoved } from '~/utils/company-helper'
 import { defaultCompanyForm } from '~/utils/default-helper'
 import { getEntityFormCopy } from '~/utils/entity-form-helper'
 import { useImageUrl } from '~/composables/useImageUrl'
@@ -100,6 +100,7 @@ const entityForm = useEntityForm<Company, CreateCompany>({
 
 const form = ref<CreateCompany>({ ...defaultCompanyForm })
 const logo = ref<UploadItem | null>(null)
+const loaded = ref<Company>()
 const v$ = useVuelidate(RULES, { form })
 
 const loading = computed(() => Boolean(companyStore.companySaving || companyStore.companyLoading))
@@ -107,7 +108,7 @@ const copy = computed(() => getEntityFormCopy(ENTITY_NAME, Boolean(props.id), fo
 
 async function save() {
   if (!(await v$.value.$validate())) return entityForm.invalid()
-  await entityForm.save(props.id, { ...form.value, logo: logo.value?.file, removeLogo: !logo.value })
+  await entityForm.save(props.id, { ...form.value, logo: logo.value?.file, removeLogo: isLogoRemoved(loaded.value, logo.value) })
 }
 
 async function remove() {
@@ -119,6 +120,7 @@ onMounted(async () => {
   const company = await entityForm.fetch(props.id)
   if (!company) return
 
+  loaded.value = company
   form.value = companyToForm(company)
   logo.value = company.logo ? { key: company.logo, previewUrl: getImageUrl(company.logo) } : null
 })

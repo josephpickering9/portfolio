@@ -199,6 +199,16 @@ public class CompanyServiceTests : BaseServiceTests
     }
 
     [Fact]
+    public async Task DeleteCompanyAsync_CompanyWithLogo_DeletesItsFile()
+    {
+        await SetLogoAsync(ExistingLogo);
+
+        (await _companyService.DeleteCompanyAsync(Company1Id)).ExpectSuccess();
+
+        _mockFileService.Verify(f => f.DeleteFile(ExistingLogo), Times.Once);
+    }
+
+    [Fact]
     public async Task DeleteCompanyAsync_InvalidId_ThrowsNotFoundFailure()
     {
         var companyId = CompanyId.New();

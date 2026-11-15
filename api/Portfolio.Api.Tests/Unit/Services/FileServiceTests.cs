@@ -46,6 +46,26 @@ public sealed class FileServiceTests : IDisposable
     }
 
     [Fact]
+    public void DeleteFile_UploadCannotBeDeleted_DoesNotThrow()
+    {
+        if (OperatingSystem.IsWindows()) return;
+
+        var upload = CreateUpload("locked.webp");
+        var directory = Path.GetDirectoryName(upload)!;
+        File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserExecute);
+        try
+        {
+            _fileService.DeleteFile("locked.webp");
+
+            Assert.True(File.Exists(upload));
+        }
+        finally
+        {
+            File.SetUnixFileMode(directory, UnixFileMode.UserRead | UnixFileMode.UserWrite | UnixFileMode.UserExecute);
+        }
+    }
+
+    [Fact]
     public void DeleteFile_MissingOrEmpty_DoesNothing()
     {
         _fileService.DeleteFile("gone.webp");

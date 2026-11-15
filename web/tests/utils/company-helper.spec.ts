@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { Company } from '@api'
-import { companyToForm, sortCompaniesNewestFirst } from '~/utils/company-helper'
+import { companyToForm, isLogoRemoved, sortCompaniesNewestFirst } from '~/utils/company-helper'
 
 function company(name: string, startDate?: string): Company {
   return { id: name, name, description: '', slug: name.toLowerCase(), startDate }
@@ -35,5 +35,23 @@ describe('companyToForm', () => {
       startDate: '2020-01-01',
       endDate: '2022-06-01',
     })
+  })
+})
+
+describe('isLogoRemoved', () => {
+  const withLogo: Company = { ...company('Acme'), logo: 'acme.webp' }
+
+  it('is true only when a loaded logo has been cleared', () => {
+    expect(isLogoRemoved(withLogo, null)).toBe(true)
+  })
+
+  it('is false while the existing logo is kept or replaced', () => {
+    expect(isLogoRemoved(withLogo, { key: 'acme.webp', previewUrl: '' })).toBe(false)
+    expect(isLogoRemoved(withLogo, { key: 'new', previewUrl: '', file: new File([], 'new.webp') })).toBe(false)
+  })
+
+  it('is false when the company never loaded or had no logo', () => {
+    expect(isLogoRemoved(undefined, null)).toBe(false)
+    expect(isLogoRemoved(company('Plain'), null)).toBe(false)
   })
 })
