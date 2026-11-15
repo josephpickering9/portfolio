@@ -24,8 +24,6 @@ public sealed class FileService(IWebHostEnvironment hostEnvironment, ILogger<Fil
         return filePath.ToOk();
     }
 
-    // Images store the bare file name, so resolve it inside the upload directory. Path.GetFileName also
-    // keeps a stored or requested name from pointing anywhere else.
     public void DeleteFile(string? fileName)
     {
         if (string.IsNullOrEmpty(fileName)) return;

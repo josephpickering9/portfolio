@@ -12,8 +12,6 @@ public static class AuthExtensions
     public const string PermissionsClaim = "permissions";
     public const string ManageContentPermission = "manage:content";
 
-    // Every [Authorize] endpoint uses the default policy, so a valid token from the tenant is not enough:
-    // it must carry the manage:content permission (Auth0 RBAC with "Add Permissions in the Access Token").
     public static IServiceCollection AddAuth0Authentication(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddAuthorizationBuilder()

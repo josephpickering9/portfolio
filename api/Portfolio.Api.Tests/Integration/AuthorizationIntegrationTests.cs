@@ -10,8 +10,6 @@ using Xunit;
 
 namespace Portfolio.Api.Tests.Integration;
 
-// Discovers every [Authorize] endpoint from the running app, so a new one is covered the moment it's added:
-// none may answer an anonymous caller or a signed-in user without manage:content.
 public class AuthorizationIntegrationTests(CustomWebApplicationFactory factory)
     : BaseControllerIntegrationTests(factory), IClassFixture<CustomWebApplicationFactory>
 {
